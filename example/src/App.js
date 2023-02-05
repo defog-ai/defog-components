@@ -1,10 +1,14 @@
 import React from 'react'
 
-import { ExampleComponent } from 'defog-react'
+import { AskDefog } from 'defog-react'
 import 'defog-react/dist/index.css'
 
 const App = () => {
-  return <ExampleComponent text="Create React Library Example 😄" />
+  return <AskDefog
+    showQuery={true}
+    maxHeight={500}
+    apiEndpoint="https://test-defog-expenses-ikcpfh5tva-uc.a.run.app"
+  />
 }
 
 export default App
