@@ -14,7 +14,7 @@ return <AskDefog
 You can import our "chat-styled" component like this
 
 ```
-import { AskDefogChat } from 'defog-react'
+import { AskDefogChat } from 'defog-components'
 
 const App = () => {
   return <AskDefogChat
