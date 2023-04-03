@@ -1,5 +1,7 @@
 # defog-components
 
+You can install `defog-components` with `npm i defog-components`
+
 You can import our "standard" component like this
 
 ```
