@@ -6,6 +6,7 @@ import SearchState from "./components/SearchState.js";
 import ErrorSvg from "./components/svg/ErrorSvg.js";
 import LoadingLottie from "./components/svg/ridinloop_1.json";
 import DefogViz from './components/DefogViz.js';
+import DefogDynamicViz from './components/DefogDynamicViz.js';
 import styled from "styled-components";
 
 export const AskDefogChat = ({
@@ -21,6 +22,9 @@ export const AskDefogChat = ({
   const [previousQuestions, setPreviousQuestions] = useState([]);
   const [widgetHeight, setWidgetHeight] = useState(40);
   const [responseArray, setResponseArray] = useState([]);
+  const [vizType, setVizType] = useState("table");
+  const [rawData, setRawData] = useState([]);
+  const [query, setQuery] = useState("");
   const divRef = useRef(null);
 
   const scrollToDiv = () => {
@@ -29,6 +33,7 @@ export const AskDefogChat = ({
 
   const handleSubmit = async (query) => {
     setLoading(true);
+    setQuery(query);
     const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
@@ -40,6 +45,18 @@ export const AskDefogChat = ({
       })
     });
     const data = await response.json();
+    setRawData(data.data);
+
+    if (query.toLowerCase().indexOf("pie chart") > -1 || query.toLowerCase().indexOf("piechart") > -1) {
+      setVizType("piechart");
+    } else if (query.toLowerCase().indexOf("bar chart") > -1 || query.toLowerCase().indexOf("barchart") > -1 || query.toLowerCase().indexOf("column chart") > -1 || query.toLowerCase().indexOf("columnchart") > -1) {
+      setVizType("columnchart");
+    } else if (query.toLowerCase().indexOf("trend chart") > -1 || query.toLowerCase().indexOf("trendchart") > -1 || query.toLowerCase().indexOf("line chart") > -1 || query.toLowerCase().indexOf("linechart") > -1) {
+      setVizType("trendchart");
+    } else {
+      setVizType("table");
+    }
+
     let newCols;
     let newRows;
     if (data.columns && data?.data.length > 0) {
@@ -105,15 +122,11 @@ export const AskDefogChat = ({
                     <hr style={{borderTop: "1px dashed lightgrey"}}/>
                     <p style={{ marginTop: 10 }}>{response.question}</p>
                     <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>{response.queryReason}</p>
-                    <Table
-                      dataSource={response.data}
-                      columns={response.columns}
-                      style={{
-                        maxHeight: 300,
-                        overflow: "auto",
-                      }}
-                      size="small"
-                      pagination={{ pageSize: 5}}
+                    <DefogDynamicViz
+                      vizType={vizType}
+                      response={response}
+                      rawData={rawData}
+                      query={query}
                     />
                     <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>{response.suggestedQuestions}</p>
                   </div>
