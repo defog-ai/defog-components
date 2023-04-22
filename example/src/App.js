@@ -7,7 +7,7 @@ const App = () => {
   return <AskDefogChat
     maxWidth={"100%"}
     maxHeight={"100%"}
-    apiEndpoint="https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app"
+    apiEndpoint="YOUR_API_ENDPOINT"
     buttonText={"Ask AI"}
   />
 }
