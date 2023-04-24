@@ -60,9 +60,13 @@ const DefogDynamicViz = ({vizType, response, rawData, query, debugMode}) => {
   return <div>    
     {results}
     {debugMode && <div className="rateQualityContainer">
+      <p>The following query was generated:</p>
+      <pre>
+        {response.query_generated}
+      </pre>
       <p>How did we do with is this query?</p>
-      <button style={{backgroundColor: "#fff"}} onClick={() => console.log("Good")}>👍 Great </button>
-      <button style={{backgroundColor: "#fff"}} onClick={() => console.log("Bad")}>👎 Bad </button>
+      <button style={{backgroundColor: "#fff", border: "0px"}} onClick={() => console.log("Good")}>👍 Good </button>
+      <button style={{backgroundColor: "#fff", border: "0px"}} onClick={() => console.log("Bad")}>👎 Bad </button>
     </div>
     }
   </div>
