@@ -14,6 +14,7 @@ export const AskDefogChat = ({
   maxHeight="100%",
   maxWidth="100%",
   buttonText="Ask Defog",
+  debugMode=false,
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -127,6 +128,7 @@ export const AskDefogChat = ({
                       response={response}
                       rawData={rawData}
                       query={query}
+                      debugMode={debugMode}
                     />
                     <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>{response.suggestedQuestions}</p>
                   </div>
