@@ -6,6 +6,7 @@ import TrendChart from './Charts/TrendChart.jsx';
 
 const DefogDynamicViz = ({vizType, response, rawData, query, debugMode}) => {
   let results;
+  console.log(response);
   if (vizType === "table") {
     results = <Table
       dataSource={response.data}
@@ -62,7 +63,7 @@ const DefogDynamicViz = ({vizType, response, rawData, query, debugMode}) => {
     {debugMode && <div className="rateQualityContainer">
       <p>The following query was generated:</p>
       <pre>
-        {response.query_generated}
+        {response.generatedSql}
       </pre>
       <p>How did we do with is this query?</p>
       <button style={{backgroundColor: "#fff", border: "0px"}} onClick={() => console.log("Good")}>👍 Good </button>
