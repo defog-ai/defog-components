@@ -4,9 +4,23 @@ import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from './Charts/ColumnChart.jsx';
 import TrendChart from './Charts/TrendChart.jsx';
 
-const DefogDynamicViz = ({vizType, response, rawData, query, debugMode}) => {
+const DefogDynamicViz = ({vizType, response, rawData, query, debugMode, apiKey}) => {
   let results;
-  console.log(response);
+
+  const uploadFeedback = (feedback) => {
+    fetch(`https://api.defog.ai/feedback`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        apiKey,
+        response,
+        feedback
+      }),
+    })
+  }
+
   if (vizType === "table") {
     results = <Table
       dataSource={response.data}
@@ -66,8 +80,8 @@ const DefogDynamicViz = ({vizType, response, rawData, query, debugMode}) => {
         {response.generatedSql}
       </pre>
       <p>How did we do with is this query?</p>
-      <button style={{backgroundColor: "#fff", border: "0px"}} onClick={() => console.log("Good")}>👍 Good </button>
-      <button style={{backgroundColor: "#fff", border: "0px"}} onClick={() => console.log("Bad")}>👎 Bad </button>
+      <button style={{backgroundColor: "#fff", border: "0px"}} onClick={() => uploadFeedback("Good")}>👍 Good </button>
+      <button style={{backgroundColor: "#fff", border: "0px"}} onClick={() => uploadFeedback("Bad")}>👎 Bad </button>
     </div>
     }
   </div>

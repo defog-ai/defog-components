@@ -85,10 +85,6 @@ export const AskDefogChat = ({
       newCols = [];
       newRows = [];
     }
-    const contextQuestions = [query, data.query_generated]
-    setPreviousQuestions([...previousQuestions, ...contextQuestions]);
-    setWidgetHeight(400);
-    setLoading(false);
 
     setResponseArray([...responseArray, {
       queryReason: data.reason_for_query,
@@ -97,7 +93,14 @@ export const AskDefogChat = ({
       suggestedQuestions: data.suggestion_for_further_questions,
       question: query,
       generatedSql: data.query_generated,
+      previousContext: previousQuestions,
     }]);
+
+    const contextQuestions = [query, data.query_generated]
+    setPreviousQuestions([...previousQuestions, ...contextQuestions]);
+    setWidgetHeight(400);
+    setLoading(false);
+    
     // scroll to the bottom of the results div
     const resultsDiv = document.getElementById("results");
     resultsDiv.scrollTop = resultsDiv.scrollHeight;
@@ -129,6 +132,7 @@ export const AskDefogChat = ({
                       rawData={rawData}
                       query={query}
                       debugMode={debugMode}
+                      apiKey={apiKey}
                     />
                     <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>{response.suggestedQuestions}</p>
                   </div>
