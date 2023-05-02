@@ -67,6 +67,4 @@ const ColumnChart = React.memo(
   () => false
 );
 
-ColumnChart.displayName = "ColumnChart";
-
 export default ColumnChart;

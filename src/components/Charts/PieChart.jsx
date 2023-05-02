@@ -26,35 +26,39 @@ const PieChart = React.memo(
     return (
       <ErrorBoundary>
         <Row justify={"center"}>
-          <Col md={{ span: 24 }} lg={12}>
-            <div className="pie-chart-ctr" style={{ height: height + "px" }}>
-              <Pie
-                data={{
-                  labels: chartLabels,
-                  datasets: chartData.map((d, i) => ({
-                    label: columns[i + 1].title,
-                    data: d,
-                  })),
-                }}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    title: {
-                      display: true,
-                      text: title,
+          {/* don't nest pie charts */}
+          {chartData.map((d, i) => (
+            <Col md={{ span: 24 }} lg={12}>
+              <div className="pie-chart-ctr" style={{ height: height + "px" }}>
+                <Pie
+                  key={columns[i + 1].title}
+                  data={{
+                    labels: chartLabels,
+                    datasets: [
+                      {
+                        label: columns[i + 1].title,
+                        data: d,
+                      },
+                    ],
+                  }}
+                  options={{
+                    maintainAspectRatio: false,
+                    plugins: {
+                      title: {
+                        display: true,
+                        text: title,
+                      },
                     },
-                  },
-                }}
-              ></Pie>
-            </div>
-          </Col>
+                  }}
+                ></Pie>
+              </div>
+            </Col>
+          ))}
         </Row>
       </ErrorBoundary>
     );
   },
   () => false
 );
-
-PieChart.displayName = "PieChart";
 
 export default PieChart;

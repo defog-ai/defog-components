@@ -73,6 +73,4 @@ const TrendChartNew = React.memo(
   () => false
 );
 
-TrendChartNew.displayName = "TrendChart";
-
 export default TrendChartNew;
