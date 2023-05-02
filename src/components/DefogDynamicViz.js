@@ -1,12 +1,11 @@
 import React from 'react';
-import { Table } from 'antd';
+import { Table, message } from 'antd';
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from './Charts/ColumnChart.jsx';
 import TrendChart from './Charts/TrendChart.jsx';
 
 const DefogDynamicViz = ({vizType, response, rawData, query, debugMode, apiKey}) => {
   let results;
-
   const uploadFeedback = (feedback) => {
     fetch(`https://api.defog.ai/feedback`, {
       method: "POST",
@@ -14,11 +13,13 @@ const DefogDynamicViz = ({vizType, response, rawData, query, debugMode, apiKey})
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        apiKey,
-        response,
-        feedback
+        apiKey: apiKey,
+        response: response,
+        feedback: feedback,
       }),
     })
+
+    feedback === "Good" ? message.success("We are glad that this was a good result. Thank you for the feedback!") : message.info("Thank you for the feedback, we will use your feedback to make the results better!")
   }
 
   if (vizType === "table") {

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import Lottie from "lottie-react";
-import { Input, Row, Col, Table, Collapse, message } from 'antd';
+import { Input, Row, Col, Collapse, message } from 'antd';
 import { CaretRightOutlined } from '@ant-design/icons';
 import SearchState from "./components/SearchState.js";
 import ErrorSvg from "./components/svg/ErrorSvg.js";
@@ -15,6 +15,7 @@ export const AskDefogChat = ({
   maxWidth="100%",
   buttonText="Ask Defog",
   debugMode=false,
+  apiKey
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
