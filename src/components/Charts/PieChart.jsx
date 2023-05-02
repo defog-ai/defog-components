@@ -1,69 +1,54 @@
 import React from "react";
-import Chart from "../BaseCharts/Chart.jsx";
+// import Chart from "../BaseCharts/Chart.jsx";
 import ErrorBoundary from "../common/ErrorBoundary";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Colors,
+} from "chart.js";
+import { Pie } from "react-chartjs-2";
 
-const PieChart = React.memo((props) => {
-  const seriesData = props.data.seriesName
-    ? [
-        {
-          name: props.data.seriesName,
-          data: props.data.dataJSON,
-          colorByPoint: true,
-        },
-      ]
-    : [{name: "Data", data: props.data.dataJSON, colorByPoint: true}];
-  
-  const options = {
-    chart: {
-      marginRight: 10,
-      backgroundColor: props.style?.backgroundColor || "#fff",
-      animation: false,
-      height: props.height || 400,
-      type: "pie",
-      plotShadow: false,
-    },
-    title: {
-      text: props?.noTitle ? null : props.data?.title,
-      align: "left",
-      style: {
-        color: props.style?.textColor || undefined,
-        fontSize:
-          props.data?.title?.length <= 50 || props.standaloneChart ? "14px" : "11px",
-        fontFamily: props.style?.titleFont || "Inter",
-      },
-    },
-    plotOptions: {
-      series: {
-        marker: { enabled: false },
-        animation: {
-          duration: 0,
-        },
-        stacking: "normal",
-      },
-      pie: {
-        allowPointSelect: true,
-        cursor: "pointer",
-        dataLabels: {
-          enabled: true,
-          format: '<b>{point.name}</b>: {point.percentage:.1f} %',
-          style: {
-            color: '#000000',
-            fontSize: '11px',
-            fontFamily: 'Inter',
-          },
-        }
-      },
-    },
-    credits: { enabled: false },
-    series: seriesData,
-  };
+ChartJS.register(ArcElement, Tooltip, Legend, Colors);
 
-  return (
-    <ErrorBoundary>
-      <Chart options={options} />
-    </ErrorBoundary>
-  );
-}, () => false);
+const PieChart = React.memo(
+  (props) => {
+    const chartLabels = [];
+    const chartData = [];
+    props.data.dataJSON.forEach((d) => {
+      chartLabels.push(d.name);
+      chartData.push(d.y);
+    });
+
+    return (
+      <ErrorBoundary>
+        <div className="pie-chart-ctr" style={{ height: props.height + "px" }}>
+          <Pie
+            data={{
+              labels: chartLabels,
+              datasets: [
+                {
+                  data: chartData,
+                },
+              ],
+            }}
+            options={{
+              maintainAspectRatio: false,
+              plugins: {
+                title: {
+                  display: true,
+                  text: props.data.title,
+                },
+              },
+            }}
+          ></Pie>
+        </div>
+      </ErrorBoundary>
+    );
+  },
+  () => false
+);
 
 PieChart.displayName = "PieChart";
 

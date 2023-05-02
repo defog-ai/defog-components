@@ -46,6 +46,7 @@ export const AskDefogChat = ({
     });
     const data = await response.json();
     setRawData(data.data);
+    console.log(data);
 
     if (query.toLowerCase().indexOf("pie chart") > -1 || query.toLowerCase().indexOf("piechart") > -1) {
       setVizType("piechart");

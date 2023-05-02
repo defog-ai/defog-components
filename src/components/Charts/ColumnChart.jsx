@@ -1,77 +1,69 @@
-import React, { useState } from "react";
-import Chart from "../BaseCharts/Chart.jsx";
-import { Spin, Row, Col } from "antd";
+import React from "react";
+// import Chart from "../BaseCharts/Chart.jsx";
 import ErrorBoundary from "../common/ErrorBoundary";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Colors,
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
 
-const ColumnChart = React.memo((props) => {
-  const [loading, setLoading] = useState(false);
-  const style = props.style || {};
-  // console.log(props);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-  const options = {
-    chart: {
-      marginRight: 10,
-      backgroundColor: style?.backgroundColor || "#fff",
-      animation: false,
-      height: style.height || props.height || 420,
-      type: "column",
-    },
-    xAxis: {
-      categories: props.data.xAxisCategories,
-    },
-    yAxis: {
-      title: {
-        text: props.data.uom,
-      },
-    },
-    title: {
-      text: props?.noTitle ? null : props.data?.title,
-      align: "left",
-      style: {
-        fontSize: "19px",
-        fontFamily: "Inter",
-      },
-    },
-    plotOptions: {
-      series: {
-        marker: { enabled: false },
-        animation: {
-          duration: 0,
-        },
-      },
-      column: {
-        negativeColor: "#fc8d59",
-      },
-    },
-    legend: {
-      enabled: props.legendEnabled || false,
-      itemStyle: { fontWeight: "400" },
-    },
-    credits: { enabled: false },
-    series: [
-      {
-        name: props.data.seriesName,
-        data: props.data.dataJSON,
-        colorByPoint: true,
-      },
-    ],
-  };
-  return (
-    <ErrorBoundary>
-      <Row>
-        <Col span={24}>
-          {loading ? (
-            <div style={{ height: props.height || 400 }}>
-              <Spin />
-            </div>
-          ) : (
-            <Chart options={options} />
-          )}
-        </Col>
-      </Row>
-    </ErrorBoundary>
-  );
-}, () => false);
+ChartJS.register(ArcElement, Tooltip, Legend, Colors);
+
+const ColumnChart = React.memo(
+  (props) => {
+    const chartLabels = [];
+    const chartData = [];
+    props.data.dataJSON.forEach((d) => {
+      chartLabels.push(d.x);
+      chartData.push(d.y);
+    });
+
+    return (
+      <ErrorBoundary>
+        <div
+          className="column-chart-ctr"
+          style={{ height: props.height + "px" }}
+        >
+          <Bar
+            data={{
+              labels: chartLabels,
+              datasets: [
+                {
+                  data: chartData,
+                },
+              ],
+            }}
+            options={{
+              maintainAspectRatio: false,
+              plugins: {
+                title: {
+                  display: true,
+                  text: props.data.title,
+                },
+              },
+            }}
+          ></Bar>
+        </div>
+      </ErrorBoundary>
+    );
+  },
+  () => false
+);
 
 ColumnChart.displayName = "ColumnChart";
 

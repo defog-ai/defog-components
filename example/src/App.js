@@ -1,13 +1,13 @@
 import React from 'react'
 
-import { AskDefog, AskDefogChat } from 'defog-react'
-import 'defog-react/dist/index.css'
+import { AskDefogChat } from 'defog-react'
+// import 'defog-react/dist/index.css'
 
 const App = () => {
   return <AskDefogChat
     maxWidth={"100%"}
     maxHeight={"100%"}
-    apiEndpoint="YOUR_API_ENDPOINT"
+    apiEndpoint="http://127.0.0.1:8000/generate_query_chat"
     buttonText={"Ask AI"}
   />
 }
