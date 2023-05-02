@@ -7,8 +7,10 @@ const App = () => {
   return <AskDefogChat
     maxWidth={"100%"}
     maxHeight={"100%"}
-    apiEndpoint="YOUR_API_ENDPOINT"
-    buttonText={"Ask AI"}
+    apiEndpoint="http://127.0.0.1:8000/generate_query_chat"
+    buttonText={"Ask Defog"}
+    debugMode={true}
+    apiKey={"1"}
   />
 }
 
