@@ -37,8 +37,6 @@ const TrendChartNew = React.memo(
       hoverRadius: 5,
     });
 
-    console.log(ChartJS.defaults.elements.point);
-
     if (data instanceof Array) {
       const { chartData, chartLabels } = transformToChartJSType(data, columns);
 

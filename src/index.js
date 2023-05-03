@@ -139,7 +139,7 @@ export const AskDefogChat = ({
         <Collapse
           bordered={false}
           defaultActiveKey={[null]}
-          expandIconPosition="right"
+          expandIconPosition="end"
           style={{ color: "#fff", backgroundColor: "#fff" }}
           expandIcon={() => <CaretRightOutlined rotate={isActive ? 270 : 90} />}
           onChange={(state) =>
