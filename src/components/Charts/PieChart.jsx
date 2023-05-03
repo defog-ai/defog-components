@@ -12,14 +12,13 @@ import {
 import { Pie } from "react-chartjs-2";
 import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
 
-setChartJSDefaults(ChartJS);
-
 ChartJS.register(ArcElement, Tooltip, Legend, Colors);
 
 const PieChart = React.memo(
   (props) => {
     const { data, columns, title } = props.data;
     const height = props.height;
+    setChartJSDefaults(ChartJS, title);
 
     const { chartData, chartLabels } = transformToChartJSType(data, columns);
 
@@ -40,15 +39,6 @@ const PieChart = React.memo(
                         data: d,
                       },
                     ],
-                  }}
-                  options={{
-                    maintainAspectRatio: false,
-                    plugins: {
-                      title: {
-                        display: true,
-                        text: title,
-                      },
-                    },
                   }}
                 ></Pie>
               </div>

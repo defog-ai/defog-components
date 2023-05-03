@@ -7,10 +7,13 @@ export function isDate(s) {
   return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
 }
 
-export function setChartJSDefaults(ChartJSRef) {
+export function setChartJSDefaults(ChartJSRef, title = "") {
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
   ChartJSRef.defaults.interaction.axis = "xy";
   ChartJSRef.defaults.interaction.mode = "nearest";
+  ChartJSRef.defaults.maintainAspectRatio = false;
+  ChartJSRef.defaults.plugins.title.display = true;
+  ChartJSRef.defaults.plugins.title.text = title;
 }
 
 export function transformToChartJSType(data, columns) {

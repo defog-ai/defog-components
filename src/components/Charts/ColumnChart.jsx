@@ -16,8 +16,6 @@ import { Bar } from "react-chartjs-2";
 
 import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
 
-setChartJSDefaults(ChartJS);
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,6 +30,7 @@ const ColumnChart = React.memo(
   (props) => {
     const { data, columns, title } = props.data;
     const height = props.height;
+    setChartJSDefaults(ChartJS, title);
 
     const { chartData, chartLabels } = transformToChartJSType(data, columns);
 

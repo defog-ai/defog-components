@@ -14,8 +14,6 @@ import {
 import { Line } from "react-chartjs-2";
 import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
 
-setChartJSDefaults(ChartJS);
-
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -30,6 +28,16 @@ const TrendChartNew = React.memo(
   (props) => {
     const { data, columns, title } = props.data;
     const height = props.height;
+    setChartJSDefaults(ChartJS, title);
+
+    Object.assign(ChartJS.defaults.elements.point, {
+      borderWidth: 0,
+      radius: 5,
+      hitRadius: 10,
+      hoverRadius: 5,
+    });
+
+    console.log(ChartJS.defaults.elements.point);
 
     if (data instanceof Array) {
       const { chartData, chartLabels } = transformToChartJSType(data, columns);
@@ -43,15 +51,6 @@ const TrendChartNew = React.memo(
             data: d,
             tension: 0.2,
           })),
-        },
-        options: {
-          maintainAspectRatio: false,
-          plugins: {
-            title: {
-              display: true,
-              text: title,
-            },
-          },
         },
       };
 
