@@ -1,5 +1,4 @@
 import React from "react";
-// import Chart from "../BaseCharts/Chart.jsx";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { Row, Col } from "antd";
 import {
