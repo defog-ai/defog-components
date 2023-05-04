@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import Lottie from "lottie-react";
-import { Input, Row, Col, Table, Collapse, message } from "antd";
-import { CaretRightOutlined } from "@ant-design/icons";
+import { Input, Row, Col, Collapse, message } from 'antd';
+import { CaretRightOutlined } from '@ant-design/icons';
 import SearchState from "./components/SearchState.js";
 import ErrorSvg from "./components/svg/ErrorSvg.js";
 import LoadingLottie from "./components/svg/ridinloop_1.json";
@@ -11,10 +11,12 @@ import styled from "styled-components";
 import { isDate } from "./components/common/utils.js";
 
 export const AskDefogChat = ({
-  apiEndpoint = "https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
-  maxHeight = "100%",
-  maxWidth = "100%",
-  buttonText = "Ask Defog",
+  apiEndpoint="https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
+  maxHeight="100%",
+  maxWidth="100%",
+  buttonText="Ask Defog",
+  debugMode=false,
+  apiKey
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -103,23 +105,21 @@ export const AskDefogChat = ({
       newCols = [];
       newRows = [];
     }
-    const contextQuestions = [query, data.query_generated];
+    setResponseArray([...responseArray, {
+      queryReason: data.reason_for_query,
+      data: newRows,
+      columns: newCols,
+      suggestedQuestions: data.suggestion_for_further_questions,
+      question: query,
+      generatedSql: data.query_generated,
+      previousContext: previousQuestions,
+    }]);
+
+    const contextQuestions = [query, data.query_generated]
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
     setWidgetHeight(400);
     setLoading(false);
-    console.log(newCols);
-
-    setResponseArray([
-      ...responseArray,
-      {
-        queryReason: data.reason_for_query,
-        data: newRows,
-        columns: newCols,
-        suggestedQuestions: data.suggestion_for_further_questions,
-        question: query,
-        generatedSql: data.query_generated,
-      },
-    ]);
+    
     // scroll to the bottom of the results div
     const resultsDiv = document.getElementById("results");
     resultsDiv.scrollTop = resultsDiv.scrollHeight;
@@ -170,6 +170,8 @@ export const AskDefogChat = ({
                       response={response}
                       rawData={rawData}
                       query={query}
+                      debugMode={debugMode}
+                      apiKey={apiKey}
                     />
                     <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
                       {response.suggestedQuestions}

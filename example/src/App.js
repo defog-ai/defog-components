@@ -8,7 +8,9 @@ const App = () => {
     maxWidth={"100%"}
     maxHeight={"100%"}
     apiEndpoint="http://127.0.0.1:8000/generate_query_chat"
-    buttonText={"Ask AI"}
+    buttonText={"Ask Defog"}
+    debugMode={true}
+    apiKey={"1"}
   />
 }
 
