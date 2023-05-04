@@ -1,70 +1,53 @@
 import React from "react";
-import Chart from "../BaseCharts/Chart.jsx";
+import { Row, Col } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Colors,
+} from "chart.js";
+import { Pie } from "react-chartjs-2";
+import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
 
-const PieChart = React.memo((props) => {
-  const seriesData = props.data.seriesName
-    ? [
-        {
-          name: props.data.seriesName,
-          data: props.data.dataJSON,
-          colorByPoint: true,
-        },
-      ]
-    : [{name: "Data", data: props.data.dataJSON, colorByPoint: true}];
-  
-  const options = {
-    chart: {
-      marginRight: 10,
-      backgroundColor: props.style?.backgroundColor || "#fff",
-      animation: false,
-      height: props.height || 400,
-      type: "pie",
-      plotShadow: false,
-    },
-    title: {
-      text: props?.noTitle ? null : props.data?.title,
-      align: "left",
-      style: {
-        color: props.style?.textColor || undefined,
-        fontSize:
-          props.data?.title?.length <= 50 || props.standaloneChart ? "14px" : "11px",
-        fontFamily: props.style?.titleFont || "Inter",
-      },
-    },
-    plotOptions: {
-      series: {
-        marker: { enabled: false },
-        animation: {
-          duration: 0,
-        },
-        stacking: "normal",
-      },
-      pie: {
-        allowPointSelect: true,
-        cursor: "pointer",
-        dataLabels: {
-          enabled: true,
-          format: '<b>{point.name}</b>: {point.percentage:.1f} %',
-          style: {
-            color: '#000000',
-            fontSize: '11px',
-            fontFamily: 'Inter',
-          },
-        }
-      },
-    },
-    credits: { enabled: false },
-    series: seriesData,
-  };
+ChartJS.register(ArcElement, Tooltip, Legend, Colors);
 
-  return (
-    <ErrorBoundary>
-      <Chart options={options} />
-    </ErrorBoundary>
-  );
-}, () => false);
+const PieChart = React.memo(
+  (props) => {
+    const { data, columns, title } = props.data;
+    const height = props.height;
+    setChartJSDefaults(ChartJS, title);
 
-PieChart.displayName = "PieChart";
+    const { chartData, chartLabels } = transformToChartJSType(data, columns);
+
+    return (
+      <ErrorBoundary>
+        <Row justify={"center"}>
+          {/* don't nest pie charts */}
+          {chartData.map((d, i) => (
+            <Col md={{ span: 24 }} lg={12}>
+              <div className="pie-chart-ctr" style={{ height: height + "px" }}>
+                <Pie
+                  key={columns[i + 1].title}
+                  data={{
+                    labels: chartLabels,
+                    datasets: [
+                      {
+                        label: columns[i + 1].title,
+                        data: d,
+                      },
+                    ],
+                  }}
+                ></Pie>
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </ErrorBoundary>
+    );
+  },
+  () => false
+);
 
 export default PieChart;

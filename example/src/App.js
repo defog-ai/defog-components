@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { AskDefog, AskDefogChat } from 'defog-react'
-import 'defog-react/dist/index.css'
+import { AskDefogChat } from 'defog-react'
+// import 'defog-react/dist/index.css'
 
 const App = () => {
   return <AskDefogChat
