@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import { Table } from "antd";
 
 const DataTable = ({ data, cols, loading }) => {
@@ -8,8 +8,9 @@ const DataTable = ({ data, cols, loading }) => {
       columns={cols}
       loading={loading}
       size={"large"}
+      rowKey={"key"}
     />
-  )
-}
+  );
+};
 
-export default DataTable
+export default DataTable;

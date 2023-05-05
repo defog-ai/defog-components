@@ -1,16 +1,16 @@
-import React from 'react'
-import BaseChart from './BaseChart.jsx'
+import React from "react";
+import BaseChart from "./BaseChart.jsx";
 
-const Chart = ((props) => {
+const Chart = (props) => {
   return (
-    <BaseChart 
+    <BaseChart
       constructorType={"stockChart"}
       options={props.options}
       annotate={props.annotate}
     />
-  )
-})
+  );
+};
 
-Chart.displayName = 'Chart';
+Chart.displayName = "Chart";
 
 export default Chart;

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Table, message } from 'antd';
 import PieChart from "./Charts/PieChart.jsx";
-import ColumnChart from './Charts/ColumnChart.jsx';
-import TrendChart from './Charts/TrendChart.jsx';
+import ColumnChart from "./Charts/ColumnChart.jsx";
+import TrendChartNew from "./Charts/TrendChartNew.jsx";
 
 const DefogDynamicViz = ({vizType, response, rawData, query, debugMode, apiKey}) => {
   let results;
@@ -35,41 +35,33 @@ const DefogDynamicViz = ({vizType, response, rawData, query, debugMode, apiKey})
     />
   } else if (vizType === "piechart") {
     results = <PieChart
-      resourceId={null}
       data={{
-        dataJSON: rawData.map((el) => ({ name: el[0], y: el[1] })),
+        // dataJSON: rawData.map((el) => ({ name: el[0], y: el[1] })),
+        data: rawData,
+        columns: response.columns,
         title: query,
       }}
       height={400}
-      standaloneChart={false}
-      logo={null}
-      noTitle={false}
     />
   } else if (vizType === "columnchart") {
     results = <ColumnChart
-      resourceId={null}
       data={{
-        dataJSON: rawData.map((el) => el[1]),
-        xAxisCategories: rawData.map((el) => el[0]),
+        // dataJSON: rawData.map((el) => ({ x: el[0], y: el[1] })),
+        data: rawData,
+        columns: response.columns,
+        // xAxisCategories: rawData.map((el) => el[0]),
         title: query,
       }}
       height={400}
-      standaloneChart={false}
-      logo={null}
-      noTitle={false}
     />
   } else if (vizType === "trendchart") {
-    results = <TrendChart
-      resourceId={null}
+    results = <TrendChartNew
       data={{
-        dataJSON: rawData,
+        data: rawData,
+        columns: response.columns,
         title: query,
       }}
-      transformMode="base"
       height={400}
-      standaloneChart={false}
-      logo={null}
-      noTitle={false}
     />
   }
 

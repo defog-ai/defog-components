@@ -1,13 +1,14 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef } from "react";
 import Lottie from "lottie-react";
 import { Input, Row, Col, Collapse, message } from 'antd';
 import { CaretRightOutlined } from '@ant-design/icons';
 import SearchState from "./components/SearchState.js";
 import ErrorSvg from "./components/svg/ErrorSvg.js";
 import LoadingLottie from "./components/svg/ridinloop_1.json";
-import DefogViz from './components/DefogViz.js';
-import DefogDynamicViz from './components/DefogDynamicViz.js';
+import DefogViz from "./components/DefogViz.js";
+import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import styled from "styled-components";
+import { isDate } from "./components/common/utils.js";
 
 export const AskDefogChat = ({
   apiEndpoint="https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
@@ -31,29 +32,43 @@ export const AskDefogChat = ({
 
   const scrollToDiv = () => {
     divRef.current.scrollTop = divRef.current.scrollHeight;
-  }
+  };
 
   const handleSubmit = async (query) => {
     setLoading(true);
     setQuery(query);
     const response = await fetch(apiEndpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         question: query,
         previous_context: previousQuestions,
-      })
+      }),
     });
     const data = await response.json();
     setRawData(data.data);
+    console.log(data);
 
-    if (query.toLowerCase().indexOf("pie chart") > -1 || query.toLowerCase().indexOf("piechart") > -1) {
+    if (
+      query.toLowerCase().indexOf("pie chart") > -1 ||
+      query.toLowerCase().indexOf("piechart") > -1
+    ) {
       setVizType("piechart");
-    } else if (query.toLowerCase().indexOf("bar chart") > -1 || query.toLowerCase().indexOf("barchart") > -1 || query.toLowerCase().indexOf("column chart") > -1 || query.toLowerCase().indexOf("columnchart") > -1) {
+    } else if (
+      query.toLowerCase().indexOf("bar chart") > -1 ||
+      query.toLowerCase().indexOf("barchart") > -1 ||
+      query.toLowerCase().indexOf("column chart") > -1 ||
+      query.toLowerCase().indexOf("columnchart") > -1
+    ) {
       setVizType("columnchart");
-    } else if (query.toLowerCase().indexOf("trend chart") > -1 || query.toLowerCase().indexOf("trendchart") > -1 || query.toLowerCase().indexOf("line chart") > -1 || query.toLowerCase().indexOf("linechart") > -1) {
+    } else if (
+      query.toLowerCase().indexOf("trend chart") > -1 ||
+      query.toLowerCase().indexOf("trendchart") > -1 ||
+      query.toLowerCase().indexOf("line chart") > -1 ||
+      query.toLowerCase().indexOf("linechart") > -1
+    ) {
       setVizType("trendchart");
     } else {
       setVizType("table");
@@ -71,7 +86,11 @@ export const AskDefogChat = ({
           title: cols[i],
           dataIndex: cols[i],
           key: cols[i],
-          sorter: rows.length > 0 && typeof rows[0][i] === "number" ? (a, b) => a[cols[i]] - b[cols[i]] : (a, b) => String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+          isDate: isDate(rows[0][i]),
+          sorter:
+            rows.length > 0 && typeof rows[0][i] === "number"
+              ? (a, b) => a[cols[i]] - b[cols[i]]
+              : (a, b) => String(a[cols[i]]).localeCompare(String(b[cols[i]])),
         });
       }
       for (let i = 0; i < rows.length; i++) {
@@ -86,7 +105,6 @@ export const AskDefogChat = ({
       newCols = [];
       newRows = [];
     }
-
     setResponseArray([...responseArray, {
       queryReason: data.reason_for_query,
       data: newRows,
@@ -109,24 +127,44 @@ export const AskDefogChat = ({
 
   return (
     <div>
-      <div style={{ padding: 0, color: '#fff', border: "1px solid lightgrey", borderRadius: 10 }}>
+      <div
+        style={{
+          padding: 0,
+          color: "#fff",
+          border: "1px solid lightgrey",
+          borderRadius: 10,
+        }}
+      >
         {/* add a button on the top right of this div with an expand arrow */}
         <Collapse
           bordered={false}
           defaultActiveKey={[null]}
-          expandIconPosition="right"
-          style={{ color: '#fff', backgroundColor: "#fff" }}
+          expandIconPosition="end"
+          style={{ color: "#fff", backgroundColor: "#fff" }}
           expandIcon={() => <CaretRightOutlined rotate={isActive ? 270 : 90} />}
-          onChange={(state) => state.length > 1 ? setIsActive(true) : setIsActive(false)}
+          onChange={(state) =>
+            state.length > 1 ? setIsActive(true) : setIsActive(false)
+          }
         >
-          <Panel header={buttonText} key="1" style={{ color: '#fff' }}>
-            <div style={{width: "100%", maxWidth: maxWidth, maxHeight: maxHeight, overflow: "auto"}} id="results" ref={divRef}>
+          <Panel header={buttonText} key="1" style={{ color: "#fff" }}>
+            <div
+              style={{
+                width: "100%",
+                maxWidth: maxWidth,
+                maxHeight: maxHeight,
+                overflow: "auto",
+              }}
+              id="results"
+              ref={divRef}
+            >
               {responseArray.map((response, index) => {
                 return (
                   <div key={index}>
-                    <hr style={{borderTop: "1px dashed lightgrey"}}/>
+                    <hr style={{ borderTop: "1px dashed lightgrey" }} />
                     <p style={{ marginTop: 10 }}>{response.question}</p>
-                    <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>{response.queryReason}</p>
+                    <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
+                      {response.queryReason}
+                    </p>
                     <DefogDynamicViz
                       vizType={vizType}
                       response={response}
@@ -135,9 +173,11 @@ export const AskDefogChat = ({
                       debugMode={debugMode}
                       apiKey={apiKey}
                     />
-                    <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>{response.suggestedQuestions}</p>
+                    <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
+                      {response.suggestedQuestions}
+                    </p>
                   </div>
-                )
+                );
               })}
             </div>
             <Search
@@ -183,7 +223,7 @@ export const AskDefog = ({ showQuery, maxHeight, apiEndpoint }) => {
       }
       return numberedString;
     };
-    
+
     const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
@@ -196,7 +236,9 @@ export const AskDefog = ({ showQuery, maxHeight, apiEndpoint }) => {
     });
     const data = await response.json();
     if (!data.ran_successfully) {
-      message.error("An error occurred on our backend. We'll fix it as soon as we can.");
+      message.error(
+        "An error occurred on our backend. We'll fix it as soon as we can."
+      );
     }
     if (data.columns) {
       const cols = data.columns;
@@ -237,9 +279,7 @@ export const AskDefog = ({ showQuery, maxHeight, apiEndpoint }) => {
           />
         </div>
 
-        {resultState === "IDLE" ? (
-          null
-        ) : (
+        {resultState === "IDLE" ? null : (
           <div>
             {resultState === "LOADING" && (
               <SearchState
@@ -252,15 +292,13 @@ export const AskDefog = ({ showQuery, maxHeight, apiEndpoint }) => {
               <div>
                 <div>
                   <div className="generatedDateWrap">
-                    {showQuery ? <div className="generatedDate-heading">
-                      <b>Generated SQL</b>
-                      <pre style={{ whiteSpace: "pre-wrap" }}>{sql}</pre>
-                    </div> : null}
-                    <DefogViz
-                      columns={cols}
-                      data={data}
-                      vizType={vizType}
-                    />
+                    {showQuery ? (
+                      <div className="generatedDate-heading">
+                        <b>Generated SQL</b>
+                        <pre style={{ whiteSpace: "pre-wrap" }}>{sql}</pre>
+                      </div>
+                    ) : null}
+                    <DefogViz columns={cols} data={data} vizType={vizType} />
 
                     <Row>
                       {/* when you click on these buttons, a modal should pop up where you can specify which columns you want to have on your X/Y axes. Right now, this can be a tedious manual thing. Over time, this can be done automatically (maybe with a thin layer of ML) */}
@@ -288,10 +326,12 @@ export const AskDefog = ({ showQuery, maxHeight, apiEndpoint }) => {
                   <p fs="1.4rem">We failed to process your query.</p>
                   Try rephrasing your query to give our model a second chance?
                 </b>
-                {showQuery ? <div>
-                  <b>SQL Generated (Failed)</b>
-                  <pre>{sql}</pre>
-                </div> : null}
+                {showQuery ? (
+                  <div>
+                    <b>SQL Generated (Failed)</b>
+                    <pre>{sql}</pre>
+                  </div>
+                ) : null}
               </SearchState>
             )}
           </div>
@@ -299,7 +339,7 @@ export const AskDefog = ({ showQuery, maxHeight, apiEndpoint }) => {
       </Col>
     </TryWrap>
   );
-}
+};
 
 const TryWrap = styled.div`
   background: #ffffff;
@@ -307,7 +347,7 @@ const TryWrap = styled.div`
   border-radius: 8.66667px;
   padding: 2.8rem;
   position: relative;
-  max-height: ${props => props.maxHeight}px;
+  max-height: ${(props) => props.maxHeight}px;
   overflow-y: auto;
   @media (max-width: 767px) {
     padding: 1.2rem;
