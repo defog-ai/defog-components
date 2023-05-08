@@ -8,7 +8,7 @@ import LoadingLottie from "./components/svg/ridinloop_1.json";
 import DefogViz from "./components/DefogViz.js";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import styled from "styled-components";
-import { inferColumnType, isDate } from "./components/common/utils.js";
+import { inferColumnType } from "./components/common/utils.js";
 
 export const AskDefogChat = ({
   apiEndpoint = "https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",

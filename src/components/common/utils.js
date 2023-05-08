@@ -1,5 +1,8 @@
 // a very, VERY simple checker to cehck if a value is a date.
 // if we need something more complex in the future, perhaps using dayjs would be a better option
+
+import dayjs from "dayjs";
+
 // https://day.js.org/docs/en/parse/is-valid
 export function isDate(s) {
   // assuming a format like so: "2008-01-01T00:00:00"
@@ -22,13 +25,43 @@ export function inferColumnType(rows, colIdx) {
   return "undefined";
 }
 
-export function setChartJSDefaults(ChartJSRef, title = "") {
+function formatTime(val) {
+  return dayjs(val, "YYYY-MM-DDTHH:MM:SS").format("D MMM 'YY");
+}
+
+export function setChartJSDefaults(
+  ChartJSRef,
+  title = "",
+  xAxisIsDate = false
+) {
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
-  ChartJSRef.defaults.interaction.axis = "xy";
+  ChartJSRef.defaults.interaction.axis = "x";
   ChartJSRef.defaults.interaction.mode = "nearest";
   ChartJSRef.defaults.maintainAspectRatio = false;
   ChartJSRef.defaults.plugins.title.display = true;
   ChartJSRef.defaults.plugins.title.text = title;
+
+  // if x axis is a date, add a d3 formatter
+  if (xAxisIsDate) {
+    ChartJSRef.defaults.plugins.tooltip.displayColors = false;
+
+    ChartJSRef.defaults.plugins.tooltip.callbacks.title = function (
+      tooltipItems
+    ) {
+      return tooltipItems.map((item) => formatTime(item.label));
+    };
+    ChartJSRef.defaults.plugins.tooltip.callbacks.label = function (
+      tooltipItem
+    ) {
+      return tooltipItem.formattedValue;
+    };
+
+    ChartJSRef.defaults.scales.category.ticks = {
+      callback: function (value) {
+        return formatTime(this.getLabelForValue(value));
+      },
+    };
+  }
 }
 
 export function transformToChartJSType(data, columns) {
@@ -48,15 +81,15 @@ export function transformToChartJSType(data, columns) {
   //                 ]
   //       ...
   // }
+
+  // it should contain (columns.length - 1) arrays
+  const chartData = columns.map((d) => []).slice(1);
+
   /* Notes for a still experimental thing:
   // once we set the date axis to be the x axis, each categorical column for example username above is its own bar/line/etc
   // each non date, non categorical, non boolean (hence purely number) column is the y axis.
   // we need to group the data by all of the categorical columns
   */
-
-  console.log(columns);
-  // it should contain (columns.length - 1) arrays
-  const chartData = columns.map((d) => []).slice(1);
 
   data.forEach((d) => {
     chartLabels.push(d[0]);

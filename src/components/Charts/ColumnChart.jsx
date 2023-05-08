@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
   Colors,
+  defaults,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
@@ -29,10 +30,10 @@ const ColumnChart = React.memo(
   (props) => {
     const { data, columns, title } = props.data;
     const height = props.height;
-    setChartJSDefaults(ChartJS, title);
+
+    setChartJSDefaults(ChartJS, title, columns[0].colType === "date");
 
     const { chartData, chartLabels } = transformToChartJSType(data, columns);
-
     return (
       <ErrorBoundary>
         <Row justify={"center"}>
@@ -45,15 +46,6 @@ const ColumnChart = React.memo(
                     label: columns[i + 1].title,
                     data: d,
                   })),
-                }}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    title: {
-                      display: true,
-                      text: title,
-                    },
-                  },
                 }}
               ></Bar>
             </div>

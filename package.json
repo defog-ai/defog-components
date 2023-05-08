@@ -53,6 +53,7 @@
   "dependencies": {
     "antd": "^5.1.7",
     "chart.js": "^4.3.0",
+    "dayjs": "^1.11.7",
     "highcharts": "^10.3.2",
     "highcharts-react-official": "^3.1.0",
     "lottie-react": "^2.3.1",
