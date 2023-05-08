@@ -1,30 +1,32 @@
 import React, { useState, useRef } from "react";
 import Lottie from "lottie-react";
-import { Input, Row, Col, Collapse, message } from 'antd';
-import { CaretRightOutlined } from '@ant-design/icons';
+import { Input, Row, Col, Collapse, message } from "antd";
+import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState.js";
 import ErrorSvg from "./components/svg/ErrorSvg.js";
 import LoadingLottie from "./components/svg/ridinloop_1.json";
 import DefogViz from "./components/DefogViz.js";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import styled from "styled-components";
-import { isDate } from "./components/common/utils.js";
+import { inferColumnType } from "./components/common/utils.js";
 
 export const AskDefogChat = ({
-  apiEndpoint="https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
-  maxHeight="100%",
-  maxWidth="100%",
-  buttonText="Ask Defog",
-  debugMode=false,
-  apiKey
+  apiEndpoint = "https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
+  maxHeight = "100%",
+  maxWidth = "100%",
+  buttonText = "Ask Defog",
+  debugMode = false,
+  apiKey,
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [buttonLoading, setButtonLoading] = useState(false);
+
   const [previousQuestions, setPreviousQuestions] = useState([]);
   const [widgetHeight, setWidgetHeight] = useState(40);
-  const [responseArray, setResponseArray] = useState([]);
+  const [chatResponseArray, setChatResponseArray] = useState([]);
+  const [dataResponseArray, setDataResponseArray] = useState([]);
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
   const [query, setQuery] = useState("");
@@ -34,10 +36,17 @@ export const AskDefogChat = ({
     divRef.current.scrollTop = divRef.current.scrollHeight;
   };
 
+  const generateChatPath = "generate_query_chat";
+  const generateDataPath = "generate_data";
+
+  function makeURL(urlPath) {
+    return apiEndpoint + urlPath;
+  }
+
   const handleSubmit = async (query) => {
-    setLoading(true);
+    setButtonLoading(true);
     setQuery(query);
-    const response = await fetch(apiEndpoint, {
+    const queryChatResponse = await fetch(makeURL(generateChatPath), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -46,83 +55,110 @@ export const AskDefogChat = ({
         question: query,
         previous_context: previousQuestions,
       }),
-    });
-    const data = await response.json();
-    setRawData(data.data);
-    console.log(data);
+    }).then((d) => d.json());
 
-    if (
-      query.toLowerCase().indexOf("pie chart") > -1 ||
-      query.toLowerCase().indexOf("piechart") > -1
-    ) {
-      setVizType("piechart");
-    } else if (
-      query.toLowerCase().indexOf("bar chart") > -1 ||
-      query.toLowerCase().indexOf("barchart") > -1 ||
-      query.toLowerCase().indexOf("column chart") > -1 ||
-      query.toLowerCase().indexOf("columnchart") > -1
-    ) {
-      setVizType("columnchart");
-    } else if (
-      query.toLowerCase().indexOf("trend chart") > -1 ||
-      query.toLowerCase().indexOf("trendchart") > -1 ||
-      query.toLowerCase().indexOf("line chart") > -1 ||
-      query.toLowerCase().indexOf("linechart") > -1
-    ) {
-      setVizType("trendchart");
-    } else {
-      setVizType("table");
-    }
+    setButtonLoading(false);
 
-    let newCols;
-    let newRows;
-    if (data.columns && data?.data.length > 0) {
-      const cols = data.columns;
-      const rows = data.data;
-      newCols = [];
-      newRows = [];
-      for (let i = 0; i < cols.length; i++) {
-        newCols.push({
-          title: cols[i],
-          dataIndex: cols[i],
-          key: cols[i],
-          isDate: isDate(rows[0][i]),
-          sorter:
-            rows.length > 0 && typeof rows[0][i] === "number"
-              ? (a, b) => a[cols[i]] - b[cols[i]]
-              : (a, b) => String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-        });
-      }
-      for (let i = 0; i < rows.length; i++) {
-        let row = {};
-        for (let j = 0; j < cols.length; j++) {
-          row[cols[j]] = rows[i][j];
-        }
-        rows["key"] = i;
-        newRows.push(row);
-      }
-    } else {
-      newCols = [];
-      newRows = [];
-    }
-    setResponseArray([...responseArray, {
-      queryReason: data.reason_for_query,
-      data: newRows,
-      columns: newCols,
-      suggestedQuestions: data.suggestion_for_further_questions,
-      question: query,
-      generatedSql: data.query_generated,
-      previousContext: previousQuestions,
-    }]);
+    // set response array to have the latest everuthing except data and columns
+    setChatResponseArray([
+      ...chatResponseArray,
+      {
+        queryReason: queryChatResponse.query_explanation,
+        suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
+        question: query,
+        generatedSql: queryChatResponse.query_generated,
+        previousContext: previousQuestions,
+      },
+    ]);
 
-    const contextQuestions = [query, data.query_generated]
+    const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
-    setWidgetHeight(400);
-    setLoading(false);
-    
-    // scroll to the bottom of the results div
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.scrollTop = resultsDiv.scrollHeight;
+
+    fetch(makeURL(generateDataPath), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sql_query: queryChatResponse.query_generated,
+      }),
+    })
+      .then((d) => d.json())
+      .then((dataResponse) => {
+        const data = Object.assign(queryChatResponse, dataResponse);
+        setRawData(data.data);
+
+        if (
+          query.toLowerCase().indexOf("pie chart") > -1 ||
+          query.toLowerCase().indexOf("piechart") > -1
+        ) {
+          setVizType("piechart");
+        } else if (
+          query.toLowerCase().indexOf("bar chart") > -1 ||
+          query.toLowerCase().indexOf("barchart") > -1 ||
+          query.toLowerCase().indexOf("column chart") > -1 ||
+          query.toLowerCase().indexOf("columnchart") > -1
+        ) {
+          setVizType("columnchart");
+        } else if (
+          query.toLowerCase().indexOf("trend chart") > -1 ||
+          query.toLowerCase().indexOf("trendchart") > -1 ||
+          query.toLowerCase().indexOf("line chart") > -1 ||
+          query.toLowerCase().indexOf("linechart") > -1
+        ) {
+          setVizType("trendchart");
+        } else {
+          setVizType("table");
+        }
+
+        let newCols;
+        let newRows;
+        if (data.columns && data?.data.length > 0) {
+          const cols = data.columns;
+          const rows = data.data;
+          newCols = [];
+          newRows = [];
+          for (let i = 0; i < cols.length; i++) {
+            newCols.push({
+              title: cols[i],
+              dataIndex: cols[i],
+              key: cols[i],
+              colType: inferColumnType(rows, i),
+              sorter:
+                rows.length > 0 && typeof rows[0][i] === "number"
+                  ? (a, b) => a[cols[i]] - b[cols[i]]
+                  : (a, b) =>
+                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+            });
+          }
+          for (let i = 0; i < rows.length; i++) {
+            let row = {};
+            for (let j = 0; j < cols.length; j++) {
+              row[cols[j]] = rows[i][j];
+            }
+            rows["key"] = i;
+            newRows.push(row);
+          }
+        } else {
+          newCols = [];
+          newRows = [];
+        }
+
+        // update the last item in response array with the above data and columns
+        setDataResponseArray([
+          ...dataResponseArray,
+          {
+            data: newRows,
+            columns: newCols,
+          },
+        ]);
+
+        setWidgetHeight(400);
+
+        // scroll to the bottom of the results div
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.scrollTop = resultsDiv.scrollHeight;
+      });
   };
 
   return (
@@ -157,7 +193,7 @@ export const AskDefogChat = ({
               id="results"
               ref={divRef}
             >
-              {responseArray.map((response, index) => {
+              {chatResponseArray.map((response, index) => {
                 return (
                   <div key={index}>
                     <hr style={{ borderTop: "1px dashed lightgrey" }} />
@@ -165,14 +201,31 @@ export const AskDefogChat = ({
                     <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
                       {response.queryReason}
                     </p>
-                    <DefogDynamicViz
-                      vizType={vizType}
-                      response={response}
-                      rawData={rawData}
-                      query={query}
-                      debugMode={debugMode}
-                      apiKey={apiKey}
-                    />
+                    {!dataResponseArray[index] ? (
+                      <div
+                        className="data-loading-search-state"
+                        style={{ width: "50%", margin: "0 auto" }}
+                      >
+                        <SearchState
+                          message="On our way to finding some results"
+                          lottie={
+                            <Lottie animationData={LoadingLottie} loop={true} />
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <DefogDynamicViz
+                        vizType={vizType}
+                        response={Object.assign(
+                          chatResponseArray[index],
+                          dataResponseArray[index]
+                        )}
+                        rawData={rawData}
+                        query={query}
+                        debugMode={debugMode}
+                        apiKey={apiKey}
+                      />
+                    )}
                     <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
                       {response.suggestedQuestions}
                     </p>
@@ -187,8 +240,8 @@ export const AskDefogChat = ({
               size="large"
               onSearch={handleSubmit}
               style={{ width: 600 }}
-              loading={loading}
-              disabled={loading}
+              loading={buttonLoading}
+              disabled={buttonLoading}
             />
           </Panel>
         </Collapse>
