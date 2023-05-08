@@ -1,8 +1,9 @@
 import React from "react";
-import { Table, message } from "antd";
+import { Button, Table, message } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
+import { download_csv, transformToCSV } from "./common/utils.js";
 
 const DefogDynamicViz = ({
   vizType,
@@ -86,9 +87,25 @@ const DefogDynamicViz = ({
     );
   }
 
+  const csvDownload = (
+    <Button
+      onClick={() =>
+        download_csv(
+          transformToCSV(
+            rawData,
+            response.columns.map((d) => d.title)
+          )
+        )
+      }
+    >
+      Download CSV
+    </Button>
+  );
+
   return (
     <div>
       {results}
+      {csvDownload}
       {debugMode && (
         <div className="rateQualityContainer">
           <p>The following query was generated:</p>
