@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment, useState } from "react";
 import { Button, Table, message } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
@@ -14,6 +14,8 @@ const DefogDynamicViz = ({
   apiKey,
 }) => {
   let results;
+  const [narrative, setNarrative] = useState(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
   const uploadFeedback = (feedback) => {
     fetch(`https://api.defog.ai/feedback`, {
       method: "POST",
@@ -88,44 +90,76 @@ const DefogDynamicViz = ({
   }
 
   const csvDownload = (
-    <Button
-      onClick={() =>
-        download_csv(
-          transformToCSV(
-            rawData,
-            response.columns.map((d) => d.title)
+    <>
+      <Button
+        onClick={() =>
+          download_csv(
+            transformToCSV(
+              rawData,
+              response.columns.map((d) => d.title)
+            )
           )
-        )
-      }
-    >
-      Download CSV
-    </Button>
+        }
+      >
+        Download CSV
+      </Button>
+
+      <Button
+        loading={narrativeLoading}
+        onClick={async() => {
+          setNarrativeLoading(true);
+          const resp = await fetch(`https://api.defog.ai/generate_data_insights`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              apiKey: apiKey,
+              data: {
+                data: rawData,
+                columns: response.columns,
+              }
+            }),
+          });
+          const data = await resp.json();
+          setNarrative(data.response);
+          setNarrativeLoading(false);
+        }}
+      >
+        Get Narrative
+      </Button>
+    </>
   );
 
   return (
-    <div>
-      {results}
-      {csvDownload}
-      {debugMode && (
-        <div className="rateQualityContainer">
-          <p>The following query was generated:</p>
-          <pre>{response.generatedSql}</pre>
-          <p>How did we do with is this query?</p>
-          <button
-            style={{ backgroundColor: "#fff", border: "0px" }}
-            onClick={() => uploadFeedback("Good")}
-          >
-            👍 Good{" "}
-          </button>
-          <button
-            style={{ backgroundColor: "#fff", border: "0px" }}
-            onClick={() => uploadFeedback("Bad")}
-          >
-            👎 Bad{" "}
-          </button>
-        </div>
-      )}
-    </div>
+    <>
+      <div>
+        {results}
+        {csvDownload}
+        {debugMode && (
+          <div className="rateQualityContainer">
+            <p>The following query was generated:</p>
+            <pre>{response.generatedSql}</pre>
+            <p>How did we do with is this query?</p>
+            <button
+              style={{ backgroundColor: "#fff", border: "0px" }}
+              onClick={() => uploadFeedback("Good")}
+            >
+              👍 Good{" "}
+            </button>
+            <button
+              style={{ backgroundColor: "#fff", border: "0px" }}
+              onClick={() => uploadFeedback("Bad")}
+            >
+              👎 Bad{" "}
+            </button>
+          </div>
+        )}
+      </div>
+      <div>
+        {narrative}
+      </div>
+    </>
   );
 };
 
