@@ -10,7 +10,7 @@ const App = () => {
       maxHeight={"100%"}
       apiEndpoint="http://127.0.0.1:8000/"
       buttonText={"Ask Defog"}
-      debugMode={true}
+      // debugMode={true}
       apiKey={"1"}
     />
   );
