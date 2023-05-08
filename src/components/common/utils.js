@@ -7,6 +7,21 @@ export function isDate(s) {
   return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
 }
 
+export function inferColumnType(rows, colIdx) {
+  // go through rows
+  for (let i = 0; i < rows.length; i++) {
+    const val = rows[i][colIdx];
+    if (val === null) continue;
+    else if (isDate(val)) {
+      return "date";
+    } else {
+      return typeof val;
+    }
+  }
+  // if haven't returned yet
+  return "undefined";
+}
+
 export function setChartJSDefaults(ChartJSRef, title = "") {
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
   ChartJSRef.defaults.interaction.axis = "xy";
@@ -25,15 +40,21 @@ export function transformToChartJSType(data, columns) {
   // this can be multiple lines being plotted simultaneously.
   // Example:
   // data: {
-  //          columns:  ['sale_date', 'avg_price_paid', 'avg_commission']
+  //          columns:  ['sale_date', 'username', 'avg_price_paid', 'avg_commission']
   //          data: [
-  //                  ['2008-01-01', 1060.44, 159.06],
-  //                  ['2008-01-02', 665.6, 99.84],
+  //                  ['2008-01-01', 'ABC', 1060.44, 159.06],
+  //                  ['2008-01-02', 'DEF',  665.6, 99.84],
   //                  ....
   //                 ]
   //       ...
   // }
+  /* Notes for a still experimental thing:
+  // once we set the date axis to be the x axis, each categorical column for example username above is its own bar/line/etc
+  // each non date, non categorical, non boolean (hence purely number) column is the y axis.
+  // we need to group the data by all of the categorical columns
+  */
 
+  console.log(columns);
   // it should contain (columns.length - 1) arrays
   const chartData = columns.map((d) => []).slice(1);
 

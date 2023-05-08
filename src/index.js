@@ -1,22 +1,22 @@
 import React, { useState, useRef } from "react";
 import Lottie from "lottie-react";
-import { Input, Row, Col, Collapse, message } from 'antd';
-import { CaretRightOutlined } from '@ant-design/icons';
+import { Input, Row, Col, Collapse, message } from "antd";
+import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState.js";
 import ErrorSvg from "./components/svg/ErrorSvg.js";
 import LoadingLottie from "./components/svg/ridinloop_1.json";
 import DefogViz from "./components/DefogViz.js";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import styled from "styled-components";
-import { isDate } from "./components/common/utils.js";
+import { inferColumnType, isDate } from "./components/common/utils.js";
 
 export const AskDefogChat = ({
-  apiEndpoint="https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
-  maxHeight="100%",
-  maxWidth="100%",
-  buttonText="Ask Defog",
-  debugMode=false,
-  apiKey
+  apiEndpoint = "https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
+  maxHeight = "100%",
+  maxWidth = "100%",
+  buttonText = "Ask Defog",
+  debugMode = false,
+  apiKey,
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -86,7 +86,7 @@ export const AskDefogChat = ({
           title: cols[i],
           dataIndex: cols[i],
           key: cols[i],
-          isDate: isDate(rows[0][i]),
+          colType: inferColumnType(rows, i),
           sorter:
             rows.length > 0 && typeof rows[0][i] === "number"
               ? (a, b) => a[cols[i]] - b[cols[i]]
@@ -105,21 +105,24 @@ export const AskDefogChat = ({
       newCols = [];
       newRows = [];
     }
-    setResponseArray([...responseArray, {
-      queryReason: data.reason_for_query,
-      data: newRows,
-      columns: newCols,
-      suggestedQuestions: data.suggestion_for_further_questions,
-      question: query,
-      generatedSql: data.query_generated,
-      previousContext: previousQuestions,
-    }]);
+    setResponseArray([
+      ...responseArray,
+      {
+        queryReason: data.query_explanation,
+        data: newRows,
+        columns: newCols,
+        suggestedQuestions: data.suggestion_for_further_questions,
+        question: query,
+        generatedSql: data.query_generated,
+        previousContext: previousQuestions,
+      },
+    ]);
 
-    const contextQuestions = [query, data.query_generated]
+    const contextQuestions = [query, data.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
     setWidgetHeight(400);
     setLoading(false);
-    
+
     // scroll to the bottom of the results div
     const resultsDiv = document.getElementById("results");
     resultsDiv.scrollTop = resultsDiv.scrollHeight;
