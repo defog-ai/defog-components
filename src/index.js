@@ -47,16 +47,24 @@ export const AskDefogChat = ({
     setButtonLoading(true);
     setQuery(query);
     // const queryChatResponse = await fetch(makeURL(generateChatPath), {
-    const queryChatResponse = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        question: query,
-        previous_context: previousQuestions,
-      }),
-    }).then((d) => d.json());
+    let queryChatResponse;
+    try {
+      queryChatResponse = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: query,
+          previous_context: previousQuestions,
+        }),
+      }).then((d) => d.json());
+    } catch {
+      message.error("Something went wrong on our server - sorry :(");
+      message.error("Could you please rephrase the question and try again?");
+      setButtonLoading(false);
+      return;
+    }
 
     setButtonLoading(false);
 
@@ -64,7 +72,7 @@ export const AskDefogChat = ({
     setChatResponseArray([
       ...chatResponseArray,
       {
-        queryReason: queryChatResponse.query_explanation,
+        queryReason: queryChatResponse.reason_for_query,
         suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
         question: query,
         generatedSql: queryChatResponse.query_generated,

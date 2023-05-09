@@ -134,6 +134,7 @@ const DefogDynamicViz = ({
   return (
     <>
       <div>
+        {response.queryReason}
         {results}
         {csvDownload}
         {debugMode && (
