@@ -78,7 +78,7 @@ export const AskDefogChat = ({
     setChatResponseArray([
       ...chatResponseArray,
       {
-        queryReason: queryChatResponse.query_explanation,
+        queryReason: queryChatResponse.reason_for_query,
         suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
         question: query,
         generatedSql: queryChatResponse.query_generated,
