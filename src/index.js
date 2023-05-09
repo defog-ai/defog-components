@@ -39,14 +39,15 @@ export const AskDefogChat = ({
   const generateChatPath = "generate_query_chat";
   const generateDataPath = "generate_data";
 
-  function makeURL(urlPath) {
-    return apiEndpoint + urlPath;
-  }
+  // function makeURL(urlPath) {
+  //   return apiEndpoint + urlPath;
+  // }
 
   const handleSubmit = async (query) => {
     setButtonLoading(true);
     setQuery(query);
-    const queryChatResponse = await fetch(makeURL(generateChatPath), {
+    // const queryChatResponse = await fetch(makeURL(generateChatPath), {
+    const queryChatResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -74,91 +75,78 @@ export const AskDefogChat = ({
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
 
-    fetch(makeURL(generateDataPath), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const data = queryChatResponse;
+    setRawData(data.data);
+    if (
+      query.toLowerCase().indexOf("pie chart") > -1 ||
+      query.toLowerCase().indexOf("piechart") > -1
+    ) {
+      setVizType("piechart");
+    } else if (
+      query.toLowerCase().indexOf("bar chart") > -1 ||
+      query.toLowerCase().indexOf("barchart") > -1 ||
+      query.toLowerCase().indexOf("column chart") > -1 ||
+      query.toLowerCase().indexOf("columnchart") > -1
+    ) {
+      setVizType("columnchart");
+    } else if (
+      query.toLowerCase().indexOf("trend chart") > -1 ||
+      query.toLowerCase().indexOf("trendchart") > -1 ||
+      query.toLowerCase().indexOf("line chart") > -1 ||
+      query.toLowerCase().indexOf("linechart") > -1
+    ) {
+      setVizType("trendchart");
+    } else {
+      setVizType("table");
+    }
+
+    let newCols;
+    let newRows;
+    if (data.columns && data?.data.length > 0) {
+      const cols = data.columns;
+      const rows = data.data;
+      newCols = [];
+      newRows = [];
+      for (let i = 0; i < cols.length; i++) {
+        newCols.push({
+          title: cols[i],
+          dataIndex: cols[i],
+          key: cols[i],
+          colType: inferColumnType(rows, i),
+          sorter:
+            rows.length > 0 && typeof rows[0][i] === "number"
+              ? (a, b) => a[cols[i]] - b[cols[i]]
+              : (a, b) =>
+                  String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+        });
+      }
+      for (let i = 0; i < rows.length; i++) {
+        let row = {};
+        for (let j = 0; j < cols.length; j++) {
+          row[cols[j]] = rows[i][j];
+        }
+        rows["key"] = i;
+        newRows.push(row);
+      }
+    } else {
+      newCols = [];
+      newRows = [];
+    }
+
+    // update the last item in response array with the above data and columns
+    setDataResponseArray([
+      ...dataResponseArray,
+      {
+        data: newRows,
+        columns: newCols,
       },
-      body: JSON.stringify({
-        sql_query: queryChatResponse.query_generated,
-      }),
-    })
-      .then((d) => d.json())
-      .then((dataResponse) => {
-        const data = Object.assign(queryChatResponse, dataResponse);
-        setRawData(data.data);
+    ]);
 
-        if (
-          query.toLowerCase().indexOf("pie chart") > -1 ||
-          query.toLowerCase().indexOf("piechart") > -1
-        ) {
-          setVizType("piechart");
-        } else if (
-          query.toLowerCase().indexOf("bar chart") > -1 ||
-          query.toLowerCase().indexOf("barchart") > -1 ||
-          query.toLowerCase().indexOf("column chart") > -1 ||
-          query.toLowerCase().indexOf("columnchart") > -1
-        ) {
-          setVizType("columnchart");
-        } else if (
-          query.toLowerCase().indexOf("trend chart") > -1 ||
-          query.toLowerCase().indexOf("trendchart") > -1 ||
-          query.toLowerCase().indexOf("line chart") > -1 ||
-          query.toLowerCase().indexOf("linechart") > -1
-        ) {
-          setVizType("trendchart");
-        } else {
-          setVizType("table");
-        }
+    setWidgetHeight(400);
 
-        let newCols;
-        let newRows;
-        if (data.columns && data?.data.length > 0) {
-          const cols = data.columns;
-          const rows = data.data;
-          newCols = [];
-          newRows = [];
-          for (let i = 0; i < cols.length; i++) {
-            newCols.push({
-              title: cols[i],
-              dataIndex: cols[i],
-              key: cols[i],
-              colType: inferColumnType(rows, i),
-              sorter:
-                rows.length > 0 && typeof rows[0][i] === "number"
-                  ? (a, b) => a[cols[i]] - b[cols[i]]
-                  : (a, b) =>
-                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-            });
-          }
-          for (let i = 0; i < rows.length; i++) {
-            let row = {};
-            for (let j = 0; j < cols.length; j++) {
-              row[cols[j]] = rows[i][j];
-            }
-            rows["key"] = i;
-            newRows.push(row);
-          }
-        } else {
-          newCols = [];
-          newRows = [];
-        }
-
-        // update the last item in response array with the above data and columns
-        setDataResponseArray([
-          ...dataResponseArray,
-          {
-            data: newRows,
-            columns: newCols,
-          },
-        ]);
-
-        setWidgetHeight(400);
-
-        // scroll to the bottom of the results div
-        const resultsDiv = document.getElementById("results");
-        resultsDiv.scrollTop = resultsDiv.scrollHeight;
-      });
+    // scroll to the bottom of the results div
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.scrollTop = resultsDiv.scrollHeight;
   };
 
   return (
