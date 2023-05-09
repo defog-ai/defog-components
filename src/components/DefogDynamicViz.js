@@ -106,21 +106,24 @@ const DefogDynamicViz = ({
 
       <Button
         loading={narrativeLoading}
-        onClick={async() => {
+        onClick={async () => {
           setNarrativeLoading(true);
-          const resp = await fetch(`https://api.defog.ai/generate_data_insights`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              apiKey: apiKey,
-              data: {
-                data: rawData,
-                columns: response.columns,
-              }
-            }),
-          });
+          const resp = await fetch(
+            `https://api.defog.ai/generate_data_insights`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                apiKey: apiKey,
+                data: {
+                  data: rawData,
+                  columns: response.columns,
+                },
+              }),
+            }
+          );
           const data = await resp.json();
           setNarrative(data.response);
           setNarrativeLoading(false);
@@ -156,9 +159,7 @@ const DefogDynamicViz = ({
           </div>
         )}
       </div>
-      <div>
-        {narrative}
-      </div>
+      <div>{narrative}</div>
     </>
   );
 };

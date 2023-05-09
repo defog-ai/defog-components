@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import Lottie from "lottie-react";
 import { Input, Row, Col, Collapse, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
@@ -36,27 +36,42 @@ export const AskDefogChat = ({
     divRef.current.scrollTop = divRef.current.scrollHeight;
   };
 
-  const generateChatPath = "generate_query_chat";
-  const generateDataPath = "generate_data";
+  var ws = useRef(null);
 
-  function makeURL(urlPath) {
-    return apiEndpoint + urlPath;
+  function setupWebsocket() {
+    ws.current = new WebSocket(apiEndpoint);
   }
+
+  // if it's not open or not created yet, recreate
+  if (!ws.current || ws.current.readyState !== ws.current.OPEN) {
+    setupWebsocket();
+  }
+
+  // re declare this everytime, otherwise the handlers have closure over state values and never get updated state.
+  // we COULD use useCallback here but something for the future perhaps.
+  ws.current.onmessage = function (event) {
+    const response = JSON.parse(event.data);
+
+    if (response.response_type === "model-completion") {
+      handleChatResponse(response);
+    } else if (response.response_type === "generated-data") {
+      handleDataResponse(response);
+    }
+  };
 
   const handleSubmit = async (query) => {
     setButtonLoading(true);
     setQuery(query);
-    const queryChatResponse = await fetch(makeURL(generateChatPath), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+
+    ws.current.send(
+      JSON.stringify({
         question: query,
         previous_context: previousQuestions,
-      }),
-    }).then((d) => d.json());
+      })
+    );
+  };
 
+  function handleChatResponse(queryChatResponse) {
     setButtonLoading(false);
 
     // set response array to have the latest everuthing except data and columns
@@ -73,93 +88,81 @@ export const AskDefogChat = ({
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
+  }
 
-    fetch(makeURL(generateDataPath), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+  function handleDataResponse(dataResponse) {
+    setRawData(dataResponse.data);
+
+    if (
+      query.toLowerCase().indexOf("pie chart") > -1 ||
+      query.toLowerCase().indexOf("piechart") > -1
+    ) {
+      setVizType("piechart");
+    } else if (
+      query.toLowerCase().indexOf("bar chart") > -1 ||
+      query.toLowerCase().indexOf("barchart") > -1 ||
+      query.toLowerCase().indexOf("column chart") > -1 ||
+      query.toLowerCase().indexOf("columnchart") > -1
+    ) {
+      setVizType("columnchart");
+    } else if (
+      query.toLowerCase().indexOf("trend chart") > -1 ||
+      query.toLowerCase().indexOf("trendchart") > -1 ||
+      query.toLowerCase().indexOf("line chart") > -1 ||
+      query.toLowerCase().indexOf("linechart") > -1
+    ) {
+      setVizType("trendchart");
+    } else {
+      setVizType("table");
+    }
+
+    let newCols;
+    let newRows;
+    if (dataResponse.columns && dataResponse?.data.length > 0) {
+      const cols = dataResponse.columns;
+      const rows = dataResponse.data;
+      newCols = [];
+      newRows = [];
+      for (let i = 0; i < cols.length; i++) {
+        newCols.push({
+          title: cols[i],
+          dataIndex: cols[i],
+          key: cols[i],
+          colType: inferColumnType(rows, i),
+          sorter:
+            rows.length > 0 && typeof rows[0][i] === "number"
+              ? (a, b) => a[cols[i]] - b[cols[i]]
+              : (a, b) => String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+        });
+      }
+      for (let i = 0; i < rows.length; i++) {
+        let row = {};
+        for (let j = 0; j < cols.length; j++) {
+          row[cols[j]] = rows[i][j];
+        }
+        rows["key"] = i;
+        newRows.push(row);
+      }
+    } else {
+      newCols = [];
+      newRows = [];
+    }
+
+    // update the last item in response array with the above data and columns
+    setDataResponseArray([
+      ...dataResponseArray,
+      {
+        data: newRows,
+        columns: newCols,
       },
-      body: JSON.stringify({
-        sql_query: queryChatResponse.query_generated,
-      }),
-    })
-      .then((d) => d.json())
-      .then((dataResponse) => {
-        const data = Object.assign(queryChatResponse, dataResponse);
-        setRawData(data.data);
+    ]);
 
-        if (
-          query.toLowerCase().indexOf("pie chart") > -1 ||
-          query.toLowerCase().indexOf("piechart") > -1
-        ) {
-          setVizType("piechart");
-        } else if (
-          query.toLowerCase().indexOf("bar chart") > -1 ||
-          query.toLowerCase().indexOf("barchart") > -1 ||
-          query.toLowerCase().indexOf("column chart") > -1 ||
-          query.toLowerCase().indexOf("columnchart") > -1
-        ) {
-          setVizType("columnchart");
-        } else if (
-          query.toLowerCase().indexOf("trend chart") > -1 ||
-          query.toLowerCase().indexOf("trendchart") > -1 ||
-          query.toLowerCase().indexOf("line chart") > -1 ||
-          query.toLowerCase().indexOf("linechart") > -1
-        ) {
-          setVizType("trendchart");
-        } else {
-          setVizType("table");
-        }
+    setWidgetHeight(400);
 
-        let newCols;
-        let newRows;
-        if (data.columns && data?.data.length > 0) {
-          const cols = data.columns;
-          const rows = data.data;
-          newCols = [];
-          newRows = [];
-          for (let i = 0; i < cols.length; i++) {
-            newCols.push({
-              title: cols[i],
-              dataIndex: cols[i],
-              key: cols[i],
-              colType: inferColumnType(rows, i),
-              sorter:
-                rows.length > 0 && typeof rows[0][i] === "number"
-                  ? (a, b) => a[cols[i]] - b[cols[i]]
-                  : (a, b) =>
-                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-            });
-          }
-          for (let i = 0; i < rows.length; i++) {
-            let row = {};
-            for (let j = 0; j < cols.length; j++) {
-              row[cols[j]] = rows[i][j];
-            }
-            rows["key"] = i;
-            newRows.push(row);
-          }
-        } else {
-          newCols = [];
-          newRows = [];
-        }
-
-        // update the last item in response array with the above data and columns
-        setDataResponseArray([
-          ...dataResponseArray,
-          {
-            data: newRows,
-            columns: newCols,
-          },
-        ]);
-
-        setWidgetHeight(400);
-
-        // scroll to the bottom of the results div
-        const resultsDiv = document.getElementById("results");
-        resultsDiv.scrollTop = resultsDiv.scrollHeight;
-      });
-  };
+    // scroll to the bottom of the results div
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.scrollTop = resultsDiv.scrollHeight;
+  }
 
   return (
     <div>
