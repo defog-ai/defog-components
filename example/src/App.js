@@ -11,7 +11,7 @@ const App = () => {
       apiEndpoint="ws://127.0.0.1:8000/ws"
       buttonText={"Ask Defog"}
       // debugMode={true}
-      apiKey={"1"}
+      // apiKey={"1"}
     />
   );
 };

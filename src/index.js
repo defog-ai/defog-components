@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, Fragment } from "react";
 import Lottie from "lottie-react";
 import { Input, Row, Col, Collapse, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
@@ -72,13 +72,11 @@ export const AskDefogChat = ({
   };
 
   function handleChatResponse(queryChatResponse) {
-    setButtonLoading(false);
-
     // set response array to have the latest everuthing except data and columns
     setChatResponseArray([
       ...chatResponseArray,
       {
-        queryReason: queryChatResponse.query_explanation,
+        queryReason: queryChatResponse.reason_for_query,
         suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
         question: query,
         generatedSql: queryChatResponse.query_generated,
@@ -159,6 +157,8 @@ export const AskDefogChat = ({
 
     setWidgetHeight(400);
 
+    setButtonLoading(false);
+
     // scroll to the bottom of the results div
     const resultsDiv = document.getElementById("results");
     resultsDiv.scrollTop = resultsDiv.scrollHeight;
@@ -210,7 +210,7 @@ export const AskDefogChat = ({
                         style={{ width: "50%", margin: "0 auto" }}
                       >
                         <SearchState
-                          message="On our way to finding some results"
+                          message={"Query generated! Getting your data..."}
                           lottie={
                             <Lottie animationData={LoadingLottie} loop={true} />
                           }
@@ -236,6 +236,27 @@ export const AskDefogChat = ({
                 );
               })}
             </div>
+            {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
+            {buttonLoading &&
+            chatResponseArray.length === dataResponseArray.length ? (
+              <React.Fragment>
+                <hr style={{ borderTop: "1px dashed lightgrey" }} />
+                <p style={{ marginTop: 10 }}>{query}</p>
+                <div
+                  className="data-loading-search-state"
+                  style={{ width: "50%", margin: "0 auto" }}
+                >
+                  <SearchState
+                    message={"Machines thinking..."}
+                    lottie={
+                      <Lottie animationData={LoadingLottie} loop={true} />
+                    }
+                  />
+                </div>
+              </React.Fragment>
+            ) : (
+              ""
+            )}
             <Search
               placeholder="input search text"
               allowClear
