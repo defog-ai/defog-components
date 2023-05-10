@@ -236,6 +236,7 @@ export const AskDefogChat = ({
                 );
               })}
             </div>
+            {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
             {buttonLoading &&
             chatResponseArray.length === dataResponseArray.length ? (
               <React.Fragment>
