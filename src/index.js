@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, Fragment } from "react";
 import Lottie from "lottie-react";
 import { Input, Row, Col, Collapse, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
@@ -210,7 +210,7 @@ export const AskDefogChat = ({
                         style={{ width: "50%", margin: "0 auto" }}
                       >
                         <SearchState
-                          message="On our way to finding some results"
+                          message={"Running your query on the database!"}
                           lottie={
                             <Lottie animationData={LoadingLottie} loop={true} />
                           }
@@ -236,6 +236,25 @@ export const AskDefogChat = ({
                 );
               })}
             </div>
+            {buttonLoading ? (
+              <React.Fragment>
+                <hr style={{ borderTop: "1px dashed lightgrey" }} />
+                <p style={{ marginTop: 10 }}>{query}</p>
+                <div
+                  className="data-loading-search-state"
+                  style={{ width: "50%", margin: "0 auto" }}
+                >
+                  <SearchState
+                    message={"Processing your query"}
+                    lottie={
+                      <Lottie animationData={LoadingLottie} loop={true} />
+                    }
+                  />
+                </div>
+              </React.Fragment>
+            ) : (
+              ""
+            )}
             <Search
               placeholder="input search text"
               allowClear
