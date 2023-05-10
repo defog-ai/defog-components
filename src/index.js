@@ -72,8 +72,6 @@ export const AskDefogChat = ({
   };
 
   function handleChatResponse(queryChatResponse) {
-    setButtonLoading(false);
-
     // set response array to have the latest everuthing except data and columns
     setChatResponseArray([
       ...chatResponseArray,
@@ -159,6 +157,8 @@ export const AskDefogChat = ({
 
     setWidgetHeight(400);
 
+    setButtonLoading(false);
+
     // scroll to the bottom of the results div
     const resultsDiv = document.getElementById("results");
     resultsDiv.scrollTop = resultsDiv.scrollHeight;
@@ -210,7 +210,7 @@ export const AskDefogChat = ({
                         style={{ width: "50%", margin: "0 auto" }}
                       >
                         <SearchState
-                          message={"Running your query on the database!"}
+                          message={"Query generated! Getting your data..."}
                           lottie={
                             <Lottie animationData={LoadingLottie} loop={true} />
                           }
@@ -236,7 +236,8 @@ export const AskDefogChat = ({
                 );
               })}
             </div>
-            {buttonLoading ? (
+            {buttonLoading &&
+            chatResponseArray.length === dataResponseArray.length ? (
               <React.Fragment>
                 <hr style={{ borderTop: "1px dashed lightgrey" }} />
                 <p style={{ marginTop: 10 }}>{query}</p>
@@ -245,7 +246,7 @@ export const AskDefogChat = ({
                   style={{ width: "50%", margin: "0 auto" }}
                 >
                   <SearchState
-                    message={"Processing your query"}
+                    message={"Machines thinking..."}
                     lottie={
                       <Lottie animationData={LoadingLottie} loop={true} />
                     }
