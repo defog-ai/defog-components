@@ -2,18 +2,9 @@
 
 You can install `defog-components` with `npm i defog-components`
 
-You can import our "standard" component like this
+You can import our chat-styled component like this. Toggle `debugMode` to `true` and include your apiKey to enable debug mode, where you can look at the actual SQL queries generated to answer your question + give feedback on them.
 
-```
-import { AskDefog } from "defog-components";
-return <AskDefog
-  apiEndpoint={"YOUR_API_ENDPOINT"}
-  showQuery={true}
-  maxHeight={600}
-/>
-```
-
-You can import our "chat-styled" component like this
+Debug mode should only be used for local testing, in order to prevent leaking of your API key.
 
 ```
 import { AskDefogChat } from 'defog-components'
@@ -24,6 +15,19 @@ const App = () => {
     maxHeight={"100%"}
     apiEndpoint="YOUR_API_ENDPOINT"
     buttonText={"Ask Defog"}
+    // debugMode={true}
+    // apiKey={"YOUR_API_KEY"}
   />
 }
+```
+
+And you can import our "standard" component like this
+
+```
+import { AskDefog } from "defog-components";
+return <AskDefog
+  apiEndpoint={"YOUR_API_ENDPOINT"}
+  showQuery={true}
+  maxHeight={600}
+/>
 ```
