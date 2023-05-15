@@ -11,12 +11,13 @@ import styled from "styled-components";
 import { inferColumnType } from "./components/common/utils.js";
 
 export const AskDefogChat = ({
-  apiEndpoint = "https://test-defog-chrome-ext-ikcpfh5tva-uc.a.run.app",
+  apiEndpoint,
   maxHeight = "100%",
   maxWidth = "100%",
   buttonText = "Ask Defog",
   debugMode = false,
   apiKey,
+  additionalParams = {},
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -57,6 +58,7 @@ export const AskDefogChat = ({
         body: JSON.stringify({
           question: query,
           previous_context: previousQuestions,
+          ...additionalParams,
         }),
       }).then((d) => d.json());
     } catch {
@@ -235,7 +237,7 @@ export const AskDefogChat = ({
               enterButton={buttonText}
               size="large"
               onSearch={handleSubmit}
-              style={{ width: 600 }}
+              style={{ width: "100%", maxWidth: 600 }}
               loading={buttonLoading}
               disabled={buttonLoading}
             />
