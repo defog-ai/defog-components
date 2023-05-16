@@ -41,8 +41,6 @@ export function inferColumnType(rows, colIdx) {
   // go through rows
   const res = {};
   res["numeric"] = false;
-  // for antd table
-  res["align"] = "left";
 
   for (let i = 0; i < rows.length; i++) {
     const val = rows[i][colIdx];
@@ -54,17 +52,14 @@ export function inferColumnType(rows, colIdx) {
     else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
       res["colType"] = "decimal";
       res["numeric"] = true;
-      res["align"] = "right";
     }
     // if number but no decimal
     else if (isNumber(val)) {
       res["colType"] = "integer";
       res["numeric"] = true;
-      res["align"] = "right";
     } else {
       res["colType"] = typeof val;
       res["numeric"] = res["colType"] === "number";
-      res["align"] = res["numeric"] ? "right" : "left";
     }
 
     res["simpleTypeOf"] = typeof val;
