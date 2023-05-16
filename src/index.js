@@ -154,27 +154,47 @@ export const AskDefogChat = ({
 
     let newCols;
     let newRows;
+
+    // if inferred typeof column is number, decimal, or integer
+    // but simple typeof value is string, means it's a numeric value coming in as string
+    // so coerce them to a number
+    // store the indexes of such columns
+    const numericAsString = [];
+
     if (dataResponse.columns && dataResponse?.data.length > 0) {
       const cols = dataResponse.columns;
       const rows = dataResponse.data;
       newCols = [];
       newRows = [];
       for (let i = 0; i < cols.length; i++) {
-        newCols.push({
-          title: cols[i],
-          dataIndex: cols[i],
-          key: cols[i],
-          colType: inferColumnType(rows, i),
-          sorter:
-            rows.length > 0 && typeof rows[0][i] === "number"
-              ? (a, b) => a[cols[i]] - b[cols[i]]
-              : (a, b) => String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-        });
+        newCols.push(
+          Object.assign(
+            {
+              title: cols[i],
+              dataIndex: cols[i],
+              key: cols[i],
+              // simple typeof. if a number is coming in as string, this will be string.
+              simpleTypeOf: typeof rows[0][i],
+              sorter:
+                rows.length > 0 && typeof rows[0][i] === "number"
+                  ? (a, b) => a[cols[i]] - b[cols[i]]
+                  : (a, b) =>
+                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+            },
+            inferColumnType(rows, i)
+          )
+        );
+        if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
+          numericAsString.push(i);
+        }
       }
+
       for (let i = 0; i < rows.length; i++) {
         let row = {};
         for (let j = 0; j < cols.length; j++) {
-          row[cols[j]] = rows[i][j];
+          if (numericAsString.indexOf(j) >= 0) {
+            row[cols[j]] = +rows[i][j];
+          } else row[cols[j]] = rows[i][j];
         }
         rows["key"] = i;
         newRows.push(row);
