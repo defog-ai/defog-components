@@ -3,7 +3,7 @@ import { Button, Table, message } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
-import { download_csv, transformToCSV } from "./common/utils.js";
+import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
 
 const DefogDynamicViz = ({
   vizType,
@@ -39,9 +39,12 @@ const DefogDynamicViz = ({
   };
 
   if (vizType === "table") {
+    // round decimal cols to 2 decimal places
+    const roundedData = roundColumns(response.data, response.columns);
+
     results = (
       <Table
-        dataSource={response.data}
+        dataSource={roundedData}
         columns={response.columns}
         style={{
           maxHeight: 300,
