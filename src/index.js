@@ -17,6 +17,8 @@ export const AskDefogChat = ({
   buttonText = "Ask Defog",
   debugMode = false,
   apiKey,
+  // can be "websocket" or "http"
+  mode = "http",
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -36,39 +38,44 @@ export const AskDefogChat = ({
     divRef.current.scrollTop = divRef.current.scrollHeight;
   };
 
-  var ws = useRef(null);
+  var comms = useRef(null);
 
-  function setupWebsocket() {
-    ws.current = new WebSocket(apiEndpoint);
-  }
-
-  // if it's not open or not created yet, recreate
-  if (!ws.current || ws.current.readyState !== ws.current.OPEN) {
-    setupWebsocket();
-  }
-
-  // re declare this everytime, otherwise the handlers have closure over state values and never get updated state.
-  // we COULD use useCallback here but something for the future perhaps.
-  ws.current.onmessage = function (event) {
-    const response = JSON.parse(event.data);
-
-    if (response.response_type === "model-completion") {
-      handleChatResponse(response);
-    } else if (response.response_type === "generated-data") {
-      handleDataResponse(response);
+  if (mode === "websocket") {
+    function setupWebsocket() {
+      comms.current = new WebSocket(apiEndpoint);
     }
-  };
+
+    // if it's not open or not created yet, recreate
+    if (!comms.current || comms.current.readyState !== comms.current.OPEN) {
+      setupWebsocket();
+    }
+
+    // re declare this everytime, otherwise the handlers have closure over state values and never get updated state.
+    // we COULD use useCallback here but something for the future perhaps.
+    comms.current.onmessage = function (event) {
+      const response = JSON.parse(event.data);
+
+      if (response.response_type === "model-completion") {
+        handleChatResponse(response);
+      } else if (response.response_type === "generated-data") {
+        handleDataResponse(response);
+      }
+    };
+  }
 
   const handleSubmit = async (query) => {
     setButtonLoading(true);
     setQuery(query);
 
-    ws.current.send(
-      JSON.stringify({
-        question: query,
-        previous_context: previousQuestions,
-      })
-    );
+    if (mode === "websocket") {
+      comms.current.send(
+        JSON.stringify({
+          question: query,
+          previous_context: previousQuestions,
+        })
+      );
+    } else if (mode === "http") {
+    }
   };
 
   function handleChatResponse(queryChatResponse) {
