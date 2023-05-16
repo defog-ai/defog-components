@@ -34,6 +34,13 @@ export const AskDefogChat = ({
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
 
+  const generateChatPath = "generate_query_chat";
+  const generateDataPath = "generate_data";
+
+  function makeURL(urlPath) {
+    return apiEndpoint + urlPath;
+  }
+
   const scrollToDiv = () => {
     divRef.current.scrollTop = divRef.current.scrollHeight;
   };
@@ -75,6 +82,30 @@ export const AskDefogChat = ({
         })
       );
     } else if (mode === "http") {
+      const queryChatResponse = await fetch(makeURL(generateChatPath), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: query,
+          previous_context: previousQuestions,
+        }),
+      }).then((d) => d.json());
+
+      handleChatResponse(queryChatResponse);
+
+      fetch(makeURL(generateDataPath), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sql_query: queryChatResponse.query_generated,
+        }),
+      })
+        .then((d) => d.json())
+        .then(handleDataResponse);
     }
   };
 
