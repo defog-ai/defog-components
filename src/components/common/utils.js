@@ -10,19 +10,62 @@ export function isDate(s) {
   return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
 }
 
+// change float cols with decimals to 2 decimal places
+export function roundColumns(data, columns) {
+  const decimalCols = columns
+    .filter((d) => d.colType === "decimal")
+    .map((d) => d.dataIndex);
+
+  // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
+  const roundedData = [];
+  data.forEach((d, i) => {
+    roundedData.push(Object.assign({}, d));
+
+    decimalCols.forEach((colName) => {
+      // round to two decimals
+      roundedData[i][colName] = roundedData[i][colName].toFixed(2);
+    });
+  });
+
+  return roundedData;
+}
+
+// sigh. sometimes model returns numbers as strings for some reason.
+// so use regex instead of typeof
+// from here: https://stackoverflow.com/questions/2811031/decimal-or-numeric-values-in-regular-expression-validation
+function isNumber(val) {
+  return /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)$/.test(val);
+}
+
 export function inferColumnType(rows, colIdx) {
   // go through rows
+  const res = {};
+  res["numeric"] = false;
+
   for (let i = 0; i < rows.length; i++) {
     const val = rows[i][colIdx];
     if (val === null) continue;
     else if (isDate(val)) {
-      return "date";
-    } else {
-      return typeof val;
+      res["colType"] = "date";
     }
+    // is a number and also has a decimal
+    else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
+      res["colType"] = "decimal";
+      res["numeric"] = true;
+    }
+    // if number but no decimal
+    else if (isNumber(val)) {
+      res["colType"] = "integer";
+      res["numeric"] = true;
+    } else {
+      res["colType"] = typeof val;
+      res["numeric"] = res["colType"] === "number";
+    }
+
+    res["simpleTypeOf"] = typeof val;
+
+    return res;
   }
-  // if haven't returned yet
-  return "undefined";
 }
 
 function formatTime(val) {

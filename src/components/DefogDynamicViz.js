@@ -3,7 +3,7 @@ import { Button, Table, message } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
-import { download_csv, transformToCSV } from "./common/utils.js";
+import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
 
 const DefogDynamicViz = ({
   vizType,
@@ -39,9 +39,12 @@ const DefogDynamicViz = ({
   };
 
   if (vizType === "table") {
+    // round decimal cols to 2 decimal places
+    const roundedData = roundColumns(response.data, response.columns);
+
     results = (
       <Table
-        dataSource={response.data}
+        dataSource={roundedData}
         columns={response.columns}
         style={{
           maxHeight: 300,
@@ -106,21 +109,24 @@ const DefogDynamicViz = ({
 
       <Button
         loading={narrativeLoading}
-        onClick={async() => {
+        onClick={async () => {
           setNarrativeLoading(true);
-          const resp = await fetch(`https://api.defog.ai/generate_data_insights`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              apiKey: apiKey,
-              data: {
-                data: rawData,
-                columns: response.columns,
-              }
-            }),
-          });
+          const resp = await fetch(
+            `https://api.defog.ai/generate_data_insights`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                apiKey: apiKey,
+                data: {
+                  data: rawData,
+                  columns: response.columns,
+                },
+              }),
+            }
+          );
           const data = await resp.json();
           setNarrative(data.response);
           setNarrativeLoading(false);
@@ -157,9 +163,7 @@ const DefogDynamicViz = ({
           </div>
         )}
       </div>
-      <div>
-        {narrative}
-      </div>
+      <div>{narrative}</div>
     </>
   );
 };
