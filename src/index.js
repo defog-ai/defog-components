@@ -95,7 +95,7 @@ export const AskDefogChat = ({
         }),
       }).then((d) => d.json());
 
-      handleChatResponse(queryChatResponse);
+      handleChatResponse(queryChatResponse, query);
 
       // fetch(makeURL(generateDataPath), {
       //   method: "POST",
@@ -111,7 +111,7 @@ export const AskDefogChat = ({
     }
   };
 
-  function handleChatResponse(queryChatResponse) {
+  function handleChatResponse(queryChatResponse, query) {
     // set response array to have the latest everuthing except data and columns
     setChatResponseArray([
       ...chatResponseArray,
@@ -126,16 +126,17 @@ export const AskDefogChat = ({
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
-    handleDataResponse(queryChatResponse);
+    handleDataResponse(queryChatResponse, query);
   }
 
-  function handleDataResponse(dataResponse) {
+  function handleDataResponse(dataResponse, query) {
     setRawData(dataResponse.data);
-
+    console.log(query);
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
     ) {
+      console.log("pie chart");
       setVizType("piechart");
     } else if (
       query.toLowerCase().indexOf("bar chart") > -1 ||
@@ -143,6 +144,7 @@ export const AskDefogChat = ({
       query.toLowerCase().indexOf("column chart") > -1 ||
       query.toLowerCase().indexOf("columnchart") > -1
     ) {
+      console.log("column chart");
       setVizType("columnchart");
     } else if (
       query.toLowerCase().indexOf("trend chart") > -1 ||
@@ -150,8 +152,10 @@ export const AskDefogChat = ({
       query.toLowerCase().indexOf("line chart") > -1 ||
       query.toLowerCase().indexOf("linechart") > -1
     ) {
+      console.log("trend chart");
       setVizType("trendchart");
     } else {
+      console.log("table");
       setVizType("table");
     }
 
