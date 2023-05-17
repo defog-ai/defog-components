@@ -8,10 +8,12 @@ const App = () => {
     <AskDefogChat
       maxWidth={"100%"}
       maxHeight={"100%"}
-      apiEndpoint="ws://127.0.0.1:8000/ws"
+      //apiEndpoint="ws://127.0.0.1:8000/ws"
+      apiEndpoint="http://127.0.0.1:8000/"
       buttonText={"Ask Defog"}
-      mode={"websocket"}
-      // debugMode={true}
+      //mode={"websocket"}
+      mode={"http"}
+      debugMode={true}
       // apiKey={"1"}
     />
   );
