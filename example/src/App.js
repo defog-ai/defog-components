@@ -8,11 +8,13 @@ const App = () => {
     <AskDefogChat
       maxWidth={"100%"}
       maxHeight={"100%"}
-      apiEndpoint="http://127.0.0.1:8000/generate_query_chat"
-      // additionalParams={{ tableName: "test_table_597d590ed3aa4c38a7231f0586360b90" }}
+      //apiEndpoint="ws://127.0.0.1:8000/ws"
+      apiEndpoint="http://127.0.0.1:8000/"
       buttonText={"Ask Defog"}
+      //mode={"websocket"}
+      mode={"http"}
       debugMode={true}
-      apiKey={"1"}
+      // apiKey={"1"}
     />
   );
 };

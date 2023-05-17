@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, Fragment } from "react";
 import Lottie from "lottie-react";
 import { Input, Row, Col, Collapse, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
@@ -18,6 +18,8 @@ export const AskDefogChat = ({
   debugMode = false,
   apiKey,
   additionalParams = {},
+  // can be "websocket" or "http"
+  mode = "http",
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -33,24 +35,55 @@ export const AskDefogChat = ({
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
 
+  const generateChatPath = "generate_query_chat";
+  const generateDataPath = "generate_data";
+
+  function makeURL(urlPath) {
+    return apiEndpoint + urlPath;
+  }
+
   const scrollToDiv = () => {
     divRef.current.scrollTop = divRef.current.scrollHeight;
   };
 
-  const generateChatPath = "generate_query_chat";
-  const generateDataPath = "generate_data";
+  var comms = useRef(null);
 
-  // function makeURL(urlPath) {
-  //   return apiEndpoint + urlPath;
-  // }
+  if (mode === "websocket") {
+    function setupWebsocket() {
+      comms.current = new WebSocket(apiEndpoint);
+    }
+
+    // if it's not open or not created yet, recreate
+    if (!comms.current || comms.current.readyState !== comms.current.OPEN) {
+      setupWebsocket();
+    }
+
+    // re declare this everytime, otherwise the handlers have closure over state values and never get updated state.
+    // we COULD use useCallback here but something for the future perhaps.
+    comms.current.onmessage = function (event) {
+      const response = JSON.parse(event.data);
+
+      if (response.response_type === "model-completion") {
+        handleChatResponse(response);
+      } else if (response.response_type === "generated-data") {
+        handleDataResponse(response);
+      }
+    };
+  }
 
   const handleSubmit = async (query) => {
     setButtonLoading(true);
     setQuery(query);
-    // const queryChatResponse = await fetch(makeURL(generateChatPath), {
-    let queryChatResponse;
-    try {
-      queryChatResponse = await fetch(apiEndpoint, {
+
+    if (mode === "websocket") {
+      comms.current.send(
+        JSON.stringify({
+          question: query,
+          previous_context: previousQuestions,
+        })
+      );
+    } else if (mode === "http") {
+      const queryChatResponse = await fetch(makeURL(generateChatPath), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,15 +94,24 @@ export const AskDefogChat = ({
           ...additionalParams,
         }),
       }).then((d) => d.json());
-    } catch {
-      message.error("Something went wrong on our server - sorry :(");
-      message.error("Could you please rephrase the question and try again?");
-      setButtonLoading(false);
-      return;
+
+      handleChatResponse(queryChatResponse);
+
+      fetch(makeURL(generateDataPath), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sql_query: queryChatResponse.query_generated,
+        }),
+      })
+        .then((d) => d.json())
+        .then(handleDataResponse);
     }
+  };
 
-    setButtonLoading(false);
-
+  function handleChatResponse(queryChatResponse) {
     // set response array to have the latest everuthing except data and columns
     setChatResponseArray([
       ...chatResponseArray,
@@ -84,9 +126,11 @@ export const AskDefogChat = ({
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
+  }
 
-    const data = queryChatResponse;
-    setRawData(data.data);
+  function handleDataResponse(dataResponse) {
+    setRawData(dataResponse.data);
+
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
@@ -112,28 +156,47 @@ export const AskDefogChat = ({
 
     let newCols;
     let newRows;
-    if (data.columns && data?.data.length > 0) {
-      const cols = data.columns;
-      const rows = data.data;
+
+    // if inferred typeof column is number, decimal, or integer
+    // but simple typeof value is string, means it's a numeric value coming in as string
+    // so coerce them to a number
+    // store the indexes of such columns
+    const numericAsString = [];
+
+    if (dataResponse.columns && dataResponse?.data.length > 0) {
+      const cols = dataResponse.columns;
+      const rows = dataResponse.data;
       newCols = [];
       newRows = [];
       for (let i = 0; i < cols.length; i++) {
-        newCols.push({
-          title: cols[i],
-          dataIndex: cols[i],
-          key: cols[i],
-          colType: inferColumnType(rows, i),
-          sorter:
-            rows.length > 0 && typeof rows[0][i] === "number"
-              ? (a, b) => a[cols[i]] - b[cols[i]]
-              : (a, b) =>
-                  String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-        });
+        newCols.push(
+          Object.assign(
+            {
+              title: cols[i],
+              dataIndex: cols[i],
+              key: cols[i],
+              // simple typeof. if a number is coming in as string, this will be string.
+              simpleTypeOf: typeof rows[0][i],
+              sorter:
+                rows.length > 0 && typeof rows[0][i] === "number"
+                  ? (a, b) => a[cols[i]] - b[cols[i]]
+                  : (a, b) =>
+                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+            },
+            inferColumnType(rows, i)
+          )
+        );
+        if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
+          numericAsString.push(i);
+        }
       }
+
       for (let i = 0; i < rows.length; i++) {
         let row = {};
         for (let j = 0; j < cols.length; j++) {
-          row[cols[j]] = rows[i][j];
+          if (numericAsString.indexOf(j) >= 0) {
+            row[cols[j]] = +rows[i][j];
+          } else row[cols[j]] = rows[i][j];
         }
         rows["key"] = i;
         newRows.push(row);
@@ -154,10 +217,12 @@ export const AskDefogChat = ({
 
     setWidgetHeight(400);
 
+    setButtonLoading(false);
+
     // scroll to the bottom of the results div
     const resultsDiv = document.getElementById("results");
     resultsDiv.scrollTop = resultsDiv.scrollHeight;
-  };
+  }
 
   return (
     <div>
@@ -172,7 +237,7 @@ export const AskDefogChat = ({
         {/* add a button on the top right of this div with an expand arrow */}
         <Collapse
           bordered={false}
-          defaultActiveKey={[null]}
+          defaultActiveKey={['1']}
           expandIconPosition="end"
           style={{ color: "#fff", backgroundColor: "#fff" }}
           expandIcon={() => <CaretRightOutlined rotate={isActive ? 270 : 90} />}
@@ -205,7 +270,7 @@ export const AskDefogChat = ({
                         style={{ width: "50%", margin: "0 auto" }}
                       >
                         <SearchState
-                          message="On our way to finding some results"
+                          message={"Query generated! Getting your data..."}
                           lottie={
                             <Lottie animationData={LoadingLottie} loop={true} />
                           }
@@ -231,6 +296,27 @@ export const AskDefogChat = ({
                 );
               })}
             </div>
+            {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
+            {buttonLoading &&
+            chatResponseArray.length === dataResponseArray.length ? (
+              <React.Fragment>
+                <hr style={{ borderTop: "1px dashed lightgrey" }} />
+                <p style={{ marginTop: 10 }}>{query}</p>
+                <div
+                  className="data-loading-search-state"
+                  style={{ width: "50%", margin: "0 auto" }}
+                >
+                  <SearchState
+                    message={"Machines thinking..."}
+                    lottie={
+                      <Lottie animationData={LoadingLottie} loop={true} />
+                    }
+                  />
+                </div>
+              </React.Fragment>
+            ) : (
+              ""
+            )}
             <Search
               placeholder="input search text"
               allowClear
