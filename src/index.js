@@ -35,10 +35,10 @@ export const AskDefogChat = ({
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
 
-  const generateChatPath = "generate_query_chat";
-  const generateDataPath = "generate_data";
+  // const generateChatPath = "generate_query_chat";
+  // const generateDataPath = "generate_data";
 
-  function makeURL(urlPath) {
+  function makeURL(urlPath="") {
     return apiEndpoint + urlPath;
   }
 
@@ -83,7 +83,7 @@ export const AskDefogChat = ({
         })
       );
     } else if (mode === "http") {
-      const queryChatResponse = await fetch(makeURL(generateChatPath), {
+      const queryChatResponse = await fetch(makeURL(), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -97,17 +97,17 @@ export const AskDefogChat = ({
 
       handleChatResponse(queryChatResponse);
 
-      fetch(makeURL(generateDataPath), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sql_query: queryChatResponse.query_generated,
-        }),
-      })
-        .then((d) => d.json())
-        .then(handleDataResponse);
+      // fetch(makeURL(generateDataPath), {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({
+      //     sql_query: queryChatResponse.query_generated,
+      //   }),
+      // })
+      //   .then((d) => d.json())
+      //   .then(handleDataResponse);
     }
   };
 
@@ -126,6 +126,7 @@ export const AskDefogChat = ({
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
+    handleDataResponse(queryChatResponse);
   }
 
   function handleDataResponse(dataResponse) {
