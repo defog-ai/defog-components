@@ -308,7 +308,7 @@ export const AskDefogChat = ({
                   style={{ width: "50%", margin: "0 auto" }}
                 >
                   <SearchState
-                    message={"Machines thinking..."}
+                    message={"Generating a query for your question..."}
                     lottie={
                       <Lottie animationData={LoadingLottie} loop={true} />
                     }
