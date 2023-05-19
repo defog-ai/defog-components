@@ -90,7 +90,15 @@ const DefogDynamicViz = ({
         height={400}
       />
     );
+  } else if (vizType === "text") {
+    results = (
+      <pre>
+        {response.results}
+      </pre>
+    );
   }
+
+  console.log(response);
 
   const csvDownload = (
     <>
@@ -140,7 +148,6 @@ const DefogDynamicViz = ({
   return (
     <>
       <div>
-        {query}
         {results}
         {csvDownload}
         {debugMode && (

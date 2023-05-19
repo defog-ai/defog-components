@@ -83,19 +83,24 @@ export const AskDefogChat = ({
         })
       );
     } else if (mode === "http") {
-      const queryChatResponse = await fetch(makeURL(), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question: query,
-          previous_context: previousQuestions,
-          ...additionalParams,
-        }),
-      }).then((d) => d.json());
-
-      handleChatResponse(queryChatResponse, query);
+      try {
+        const queryChatResponse = await fetch(makeURL(), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: query,
+            previous_context: previousQuestions,
+            ...additionalParams,
+          }),
+        }).then((d) => d.json());
+  
+        handleChatResponse(queryChatResponse, query);
+      } catch (e) {
+        console.log(e);
+        message.error("An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.");
+      }
 
       // fetch(makeURL(generateDataPath), {
       //   method: "POST",
@@ -119,8 +124,9 @@ export const AskDefogChat = ({
         queryReason: queryChatResponse.reason_for_query,
         suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
         question: query,
-        generatedSql: queryChatResponse.query_generated,
+        generatedSql: queryChatResponse.query_generated || queryChatResponse.code,
         previousContext: previousQuestions,
+        results: queryChatResponse.results,
       },
     ]);
 
@@ -154,6 +160,8 @@ export const AskDefogChat = ({
     ) {
       console.log("trend chart");
       setVizType("trendchart");
+    } else if (dataResponse.code) {
+      setVizType("text");
     } else {
       console.log("table");
       setVizType("table");
