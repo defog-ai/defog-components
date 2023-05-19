@@ -16,6 +16,7 @@ export const AskDefogChat = ({
   maxWidth = "100%",
   buttonText = "Ask Defog",
   debugMode = false,
+  personality="Friendly",
   apiKey,
   additionalParams = {},
   // can be "websocket" or "http"
@@ -93,6 +94,7 @@ export const AskDefogChat = ({
             question: query,
             previous_context: previousQuestions,
             ...additionalParams,
+            personality: personality,
           }),
         }).then((d) => d.json());
   
@@ -100,6 +102,7 @@ export const AskDefogChat = ({
       } catch (e) {
         console.log(e);
         message.error("An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.");
+        setButtonLoading(false);
       }
 
       // fetch(makeURL(generateDataPath), {
