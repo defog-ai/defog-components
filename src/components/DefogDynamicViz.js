@@ -1,9 +1,10 @@
-import React, { Fragment, useState } from "react";
-import { Button, Table, message } from "antd";
+import React, { useState, Fragment } from "react";
+import { Button, Table, message, Tabs } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
 import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
+import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
 
 const DefogDynamicViz = ({
   vizType,
@@ -13,7 +14,6 @@ const DefogDynamicViz = ({
   debugMode,
   apiKey,
 }) => {
-  let results;
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const uploadFeedback = (feedback) => {
@@ -38,11 +38,15 @@ const DefogDynamicViz = ({
         );
   };
 
-  if (vizType === "table") {
+  let results;
+  if (vizType === "text") {
+    results = <pre>{response.results}</pre>;
+  } else {
+    // always have a table
     // round decimal cols to 2 decimal places
     const roundedData = roundColumns(response.data, response.columns);
 
-    results = (
+    results = [
       <Table
         dataSource={roundedData}
         columns={response.columns}
@@ -52,49 +56,74 @@ const DefogDynamicViz = ({
         }}
         size="small"
         pagination={{ pageSize: 5 }}
-      />
-    );
-  } else if (vizType === "piechart") {
+      />,
+    ];
+
+    // if there's a viztype specified, show that
+    if (vizType === "piechart") {
+      results.push(
+        <PieChart
+          data={{
+            // dataJSON: rawData.map((el) => ({ name: el[0], y: el[1] })),
+            data: rawData,
+            columns: response.columns,
+            title: query,
+          }}
+          height={400}
+        />
+      );
+    } else if (vizType === "columnchart") {
+      results.push(
+        <ColumnChart
+          data={{
+            // dataJSON: rawData.map((el) => ({ x: el[0], y: el[1] })),
+            data: rawData,
+            columns: response.columns,
+            // xAxisCategories: rawData.map((el) => el[0]),
+            title: query,
+          }}
+          height={400}
+        />
+      );
+    } else if (vizType === "trendchart") {
+      results.push(
+        <TrendChartNew
+          data={{
+            data: rawData,
+            columns: response.columns,
+            title: query,
+          }}
+          height={400}
+        />
+      );
+    } else {
+      // by default, show line chart
+      results.push(
+        <TrendChartNew
+          data={{
+            data: rawData,
+            columns: response.columns,
+            title: query,
+          }}
+          height={400}
+        />
+      );
+    }
+    // convert to antd tabs
     results = (
-      <PieChart
-        data={{
-          // dataJSON: rawData.map((el) => ({ name: el[0], y: el[1] })),
-          data: rawData,
-          columns: response.columns,
-          title: query,
-        }}
-        height={400}
-      />
-    );
-  } else if (vizType === "columnchart") {
-    results = (
-      <ColumnChart
-        data={{
-          // dataJSON: rawData.map((el) => ({ x: el[0], y: el[1] })),
-          data: rawData,
-          columns: response.columns,
-          // xAxisCategories: rawData.map((el) => el[0]),
-          title: query,
-        }}
-        height={400}
-      />
-    );
-  } else if (vizType === "trendchart") {
-    results = (
-      <TrendChartNew
-        data={{
-          data: rawData,
-          columns: response.columns,
-          title: query,
-        }}
-        height={400}
-      />
-    );
-  } else if (vizType === "text") {
-    results = (
-      <pre>
-        {response.results}
-      </pre>
+      <Tabs
+        defaultActiveKey="2"
+        items={results.map((d, i) => ({
+          key: i,
+          label: (
+            <span>
+              {i === 0 ? <TableOutlined /> : <BarChartOutlined />}
+              {i === 0 ? "Table" : "Chart"}
+            </span>
+          ),
+          children: d,
+        }))}
+      ></Tabs>
     );
   }
 
