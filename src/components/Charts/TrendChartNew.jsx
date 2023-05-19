@@ -28,7 +28,6 @@ const TrendChartNew = React.memo(
   (props) => {
     const { data, columns, title } = props.data;
     const height = props.height;
-    console.log(columns);
     setChartJSDefaults(ChartJS, title, columns[0].colType === "date");
 
     Object.assign(ChartJS.defaults.elements.point, {
