@@ -7,7 +7,7 @@ import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
 import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
 
 const DefogDynamicViz = ({
-  vizType,
+  vizType = null,
   response,
   rawData,
   query,
@@ -39,6 +39,8 @@ const DefogDynamicViz = ({
   };
 
   let results;
+  let defaultActiveKey = vizType === null || vizType === "table" ? "1" : "2";
+
   if (vizType === "text") {
     results = <pre>{response.results}</pre>;
   } else {
@@ -85,7 +87,7 @@ const DefogDynamicViz = ({
           height={400}
         />
       );
-    } else if (vizType === "trendchart") {
+    } else if (vizType === "trendchart" || vizType === null) {
       results.push(
         <TrendChartNew
           data={{
@@ -112,9 +114,9 @@ const DefogDynamicViz = ({
     // convert to antd tabs
     results = (
       <Tabs
-        defaultActiveKey="2"
+        defaultActiveKey={defaultActiveKey}
         items={results.map((d, i) => ({
-          key: i,
+          key: i + 1 + "",
           label: (
             <span>
               {i === 0 ? <TableOutlined /> : <BarChartOutlined />}

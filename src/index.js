@@ -38,7 +38,7 @@ export const AskDefogChat = ({
   // const generateChatPath = "generate_query_chat";
   // const generateDataPath = "generate_data";
 
-  function makeURL(urlPath="") {
+  function makeURL(urlPath = "") {
     return apiEndpoint + urlPath;
   }
 
@@ -95,11 +95,13 @@ export const AskDefogChat = ({
             ...additionalParams,
           }),
         }).then((d) => d.json());
-  
+
         handleChatResponse(queryChatResponse, query);
       } catch (e) {
         console.log(e);
-        message.error("An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.");
+        message.error(
+          "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP."
+        );
       }
 
       // fetch(makeURL(generateDataPath), {
@@ -117,6 +119,7 @@ export const AskDefogChat = ({
   };
 
   function handleChatResponse(queryChatResponse, query) {
+    console.log(queryChatResponse);
     // set response array to have the latest everuthing except data and columns
     setChatResponseArray([
       ...chatResponseArray,
@@ -124,7 +127,8 @@ export const AskDefogChat = ({
         queryReason: queryChatResponse.reason_for_query,
         suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
         question: query,
-        generatedSql: queryChatResponse.query_generated || queryChatResponse.code,
+        generatedSql:
+          queryChatResponse.query_generated || queryChatResponse.code,
         previousContext: previousQuestions,
         results: queryChatResponse.results,
       },
@@ -250,7 +254,7 @@ export const AskDefogChat = ({
         {/* add a button on the top right of this div with an expand arrow */}
         <Collapse
           bordered={false}
-          defaultActiveKey={['1']}
+          defaultActiveKey={["1"]}
           expandIconPosition="end"
           style={{ color: "#fff", backgroundColor: "#fff" }}
           expandIcon={() => <CaretRightOutlined rotate={isActive ? 270 : 90} />}
