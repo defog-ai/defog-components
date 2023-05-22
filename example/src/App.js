@@ -6,9 +6,9 @@ const App = () => {
     <AskDefogChat
       maxWidth={"100%"}
       maxHeight={"100%"}
-      apiEndpoint="http://127.0.0.1:8000/generate_query_chat"
+      apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
       buttonText={"Ask Defog"}
-      personality={"irreverent, sarcastic, witty"}
+      personality={"sarcastic and aloof"}
       // mode={"websocket"}
       // debugMode={true}
       // apiKey={"1"}
