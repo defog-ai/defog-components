@@ -72,7 +72,7 @@ const DefogDynamicViz = ({
           height={400}
         />
       );
-    } else if (vizType === "columnchart") {
+    } else if (vizType === "columnchart" || vizType === "chart") {
       results.push(
         <ColumnChart
           data={{
@@ -97,9 +97,9 @@ const DefogDynamicViz = ({
         />
       );
     } else {
-      // by default, show line chart
+      // by default, show column chart
       results.push(
-        <TrendChartNew
+        <ColumnChart
           data={{
             data: rawData,
             columns: response.columns,
@@ -112,9 +112,9 @@ const DefogDynamicViz = ({
     // convert to antd tabs
     results = (
       <Tabs
-        defaultActiveKey="2"
+        defaultActiveKey={vizType === "table" ? "0" : "1"}
         items={results.map((d, i) => ({
-          key: i,
+          key: String(i),
           label: (
             <span>
               {i === 0 ? <TableOutlined /> : <BarChartOutlined />}
@@ -126,8 +126,6 @@ const DefogDynamicViz = ({
       ></Tabs>
     );
   }
-
-  console.log(response);
 
   const csvDownload = (
     <>
