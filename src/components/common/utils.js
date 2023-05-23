@@ -3,12 +3,15 @@
 
 import { group } from "d3-array";
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
-// https://day.js.org/docs/en/parse/is-valid
+dayjs.extend(customParseFormat);
+
+const dateFormats = ["YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss"];
+
 export function isDate(s) {
-  // assuming a format like so: "2008-01-01T00:00:00"
-  // YYYY-MM-DDTHH:MM:SS
-  return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
+  return dayjs(s, dateFormats, true).isValid();
+  // return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
 }
 
 // change float cols with decimals to 2 decimal places
@@ -70,7 +73,7 @@ export function inferColumnType(rows, colIdx) {
 }
 
 function formatTime(val) {
-  return dayjs(val, "YYYY-MM-DDTHH:MM:SS").format("D MMM 'YY");
+  return dayjs(val).format("D MMM 'YY");
 }
 
 export function setChartJSDefaults(
@@ -78,7 +81,6 @@ export function setChartJSDefaults(
   title = "",
   xAxisIsDate = false
 ) {
-  console.log(xAxisIsDate);
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
   ChartJSRef.defaults.interaction.axis = "x";
   ChartJSRef.defaults.interaction.mode = "nearest";
@@ -130,10 +132,34 @@ export const mapToObject = (
   );
 
 export function transformToChartJSType(data, columns) {
-  // the first column is the x axis.
-  // that goes into "labels" for chartjs options.
-  const xAxisCol = columns[0].key;
-  const chartLabels = [];
+  // find if there's a date column
+  const dateColumn = columns.find((d) => d.colType === "date");
+  let xAxisCol;
+  if (dateColumn !== undefined) {
+    xAxisCol = dateColumn.key;
+  } else {
+    // use first column
+    xAxisCol = columns[0].key;
+  }
+  // a helper function to get values of the xAxisCol later
+  // valueOf is to get the value of a dayjs object
+  const xAxisColVal = dateColumn === undefined ? (d) => d : (d) => d.valueOf();
+
+  let xAxisLabels = new Set();
+
+  data.forEach((d) => {
+    xAxisLabels.add(d[xAxisCol]);
+  });
+
+  xAxisLabels = Array.from(xAxisLabels);
+
+  // sort if date
+  if (dateColumn !== undefined) {
+    xAxisLabels = xAxisLabels.map((d) => dayjs(d, dateFormats));
+  } else {
+    // else just sort for easier comparison later
+    xAxisLabels.sort();
+  }
 
   /* chartData has the y values.
     this can be multiple lines being plotted simultaneously.
@@ -149,25 +175,22 @@ export function transformToChartJSType(data, columns) {
     }
     it should contain (columns.length - 1) arrays
    */
-  const chartData = columns
-    .map((d) => {
-      let _ = [];
-      _.column = d;
-      return _;
-    })
-    .slice(1);
 
-  /* Notes for a still experimental thing:
-  // once we set the x axis, each categorical column for example username above is its own bar/line/etc
+  /* once we set the x axis, each categorical column for example username above is its own bar/line/etc
   // each non date, non categorical, non boolean (hence purely number) column is the y axis.
   // we need to group the data by all of the categorical columns
   // and generate different datasets for each.
   // d3.group by all categorical variables
   */
 
-  // date comes in as categorical column, but is the x axis, so filter that *out*
+  // date comes in as categorical column, but we use that for the x axis, so filter that out also
   const categoricalColumns = columns.filter(
     (d) => d.variableType[0] === "c" && d.colType !== "date"
+  );
+
+  // y axis columns are the remaining columns:
+  const yAxisColumns = columns.filter(
+    (d) => d.variableType[0] !== "c" && d.colType !== "date"
   );
 
   // nest data for each of the above categorical columns
@@ -175,18 +198,66 @@ export function transformToChartJSType(data, columns) {
   // ref: https://observablehq.com/@severo/til-d3-group-with-arbitrary-keys
   const keys = categoricalColumns.map((col) => (d) => d[col.key]);
 
-  const nestedData = [];
-  mapToObject(group(data, ...keys), [], (d) => nestedData.push(d));
-  console.log(nestedData);
+  let chartData = [];
 
-  data.forEach((d) => {
-    chartLabels.push(d[xAxisCol]);
+  if (keys.length > 0) {
+    mapToObject(group(data, ...keys), [], (_d) => {
+      if (chartData.length >= 10) return;
 
-    for (let i = 1; i < columns.length; i++) {
-      chartData[i - 1].push(d[columns[i].key]);
-    }
-  });
-  return { chartLabels, chartData };
+      console.log(_d);
+      // in this dataset, find the chart labels for which data is missing, and add nulls for that
+      let d = _d.slice();
+      d.title = _d.nestLocation.join("-");
+
+      // if there was a date column, convert date strings to objects, and also sort by date column
+      if (dateColumn !== undefined) {
+        d.forEach((o) => {
+          o[xAxisCol] = dayjs(o[xAxisCol], dateFormats);
+        });
+
+        d.sort((a, b) => xAxisColVal(a[xAxisCol]) - xAxisColVal(b[xAxisCol]));
+      }
+      // else just sort
+      else {
+        d.sort();
+      }
+
+      let i = 0;
+      while (d.length <= xAxisLabels.length) {
+        if (
+          !d[i] ||
+          xAxisColVal(xAxisLabels[i]) !== xAxisColVal(d[i][xAxisCol])
+        ) {
+          // add null before this index i and don't increment i
+          d.splice(i, 0, null);
+        }
+        i++;
+      }
+
+      const yVals = d.map((o) => (o === null ? null : o[yAxisColumns[0].key]));
+      yVals.title = d.title;
+
+      chartData.push(yVals);
+    });
+  } else {
+    // has no categorical columns
+
+    chartData = yAxisColumns.map((d) => {
+      const x = [];
+      x.title = d.key;
+      return x;
+    });
+
+    data.forEach((d) => {
+      for (let i = 0; i < yAxisColumns.length; i++) {
+        chartData[i].push(d[yAxisColumns[i].key]);
+      }
+    });
+  }
+
+  console.log(chartData);
+
+  return { chartLabels: xAxisLabels, chartData: chartData };
 }
 
 export function transformToCSV(rows, columnNames) {

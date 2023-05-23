@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment } from "react";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { Row, Col } from "antd";
 import {
@@ -34,6 +34,7 @@ const ColumnChart = React.memo(
     setChartJSDefaults(ChartJS, title, columns[0].colType === "date");
 
     const { chartData, chartLabels } = transformToChartJSType(data, columns);
+
     return (
       <ErrorBoundary>
         <Row justify={"center"}>
@@ -43,7 +44,7 @@ const ColumnChart = React.memo(
                 data={{
                   labels: chartLabels,
                   datasets: chartData.map((d, i) => ({
-                    label: columns[i + 1].title,
+                    label: d.title,
                     data: d,
                   })),
                 }}

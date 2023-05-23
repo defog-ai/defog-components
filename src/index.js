@@ -188,7 +188,7 @@ export const AskDefogChat = ({
           Object.assign(
             {
               title: cols[i],
-              dataIndex: i,
+              dataIndex: cols[i],
               key: cols[i],
               variableType: colVariableTypes[cols[i]],
               // simple typeof. if a number is coming in as string, this will be string.

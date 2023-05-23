@@ -68,6 +68,8 @@ const DefogDynamicViz = ({
     };
     const height = 400;
 
+    console.log(response);
+
     // if there's a viztype specified, show that
     if (vizType === "piechart") {
       results.push(<PieChart data={vizData} height={height} />);
