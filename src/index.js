@@ -141,7 +141,6 @@ export const AskDefogChat = ({
 
   function handleDataResponse(dataResponse, query) {
     setRawData(dataResponse.data);
-
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
@@ -163,6 +162,8 @@ export const AskDefogChat = ({
       setVizType("trendchart");
     } else if (dataResponse.code) {
       setVizType("text");
+    } else if (query.toLowerCase().indexOf(" chart ") > -1) {
+      setVizType("columnchart");
     } else {
       setVizType("table");
     }

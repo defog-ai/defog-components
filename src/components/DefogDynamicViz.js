@@ -77,14 +77,14 @@ const DefogDynamicViz = ({
       results.push(<TrendChartNew data={vizData} height={height} />);
     } else {
       // by default, show line chart
-      results.push(<TrendChartNew data={vizData} height={height} />);
+      results.push(<ColumnChart data={vizData} height={height} />);
     }
     // convert to antd tabs
     results = (
       <Tabs
-        defaultActiveKey={defaultActiveKey}
+        defaultActiveKey={vizType === "table" ? "0" : "1"}
         items={results.map((d, i) => ({
-          key: i + 1 + "",
+          key: String(i),
           label: (
             <span>
               {i === 0 ? <TableOutlined /> : <BarChartOutlined />}
@@ -96,8 +96,6 @@ const DefogDynamicViz = ({
       ></Tabs>
     );
   }
-
-  console.log(response);
 
   const csvDownload = (
     <>
