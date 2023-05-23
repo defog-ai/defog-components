@@ -9,7 +9,7 @@ const App = () => {
       maxWidth={"100%"}
       maxHeight={"100%"}
       //apiEndpoint="ws://127.0.0.1:8000/ws"
-      apiEndpoint="http://127.0.0.1:8000/generate_query_chat"
+      apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
       buttonText={"Ask Defog"}
       //mode={"websocket"}
       mode={"http"}
