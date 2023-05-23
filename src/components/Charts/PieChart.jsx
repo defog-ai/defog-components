@@ -29,12 +29,12 @@ const PieChart = React.memo(
             <Col md={{ span: 24 }} lg={12}>
               <div className="pie-chart-ctr" style={{ height: height + "px" }}>
                 <Pie
-                  key={columns[i + 1].title}
+                  key={d.title}
                   data={{
                     labels: chartLabels,
                     datasets: [
                       {
-                        label: columns[i + 1].title,
+                        label: d.title,
                         data: d,
                       },
                     ],

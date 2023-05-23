@@ -45,7 +45,7 @@ const TrendChartNew = React.memo(
         data: {
           labels: chartLabels,
           datasets: chartData.map((d, i) => ({
-            label: columns[i + 1].title,
+            label: d.title,
             data: d,
             tension: 0.2,
           })),
