@@ -53,6 +53,7 @@
   "dependencies": {
     "antd": "^5.1.7",
     "chart.js": "^4.3.0",
+    "d3-array": "^3.2.3",
     "dayjs": "^1.11.7",
     "lottie-react": "^2.3.1",
     "postcss-flexbugs-fixes": "^5.0.2",

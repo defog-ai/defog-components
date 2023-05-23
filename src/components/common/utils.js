@@ -1,6 +1,7 @@
 // a very, VERY simple checker to cehck if a value is a date.
 // if we need something more complex in the future, perhaps using dayjs would be a better option
 
+import { group } from "d3-array";
 import dayjs from "dayjs";
 
 // https://day.js.org/docs/en/parse/is-valid
@@ -14,7 +15,7 @@ export function isDate(s) {
 export function roundColumns(data, columns) {
   const decimalCols = columns
     .filter((d) => d.colType === "decimal")
-    .map((d) => d.dataIndex);
+    .map((d) => d.key);
 
   // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
   const roundedData = [];
@@ -77,6 +78,7 @@ export function setChartJSDefaults(
   title = "",
   xAxisIsDate = false
 ) {
+  console.log(xAxisIsDate);
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
   ChartJSRef.defaults.interaction.axis = "x";
   ChartJSRef.defaults.interaction.mode = "nearest";
@@ -107,37 +109,81 @@ export function setChartJSDefaults(
   }
 }
 
-export function transformToChartJSType(data, columns) {
-  // the first column is x axis.
-  // that goes into "labels" for chartjs options.
-  // store it and keep aside at first.
-  const chartLabels = [];
-  // chartData has the y values.
-  // this can be multiple lines being plotted simultaneously.
-  // Example:
-  // data: {
-  //          columns:  ['sale_date', 'username', 'avg_price_paid', 'avg_commission']
-  //          data: [
-  //                  ['2008-01-01', 'ABC', 1060.44, 159.06],
-  //                  ['2008-01-02', 'DEF',  665.6, 99.84],
-  //                  ....
-  //                 ]
-  //       ...
-  // }
+export const mapToObject = (
+  map = new Map(),
+  parentNestLocation = [],
+  processValue = (d) => d,
+  // hook will allow you to do extra computation on every recursive call to this function
+  hook = () => {}
+) =>
+  Object.fromEntries(
+    Array.from(map.entries(), ([key, value]) => {
+      // also store nestLocation for all of the deepest children
+      value.nestLocation = parentNestLocation.slice();
+      value.nestLocation.push(key);
+      hook(key, value);
 
-  // it should contain (columns.length - 1) arrays
-  const chartData = columns.map((d) => []).slice(1);
+      return value instanceof Map
+        ? [key, mapToObject(value, value.nestLocation, processValue)]
+        : [key, processValue(value)];
+    })
+  );
+
+export function transformToChartJSType(data, columns) {
+  // the first column is the x axis.
+  // that goes into "labels" for chartjs options.
+  const xAxisCol = columns[0].key;
+  const chartLabels = [];
+
+  /* chartData has the y values.
+    this can be multiple lines being plotted simultaneously.
+    Example:
+    data: {
+              columns:  ['sale_date', 'username', 'avg_price_paid', 'avg_commission']
+              data: [
+                      ['2008-01-01', 'ABC', 1060.44, 159.06],
+                      ['2008-01-02', 'DEF',  665.6, 99.84],
+                      ....
+                    ]
+          ...
+    }
+    it should contain (columns.length - 1) arrays
+   */
+  const chartData = columns
+    .map((d) => {
+      let _ = [];
+      _.column = d;
+      return _;
+    })
+    .slice(1);
 
   /* Notes for a still experimental thing:
-  // once we set the date axis to be the x axis, each categorical column for example username above is its own bar/line/etc
+  // once we set the x axis, each categorical column for example username above is its own bar/line/etc
   // each non date, non categorical, non boolean (hence purely number) column is the y axis.
   // we need to group the data by all of the categorical columns
+  // and generate different datasets for each.
+  // d3.group by all categorical variables
   */
 
+  // date comes in as categorical column, but is the x axis, so filter that *out*
+  const categoricalColumns = columns.filter(
+    (d) => d.variableType[0] === "c" && d.colType !== "date"
+  );
+
+  // nest data for each of the above categorical columns
+  // ref: https://stackoverflow.com/questions/57611237/javascript-convert-nested-map-to-object
+  // ref: https://observablehq.com/@severo/til-d3-group-with-arbitrary-keys
+  const keys = categoricalColumns.map((col) => (d) => d[col.key]);
+
+  const nestedData = [];
+  mapToObject(group(data, ...keys), [], (d) => nestedData.push(d));
+  console.log(nestedData);
+
   data.forEach((d) => {
-    chartLabels.push(d[0]);
-    for (let i = 1; i < d.length; i++) {
-      chartData[i - 1].push(d[i]);
+    chartLabels.push(d[xAxisCol]);
+
+    for (let i = 1; i < columns.length; i++) {
+      chartData[i - 1].push(d[columns[i].key]);
     }
   });
   return { chartLabels, chartData };

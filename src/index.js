@@ -141,12 +141,11 @@ export const AskDefogChat = ({
 
   function handleDataResponse(dataResponse, query) {
     setRawData(dataResponse.data);
-    console.log(query);
+
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
     ) {
-      console.log("pie chart");
       setVizType("piechart");
     } else if (
       query.toLowerCase().indexOf("bar chart") > -1 ||
@@ -154,7 +153,6 @@ export const AskDefogChat = ({
       query.toLowerCase().indexOf("column chart") > -1 ||
       query.toLowerCase().indexOf("columnchart") > -1
     ) {
-      console.log("column chart");
       setVizType("columnchart");
     } else if (
       query.toLowerCase().indexOf("trend chart") > -1 ||
@@ -162,12 +160,10 @@ export const AskDefogChat = ({
       query.toLowerCase().indexOf("line chart") > -1 ||
       query.toLowerCase().indexOf("linechart") > -1
     ) {
-      console.log("trend chart");
       setVizType("trendchart");
     } else if (dataResponse.code) {
       setVizType("text");
     } else {
-      console.log("table");
       setVizType("table");
     }
 
@@ -182,6 +178,7 @@ export const AskDefogChat = ({
 
     if (dataResponse.columns && dataResponse?.data.length > 0) {
       const cols = dataResponse.columns;
+      const colVariableTypes = dataResponse.column_variable_types;
       const rows = dataResponse.data;
       newCols = [];
       newRows = [];
@@ -190,8 +187,9 @@ export const AskDefogChat = ({
           Object.assign(
             {
               title: cols[i],
-              dataIndex: cols[i],
+              dataIndex: i,
               key: cols[i],
+              variableType: colVariableTypes[cols[i]],
               // simple typeof. if a number is coming in as string, this will be string.
               simpleTypeOf: typeof rows[0][i],
               sorter:

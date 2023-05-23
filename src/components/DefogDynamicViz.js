@@ -61,55 +61,23 @@ const DefogDynamicViz = ({
       />,
     ];
 
+    const vizData = {
+      data: response.data,
+      columns: response.columns,
+      title: query,
+    };
+    const height = 400;
+
     // if there's a viztype specified, show that
     if (vizType === "piechart") {
-      results.push(
-        <PieChart
-          data={{
-            // dataJSON: rawData.map((el) => ({ name: el[0], y: el[1] })),
-            data: rawData,
-            columns: response.columns,
-            title: query,
-          }}
-          height={400}
-        />
-      );
+      results.push(<PieChart data={vizData} height={height} />);
     } else if (vizType === "columnchart") {
-      results.push(
-        <ColumnChart
-          data={{
-            // dataJSON: rawData.map((el) => ({ x: el[0], y: el[1] })),
-            data: rawData,
-            columns: response.columns,
-            // xAxisCategories: rawData.map((el) => el[0]),
-            title: query,
-          }}
-          height={400}
-        />
-      );
+      results.push(<ColumnChart data={vizData} height={height} />);
     } else if (vizType === "trendchart" || vizType === null) {
-      results.push(
-        <TrendChartNew
-          data={{
-            data: rawData,
-            columns: response.columns,
-            title: query,
-          }}
-          height={400}
-        />
-      );
+      results.push(<TrendChartNew data={vizData} height={height} />);
     } else {
       // by default, show line chart
-      results.push(
-        <TrendChartNew
-          data={{
-            data: rawData,
-            columns: response.columns,
-            title: query,
-          }}
-          height={400}
-        />
-      );
+      results.push(<TrendChartNew data={vizData} height={height} />);
     }
     // convert to antd tabs
     results = (
