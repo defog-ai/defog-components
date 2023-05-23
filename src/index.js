@@ -140,12 +140,10 @@ export const AskDefogChat = ({
 
   function handleDataResponse(dataResponse, query) {
     setRawData(dataResponse.data);
-    console.log(query);
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
     ) {
-      console.log("pie chart");
       setVizType("piechart");
     } else if (
       query.toLowerCase().indexOf("bar chart") > -1 ||
@@ -153,7 +151,6 @@ export const AskDefogChat = ({
       query.toLowerCase().indexOf("column chart") > -1 ||
       query.toLowerCase().indexOf("columnchart") > -1
     ) {
-      console.log("column chart");
       setVizType("columnchart");
     } else if (
       query.toLowerCase().indexOf("trend chart") > -1 ||
@@ -161,12 +158,13 @@ export const AskDefogChat = ({
       query.toLowerCase().indexOf("line chart") > -1 ||
       query.toLowerCase().indexOf("linechart") > -1
     ) {
-      console.log("trend chart");
       setVizType("trendchart");
     } else if (dataResponse.code) {
       setVizType("text");
-    } else {
-      console.log("table");
+    } else if (query.toLowerCase().indexOf(" chart ") > -1) {
+      setVizType("columnchart");
+    }
+    else {
       setVizType("table");
     }
 
