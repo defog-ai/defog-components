@@ -203,8 +203,6 @@ export function transformToChartJSType(data, columns) {
   if (keys.length > 0) {
     mapToObject(group(data, ...keys), [], (_d) => {
       if (chartData.length >= 10) return;
-
-      console.log(_d);
       // in this dataset, find the chart labels for which data is missing, and add nulls for that
       let d = _d.slice();
       d.title = _d.nestLocation.join("-");
@@ -254,8 +252,6 @@ export function transformToChartJSType(data, columns) {
       }
     });
   }
-
-  console.log(chartData);
 
   return { chartLabels: xAxisLabels, chartData: chartData };
 }

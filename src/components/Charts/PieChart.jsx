@@ -17,7 +17,11 @@ const PieChart = React.memo(
   (props) => {
     const { data, columns, title } = props.data;
     const height = props.height;
-    setChartJSDefaults(ChartJS, title, columns[0].colType === "date");
+    setChartJSDefaults(
+      ChartJS,
+      title,
+      columns.some((d) => d.colType === "date")
+    );
 
     const { chartData, chartLabels } = transformToChartJSType(data, columns);
 
