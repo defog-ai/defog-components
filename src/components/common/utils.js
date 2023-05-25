@@ -26,10 +26,10 @@ export function roundColumns(data, columns) {
 
   // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
   const roundedData = [];
-  data.forEach((d, i) => {
+  data?.forEach((d, i) => {
     roundedData.push(Object.assign({}, d));
 
-    decimalCols.forEach((colName) => {
+    decimalCols?.forEach((colName) => {
       // round to two decimals
       roundedData[i][colName] = roundedData[i][colName].toFixed(2);
     });
@@ -160,7 +160,7 @@ export function processData(data, columns) {
   const categoricalColumnValues = {};
   categoricalColumns.forEach((c) => {
     categoricalColumnValues[c.key] = new Set();
-    data.forEach((d) => {
+    data?.forEach((d) => {
       categoricalColumnValues[c.key].add(d[c.key]);
     });
     categoricalColumnValues[c.key] = Array.from(categoricalColumnValues[c.key]);
@@ -188,7 +188,7 @@ export function transformToChartJSType(
 
   let xAxisLabels = new Set();
 
-  data.forEach((d) => {
+  data?.forEach((d) => {
     xAxisLabels.add(d[xAxisColumn.key]);
   });
 
@@ -207,7 +207,7 @@ export function transformToChartJSType(
     return x;
   });
 
-  data.forEach((d) => {
+  data?.forEach((d) => {
     for (let i = 0; i < yAxisColumns.length; i++) {
       chartData[i].push(d[yAxisColumns[i].key]);
     }
@@ -295,7 +295,7 @@ export function transformToChartJSType(
         return x;
       });
 
-      data.forEach((d) => {
+      data?.forEach((d) => {
         for (let i = 0; i < yAxisColumns.length; i++) {
           chartData[i].push(d[yAxisColumns[i].key]);
         }

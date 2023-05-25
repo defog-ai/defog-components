@@ -1,5 +1,5 @@
-import React, { useState, Fragment } from "react";
-import { Button, Table, message, Tabs } from "antd";
+import React, { useState, useContext, Fragment } from "react";
+import { Button, Table, message, Tabs, Modal, Input } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
@@ -11,6 +11,7 @@ import {
 } from "./common/utils.js";
 import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
 import ChartContainer from "./ChartContainer.jsx";
+import Context from "./common/Context.js";
 
 const DefogDynamicViz = ({
   vizType = null,
@@ -20,20 +21,43 @@ const DefogDynamicViz = ({
   debugMode,
   apiKey,
 }) => {
+  const [theme, setTheme] = useContext(Context);
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
-  const uploadFeedback = (feedback) => {
-    fetch(`https://api.defog.ai/feedback`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        apiKey: apiKey,
-        response: response,
-        feedback: feedback,
-      }),
-    });
+  const [modalVisible, setModalVisible] = useState(false);
+  const { TextArea } = Input;
+
+  console.log(theme);
+
+  const uploadFeedback = (feedback, feedbackText = "") => {
+    if (feedback === "Good") {
+      fetch(`https://api.defog.ai/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          apiKey: apiKey,
+          response: response,
+          feedback: feedback,
+        }),
+      });
+    } else {
+      fetch(`https://api.defog.ai/feedback`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          apiKey: apiKey,
+          response: response,
+          feedback: feedback,
+          text: feedbackText,
+        }),
+      });
+
+      setModalVisible(false);
+    }
 
     feedback === "Good"
       ? message.success(
@@ -156,6 +180,24 @@ const DefogDynamicViz = ({
 
   return (
     <>
+      <Modal
+        title="To improve the model, could you please give more details about why this is a bad query? :)"
+        open={modalVisible}
+        footer={null}
+        onCancel={() => setModalVisible(false)}
+      >
+        <TextArea rows={4} id="feedback-text" placeholder="Optional" />
+        <Button
+          onClick={() => {
+            uploadFeedback(
+              "Bad",
+              document.getElementById("feedback-text").value
+            );
+          }}
+        >
+          Submit
+        </Button>
+      </Modal>
       <div>
         {results}
         {csvDownload}
@@ -172,7 +214,7 @@ const DefogDynamicViz = ({
             </button>
             <button
               style={{ backgroundColor: "#fff", border: "0px" }}
-              onClick={() => uploadFeedback("Bad")}
+              onClick={() => setModalVisible(true)}
             >
               👎 Bad{" "}
             </button>
