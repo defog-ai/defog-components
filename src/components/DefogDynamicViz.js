@@ -1,10 +1,11 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, useContext, Fragment } from "react";
 import { Button, Table, message, Tabs, Modal, Input } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
 import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
 import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
+import Context from "./common/Context.js";
 
 const DefogDynamicViz = ({
   vizType,
@@ -14,10 +15,13 @@ const DefogDynamicViz = ({
   debugMode,
   apiKey,
 }) => {
+  const [theme, setTheme] = useContext(Context);
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
+
+  console.log(theme);
 
   const uploadFeedback = (feedback, feedbackText="") => {
     if (feedback === "Good") {
