@@ -3,8 +3,14 @@ import { Button, Table, message, Tabs } from "antd";
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
-import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
+import {
+  download_csv,
+  processData,
+  roundColumns,
+  transformToCSV,
+} from "./common/utils.js";
 import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
+import ChartContainer from "./ChartContainer.jsx";
 
 const DefogDynamicViz = ({
   vizType = null,
@@ -61,26 +67,30 @@ const DefogDynamicViz = ({
       />,
     ];
 
-    const vizData = {
-      data: response.data,
-      columns: response.columns,
-      title: query,
-    };
     const height = 400;
 
-    console.log(response);
+    const {
+      xAxisColumn,
+      categoricalColumns,
+      yAxisColumns,
+      categoricalColumnValues,
+      xAxisIsDate,
+    } = processData(response.data, response.columns);
 
-    // if there's a viztype specified, show that
-    if (vizType === "piechart") {
-      results.push(<PieChart data={vizData} height={height} />);
-    } else if (vizType === "columnchart") {
-      results.push(<ColumnChart data={vizData} height={height} />);
-    } else if (vizType === "trendchart" || vizType === null) {
-      results.push(<TrendChartNew data={vizData} height={height} />);
-    } else {
-      // by default, show line chart
-      results.push(<ColumnChart data={vizData} height={height} />);
-    }
+    results.push(
+      <ChartContainer
+        xAxisColumn={xAxisColumn}
+        categoricalColumns={categoricalColumns}
+        yAxisColumns={yAxisColumns}
+        categoricalColumnValues={categoricalColumnValues}
+        vizType={vizType}
+        data={response.data}
+        columns={response.columns}
+        title={query}
+        xAxisIsDate={xAxisIsDate}
+      ></ChartContainer>
+    );
+
     // convert to antd tabs
     results = (
       <Tabs
