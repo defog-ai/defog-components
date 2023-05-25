@@ -1,4 +1,4 @@
-import React, { useState, useRef, Fragment } from "react";
+import React, { useState, useRef, useContext, Fragment } from "react";
 import Lottie from "lottie-react";
 import { Input, Collapse, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
@@ -6,6 +6,7 @@ import SearchState from "./components/SearchState.js";
 import LoadingLottie from "./components/svg/ridinloop_1.json";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import { inferColumnType } from "./components/common/utils.js";
+import Context from "./components/common/Context.js";
 
 export const AskDefogChat = ({
   apiEndpoint,
@@ -18,6 +19,7 @@ export const AskDefogChat = ({
   additionalParams = {},
   // can be "websocket" or "http"
   mode = "http",
+  theme = "light",
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -31,6 +33,7 @@ export const AskDefogChat = ({
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
   const [query, setQuery] = useState("");
+  const [context, setContext] = useState({"theme": theme});
   const divRef = useRef(null);
 
   // const generateChatPath = "generate_query_chat";
@@ -224,111 +227,113 @@ export const AskDefogChat = ({
   }
 
   return (
-    <div>
-      <div
-        style={{
-          padding: 0,
-          color: "#fff",
-          border: "1px solid lightgrey",
-          borderRadius: 10,
-        }}
-      >
-        {/* add a button on the top right of this div with an expand arrow */}
-        <Collapse
-          bordered={false}
-          defaultActiveKey={['1']}
-          expandIconPosition="end"
-          style={{ color: "#fff", backgroundColor: "#fff" }}
-          expandIcon={() => <CaretRightOutlined rotate={isActive ? 270 : 90} />}
-          onChange={(state) =>
-            state.length > 1 ? setIsActive(true) : setIsActive(false)
-          }
+    <Context.Provider value={[context, setContext]}>
+      <div>
+        <div
+          style={{
+            padding: 0,
+            color: "#fff",
+            border: "1px solid lightgrey",
+            borderRadius: 10,
+          }}
         >
-          <Panel header={buttonText} key="1" style={{ color: "#fff" }}>
-            <div
-              style={{
-                width: "100%",
-                maxWidth: maxWidth,
-                maxHeight: maxHeight,
-                overflow: "auto",
-              }}
-              id="results"
-              ref={divRef}
-            >
-              {chatResponseArray.map((response, index) => {
-                return (
-                  <div key={index}>
-                    <hr style={{ borderTop: "1px dashed lightgrey" }} />
-                    <p style={{ marginTop: 10 }}>{response.question}</p>
-                    <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
-                      {response.queryReason}
-                    </p>
-                    {!dataResponseArray[index] ? (
-                      <div
-                        className="data-loading-search-state"
-                        style={{ width: "50%", margin: "0 auto" }}
-                      >
-                        <SearchState
-                          message={"Query generated! Getting your data..."}
-                          lottie={
-                            <Lottie animationData={LoadingLottie} loop={true} />
-                          }
+          {/* add a button on the top right of this div with an expand arrow */}
+          <Collapse
+            bordered={false}
+            defaultActiveKey={['1']}
+            expandIconPosition="end"
+            style={{ color: "#fff", backgroundColor: "#fff" }}
+            expandIcon={() => <CaretRightOutlined rotate={isActive ? 270 : 90} />}
+            onChange={(state) =>
+              state.length > 1 ? setIsActive(true) : setIsActive(false)
+            }
+          >
+            <Panel header={buttonText} key="1" style={{ color: "#fff" }}>
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: maxWidth,
+                  maxHeight: maxHeight,
+                  overflow: "auto",
+                }}
+                id="results"
+                ref={divRef}
+              >
+                {chatResponseArray.map((response, index) => {
+                  return (
+                    <div key={index}>
+                      <hr style={{ borderTop: "1px dashed lightgrey" }} />
+                      <p style={{ marginTop: 10 }}>{response.question}</p>
+                      <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
+                        {response.queryReason}
+                      </p>
+                      {!dataResponseArray[index] ? (
+                        <div
+                          className="data-loading-search-state"
+                          style={{ width: "50%", margin: "0 auto" }}
+                        >
+                          <SearchState
+                            message={"Query generated! Getting your data..."}
+                            lottie={
+                              <Lottie animationData={LoadingLottie} loop={true} />
+                            }
+                          />
+                        </div>
+                      ) : (
+                        <DefogDynamicViz
+                          vizType={vizType}
+                          response={Object.assign(
+                            chatResponseArray[index],
+                            dataResponseArray[index]
+                          )}
+                          rawData={rawData}
+                          query={query}
+                          debugMode={debugMode}
+                          apiKey={apiKey}
                         />
-                      </div>
-                    ) : (
-                      <DefogDynamicViz
-                        vizType={vizType}
-                        response={Object.assign(
-                          chatResponseArray[index],
-                          dataResponseArray[index]
-                        )}
-                        rawData={rawData}
-                        query={query}
-                        debugMode={debugMode}
-                        apiKey={apiKey}
-                      />
-                    )}
-                    <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
-                      {response.suggestedQuestions}
-                    </p>
+                      )}
+                      <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
+                        {response.suggestedQuestions}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
+              {buttonLoading &&
+              chatResponseArray.length === dataResponseArray.length ? (
+                <React.Fragment>
+                  <hr style={{ borderTop: "1px dashed lightgrey" }} />
+                  <p style={{ marginTop: 10 }}>{query}</p>
+                  <div
+                    className="data-loading-search-state"
+                    style={{ width: "50%", margin: "0 auto" }}
+                  >
+                    <SearchState
+                      message={"Generating a query for your question..."}
+                      lottie={
+                        <Lottie animationData={LoadingLottie} loop={true} />
+                      }
+                    />
                   </div>
-                );
-              })}
-            </div>
-            {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
-            {buttonLoading &&
-            chatResponseArray.length === dataResponseArray.length ? (
-              <React.Fragment>
-                <hr style={{ borderTop: "1px dashed lightgrey" }} />
-                <p style={{ marginTop: 10 }}>{query}</p>
-                <div
-                  className="data-loading-search-state"
-                  style={{ width: "50%", margin: "0 auto" }}
-                >
-                  <SearchState
-                    message={"Generating a query for your question..."}
-                    lottie={
-                      <Lottie animationData={LoadingLottie} loop={true} />
-                    }
-                  />
-                </div>
-              </React.Fragment>
-            ) : (
-              ""
-            )}
-            <Search
-              placeholder="input search text"
-              allowClear
-              enterButton={buttonText}
-              size="large"
-              onSearch={handleSubmit}
-              style={{ width: "100%", maxWidth: 600 }}
-              loading={buttonLoading}
-              disabled={buttonLoading}
-            />
-          </Panel>
-        </Collapse>
+                </React.Fragment>
+              ) : (
+                ""
+              )}
+              <Search
+                placeholder="input search text"
+                allowClear
+                enterButton={buttonText}
+                size="large"
+                onSearch={handleSubmit}
+                style={{ width: "100%", maxWidth: 600 }}
+                loading={buttonLoading}
+                disabled={buttonLoading}
+              />
+            </Panel>
+          </Collapse>
+        </div>
       </div>
-    </div>
+    </Context.Provider>
   );
 };
