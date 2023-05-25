@@ -31,7 +31,7 @@ const ColumnChart = React.memo(
     const { data, columns, title } = props.data;
     const height = props.height;
 
-    setChartJSDefaults(ChartJS, title, columns[0].colType === "date");
+    setChartJSDefaults(ChartJS, title, columns[0]?.colType === "date");
 
     const { chartData, chartLabels } = transformToChartJSType(data, columns);
     return (
