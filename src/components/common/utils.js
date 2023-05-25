@@ -18,10 +18,10 @@ export function roundColumns(data, columns) {
 
   // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
   const roundedData = [];
-  data.forEach((d, i) => {
+  data?.forEach((d, i) => {
     roundedData.push(Object.assign({}, d));
 
-    decimalCols.forEach((colName) => {
+    decimalCols?.forEach((colName) => {
       // round to two decimals
       roundedData[i][colName] = roundedData[i][colName].toFixed(2);
     });
@@ -134,7 +134,7 @@ export function transformToChartJSType(data, columns) {
   // we need to group the data by all of the categorical columns
   */
 
-  data.forEach((d) => {
+  data?.forEach((d) => {
     chartLabels.push(d[0]);
     for (let i = 1; i < d.length; i++) {
       chartData[i - 1].push(d[i]);
