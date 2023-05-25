@@ -64,7 +64,7 @@ const TrendChartNew = React.memo(
         </ErrorBoundary>
       );
     } else {
-      return <></>;
+      return <div></div>;
     }
   },
   () => false
