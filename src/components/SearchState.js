@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
+import { ThemeContext } from "../context/ThemeContext";
 
 const SearchState = ({ type, message, svg, lottie, children }) => {
+  const { theme } = useContext(ThemeContext);
   return (
-    <SearchStateWrap type={type}>
+    <SearchStateWrap type={type} theme={theme.config}>
       {svg && svg}
       {lottie && lottie}
       {type === "error" && <h2>ERROR</h2>}
@@ -17,18 +19,19 @@ export default SearchState;
 
 const SearchStateWrap = styled.div`
   margin-top: 2rem;
-  background-color: #fafafc;
+  background: ${(props) => (props.theme ? props.theme.background2 : "#F8FAFB")};
+  color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 5vw;
+  padding: 20px;
   h2 {
     margin-top: 1.2rem;
   }
   h3 {
-    font-size: ${(props) => (props.type === "error" ? "2rem" : "1.6rem")};
+    font-size: ${(props) => (props.type === "error" ? "14px" : "14px")};
     margin-top: 1.2rem;
   }
   svg {

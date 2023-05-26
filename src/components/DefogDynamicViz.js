@@ -5,7 +5,10 @@ import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
 import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
 import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
-import Context from "./common/Context.js";
+import styled from "styled-components";
+import ThumbsUp from "./svg/ThumbsUp.js";
+import ThumbsDown from "./svg/ThumbsDown.js";
+import { ThemeContext } from "../context/ThemeContext.js";
 
 const DefogDynamicViz = ({
   vizType,
@@ -15,7 +18,7 @@ const DefogDynamicViz = ({
   debugMode,
   apiKey,
 }) => {
-  const [theme, setTheme] = useContext(Context);
+  const { theme } = useContext(ThemeContext);
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -23,7 +26,7 @@ const DefogDynamicViz = ({
 
   console.log(theme);
 
-  const uploadFeedback = (feedback, feedbackText="") => {
+  const uploadFeedback = (feedback, feedbackText = "") => {
     if (feedback === "Good") {
       fetch(`https://api.defog.ai/feedback`, {
         method: "POST",
@@ -74,9 +77,9 @@ const DefogDynamicViz = ({
       <Table
         dataSource={roundedData}
         columns={response.columns}
+        scroll={{ x: "max-content" }}
         style={{
           maxHeight: 300,
-          overflow: "auto",
         }}
         size="small"
         pagination={{ pageSize: 5 }}
@@ -152,7 +155,7 @@ const DefogDynamicViz = ({
   }
 
   const csvDownload = (
-    <>
+    <div className="exportNarativeBtn">
       <Button
         onClick={() =>
           download_csv(
@@ -193,7 +196,7 @@ const DefogDynamicViz = ({
       >
         Get Narrative
       </Button>
-    </>
+    </div>
   );
 
   return (
@@ -207,36 +210,265 @@ const DefogDynamicViz = ({
         <TextArea rows={4} id="feedback-text" placeholder="Optional" />
         <Button
           onClick={() => {
-            uploadFeedback("Bad", document.getElementById("feedback-text").value);
+            uploadFeedback(
+              "Bad",
+              document.getElementById("feedback-text").value
+            );
           }}
-        >Submit</Button>
+        >
+          Submit
+        </Button>
       </Modal>
       <div>
-        {results}
-        {csvDownload}
+        <ResultsWrap theme={theme.config}>
+          {results && results}
+          {csvDownload}
+        </ResultsWrap>
         {debugMode && (
-          <div className="rateQualityContainer">
-            <p>The following query was generated:</p>
-            <pre>{response.generatedSql}</pre>
-            <p>How did we do with is this query?</p>
-            <button
-              style={{ backgroundColor: "#fff", border: "0px" }}
-              onClick={() => uploadFeedback("Good")}
-            >
-              👍 Good{" "}
-            </button>
-            <button
-              style={{ backgroundColor: "#fff", border: "0px" }}
-              onClick={() => setModalVisible(true)}
-            >
-              👎 Bad{" "}
-            </button>
-          </div>
+          <RateQualityContainer theme={theme.config}>
+            {response.generatedSql && (
+              <>
+                <p>The following query was generated:</p>
+                <pre>{response.generatedSql}</pre>
+              </>
+            )}
+
+            {narrative && (
+              <div className="generatedNarrative">
+                <p>Narrative</p>
+                {narrative}
+              </div>
+            )}
+          </RateQualityContainer>
         )}
+        <FeedbackWrap theme={theme.config}>
+          <p>How did we do with is this query?</p>
+          <button onClick={() => uploadFeedback("Good")}>
+            <ThumbsUp />
+          </button>
+          <button onClick={() => uploadFeedback("Bad")}>
+            <ThumbsDown />
+          </button>
+        </FeedbackWrap>
       </div>
-      <div>{narrative}</div>
     </>
   );
 };
 
 export default React.memo(DefogDynamicViz, () => true);
+
+const ResultsWrap = styled.div`
+  position: relative;
+  width: 100%;
+
+  .ant-tabs-nav {
+    margin-bottom: 0;
+  }
+  .ant-tabs-tabpane {
+    border-top: none;
+  }
+  .ant-tabs-nav {
+    border: none !important;
+  }
+  .ant-tabs-content-holder {
+    background: ${(props) =>
+      props.theme ? props.theme.background2 : "#F8FAFB"};
+    padding: 12px;
+    border-radius: 0px 0px 7px 7px;
+    overflow: hidden;
+  }
+  .ant-tabs-ink-bar.ant-tabs-ink-bar-animated {
+    background: ${(props) =>
+      props.theme ? props.theme.background2 : "#F8FAFB"};
+    height: 100%;
+    border-radius: 7px 7px 0px 0px;
+  }
+  .ant-tabs-tab {
+    background: ${(props) =>
+      props.theme ? props.theme.background2 : "#F8FAFB"};
+    padding: 12px 20px;
+    border-radius: 7px 7px 0px 0px;
+    opacity: 0.5;
+    overflow: hidden;
+
+    &:hover {
+      opacity: 0.75;
+    }
+  }
+  .ant-tabs-tab.ant-tabs-tab-active {
+    opacity: 1;
+  }
+  .ant-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+    position: relative;
+    z-index: 5;
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  }
+  .ant-tabs .ant-tabs-tab + .ant-tabs-tab {
+    margin: 0 0 0 2px;
+  }
+
+  .ant-table-wrapper .ant-table {
+    background: ${(props) =>
+      props.theme ? props.theme.background2 : "#F8FAFB"};
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  }
+  .ant-table-wrapper .ant-table-thead > tr > th,
+  .ant-table-wrapper .ant-table-thead > tr > td {
+    background: ${(props) =>
+      props.theme ? props.theme.background2 : "#F8FAFB"};
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  }
+  .ant-table-wrapper .ant-table-column-sorter {
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  }
+  .ant-table-wrapper .ant-table-thead th.ant-table-column-has-sorters:hover {
+    background: ${(props) =>
+      props.theme ? props.theme.background1 : "#F8FAFB"};
+  }
+  .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
+  .ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
+    background: ${(props) =>
+      props.theme ? props.theme.background1 : "#F8FAFB"};
+  }
+  .ant-pagination .ant-pagination-item a {
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  }
+  .ant-pagination .ant-pagination-item-active {
+    background: ${(props) => (props.theme ? props.theme.background1 : "#FFF")};
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  }
+  .ant-pagination
+    .ant-pagination-jump-prev
+    .ant-pagination-item-container
+    .ant-pagination-item-ellipsis,
+  .ant-pagination
+    .ant-pagination-jump-next
+    .ant-pagination-item-container
+    .ant-pagination-item-ellipsis {
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  }
+
+  .exportNarativeBtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 2px;
+
+    @media (max-width: 650px) {
+      position: relative;
+      margin-top: 12px;
+      gap: 12px;
+    }
+
+    button {
+      background: ${(props) =>
+        props.theme ? props.theme.background2 : "#F8FAFB"};
+      color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+      border-radius: 7px 7px 0px 0px;
+      min-height: 46px;
+      border: none;
+      box-shadow: none;
+
+      @media (max-width: 650px) {
+        border-radius: 7px;
+        width: 100%;
+      }
+    }
+  }
+`;
+
+const RateQualityContainer = styled.div`
+  color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  & > p:nth-of-type(1) {
+    font-weight: 600;
+    margin-top: 20px;
+    margin-bottom: 0px;
+  }
+
+  & > pre {
+    margin-top: 6px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    white-space: pre-line;
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.15);
+      border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #1677ffc4;
+      border-radius: 2px;
+    }
+  }
+
+  & > .generatedNarrative {
+    margin-bottom: 20px;
+    p {
+      font-weight: 600;
+      margin-top: 20px;
+      margin-bottom: 0px;
+    }
+  }
+`;
+
+const FeedbackWrap = styled.div`
+  background: ${(props) => (props.theme ? props.theme.background2 : "#F8FAFB")};
+  color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  border-radius: 7px;
+  display: inline-flex;
+  padding: 12px;
+  font-size: 14px;
+  gap: 12px;
+  margin-top: 20px;
+  line-height: 1;
+  @media (max-width: 650px) {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  & > p {
+    margin: 0;
+    margin-right: 20px;
+    @media (max-width: 650px) {
+      font-size: 13px;
+      margin-right: 12px;
+    }
+  }
+  & > button {
+    border: none;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    svg {
+      width: 12px;
+      height: 12px;
+      @media (max-width: 650px) {
+        width: 12px;
+        height: 12px;
+      }
+    }
+
+    &:nth-of-type(2) {
+      transform: translateY(4px);
+    }
+
+    &:hover {
+      svg {
+        path {
+          fill: #444;
+        }
+      }
+    }
+  }
+`;
