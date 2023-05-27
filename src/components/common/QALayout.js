@@ -40,6 +40,13 @@ const QAWrap = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
+    border: 1px solid;
+    border-color: ${(props) =>
+      props.theme
+        ? props.isAnswer
+          ? props.theme.answerBorder
+          : props.theme.questionBorder
+        : "#fff"};
 
     @media (max-width: 650px) {
       min-width: 28px;
