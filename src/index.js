@@ -65,9 +65,9 @@ export const AskDefogChat = ({
       const response = JSON.parse(event.data);
 
       if (response.response_type === "model-completion") {
-        handleChatResponse(response);
+        handleChatResponse(response, query, false);
       } else if (response.response_type === "generated-data") {
-        handleDataResponse(response);
+        handleDataResponse(response, query);
       }
     };
   }
@@ -107,8 +107,8 @@ export const AskDefogChat = ({
     }
   };
 
-  function handleChatResponse(queryChatResponse, query) {
-    // set response array to have the latest everuthing except data and columns
+  function handleChatResponse(queryChatResponse, query, executeData = true) {
+    // set response array to have the latest everything except data and columns
     setChatResponseArray([
       ...chatResponseArray,
       {
@@ -123,10 +123,13 @@ export const AskDefogChat = ({
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
-    handleDataResponse(queryChatResponse, query);
+    if (executeData) {
+      handleDataResponse(queryChatResponse, query);
+    }
   }
 
   function handleDataResponse(dataResponse, query) {
+    console.log(dataResponse);
     setRawData(dataResponse.data);
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
