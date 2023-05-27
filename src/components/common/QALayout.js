@@ -61,6 +61,13 @@ const QAWrap = styled.div`
     max-width: calc(100% - 96px);
     width: 100%;
     padding: 12px 20px;
+    border: 1px solid;
+    border-color: ${(props) =>
+      props.theme
+        ? props.isAnswer
+          ? props.theme.answerBorder
+          : props.theme.questionBorder
+        : "#fff"};
 
     @media (max-width: 650px) {
       padding: 12px;

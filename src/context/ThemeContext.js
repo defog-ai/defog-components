@@ -10,6 +10,9 @@ export const lightThemeColor = {
   background2: "#F8FAFB",
   background3: "#F8FAFB",
   disabledColor: "#f5f5f5",
+  greyBorder: "#EFF1F5",
+  questionBorder: "#EFF1F5",
+  answerBorder: "#EFF1F5",
 };
 
 export const darkThemeColor = {
@@ -21,6 +24,9 @@ export const darkThemeColor = {
   background2: "#131321",
   background3: "#0C0C1E",
   disabledColor: "#202020",
+  greyBorder: "#3C3C40",
+  questionBorder: "#3D3D4B",
+  answerBorder: "#2B59FF",
 };
 
 export const chartColors = [

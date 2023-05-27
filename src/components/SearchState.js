@@ -32,7 +32,7 @@ const SearchStateWrap = styled.div`
   }
   h3 {
     font-size: ${(props) => (props.type === "error" ? "14px" : "14px")};
-    margin-top: 1.2rem;
+    margin-top: -20px;
   }
   svg {
     display: block;
