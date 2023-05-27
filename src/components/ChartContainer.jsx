@@ -1,6 +1,11 @@
 import { Select } from "antd";
 import React, { useEffect, useState, Fragment, useRef } from "react";
-import { cleanString, transformToChartJSType } from "./common/utils";
+import {
+  cleanString,
+  createChartData,
+  isEmpty,
+  transformToChartJSType,
+} from "./common/utils";
 import PieChart from "./Charts/PieChart";
 import ColumnChart from "./Charts/ColumnChart";
 import TrendChartNew from "./Charts/TrendChartNew";
@@ -10,6 +15,7 @@ function arrToAntD(arr, labelProp = "key", valueProp = "key") {
   return arr.map((d) => ({
     label: labelProp ? d[labelProp] : d,
     value: valueProp ? d[valueProp] : d,
+    __data__: d,
   }));
 }
 
@@ -53,7 +59,7 @@ export default function ChartContainer({
   // Other dropdowns based on the X axis selection. Using categorical columns opts above.
 
   const [xAxis, setXAxis] = useState(
-    arrToAntD([dateColumn ? dateColumn : xAxisColumns[0]])
+    arrToAntD([dateColumn ? dateColumn : xAxisColumns[0]])[0]
   );
 
   const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
@@ -66,15 +72,21 @@ export default function ChartContainer({
     ),
   });
 
+  // chart data
+  const [chartData, setChartData] = useState([]);
+
   const xAxisDropdown = (
     <div className="chart-container-select">
       <h4>X Axis</h4>
       <Select
-        mode="multiple"
+        mode="single"
         options={arrToAntD(xAxisColumns)}
-        defaultValue={xAxis}
+        value={xAxis}
         placeholder="Select X Axis"
         onChange={(_, sel) => {
+          console.log(sel);
+          return;
+
           // initialise (or re-initialise) any newly selected column with the first value
           // this refreshes the values for columns which were earlier selected and then removed and not being selected again
           const newCols = sel
@@ -125,57 +137,70 @@ export default function ChartContainer({
   );
 
   // create dropdowns for selected column(s) for the x axis
-  const selectedXAxisDropdowns = xAxis.map((opt) => {
-    const optValues = opts.current[opt.value];
+  const optValues = opts.current[xAxis.value];
 
-    return (
-      // key force rerender when we change selectall->deselctall or vice versa
-      <div key={optValues[0].label} className="chart-container-select">
-        <h4>{opt.label}</h4>
-        <Select
-          mode="multiple"
-          options={optValues}
-          defaultValue={selectedXValues[opt.value]}
-          value={selectedXValues[opt.value]}
-          placeholder={`Select ${opt.value} to plot`}
-          // allow select all
-          showSearch={true}
-          onChange={(_, sel) => {
-            const newVals = {};
-            // if select all is selected, select all options
-            if (sel.findIndex((d) => d.value === "select-all") !== -1) {
-              // add all options for this column
-              newVals[opt.value] = optValues.slice(1);
-              // change "select all" to "deselect all"
-              optValues[0].label = "Deselect All";
-              optValues[0].value = "deselect-all";
-            }
-            // handle deselect all
-            else if (sel.findIndex((d) => d.value === "deselect-all") !== -1) {
-              // remove all options for this column
-              newVals[opt.value] = [];
-              // change "deselect all" to "select all"
-              optValues[0].label = "Select All";
-              optValues[0].value = "select-all";
-            } else {
-              // change "deselect all" to "select all"
-              optValues[0].label = "Select All";
-              optValues[0].value = "select-all";
-              newVals[opt.value] = sel;
-            }
+  const xAxisValuesDropdown = (
+    // key force rerender when we change selectall->deselctall or vice versa
+    <div key={optValues[0].label} className="chart-container-select">
+      <h4>{xAxis.label}</h4>
+      <Select
+        mode="multiple"
+        options={optValues}
+        defaultValue={selectedXValues[xAxis.value]}
+        value={selectedXValues[xAxis.value]}
+        placeholder={`Select ${xAxis.value} to plot`}
+        // allow select all
+        showSearch={true}
+        onChange={(_, sel) => {
+          const newVals = {};
+          // if select all is selected, select all options
+          if (sel.findIndex((d) => d.value === "select-all") !== -1) {
+            // add all options for this column
+            newVals[xAxis.value] = { label: "All", value: "all-selected" };
+            // change "select all" to "deselect all"
+            optValues[0].label = "Deselect All";
+            optValues[0].value = "deselect-all";
+          }
+          // handle deselect all
+          else if (sel.findIndex((d) => d.value === "deselect-all") !== -1) {
+            // remove all options for this column
+            newVals[xAxis.value] = [];
+            // change "deselect all" to "select all"
+            optValues[0].label = "Select All";
+            optValues[0].value = "select-all";
+          } else {
+            // change "deselect all" to "select all"
+            optValues[0].label = "Select All";
+            optValues[0].value = "select-all";
+            // The temporary "all" option created above shows up as an empty object in the selected values
+            // so we filter it out
+            newVals[xAxis.value] = sel.filter(
+              (d) => !isEmpty(d) && d.value !== "all-selected"
+            );
+          }
 
-            setSelectedXValues(Object.assign({}, selectedXValues, newVals));
-          }}
-        ></Select>
-      </div>
+          setSelectedXValues(Object.assign({}, selectedXValues, newVals));
+        }}
+      ></Select>
+    </div>
+  );
+
+  // change chart data
+  useEffect(() => {
+    if (!xAxis || !yAxis.length || !selectedXValues.length) {
+      setChartData([]);
+    }
+
+    setChartData(
+      createChartData(
+        data,
+        xAxis,
+        yAxis,
+        selectedXValues,
+        xAxis.__data__.colType === "date"
+      )
     );
-  });
-
-  // useEffect(() => {
-  //   console.log(xAxis);
-  //   console.log(yAxis);
-  //   console.log(selectedXValues);
-  // });
+  }, [selectedXValues, xAxis, yAxis]);
 
   return (
     <ChartContainerWrap>
@@ -183,7 +208,7 @@ export default function ChartContainer({
         <div className="chart-container-controls">
           {xAxisDropdown}
           {yAxisDropdown}
-          {selectedXAxisDropdowns}
+          {xAxisValuesDropdown}
         </div>
       </div>
     </ChartContainerWrap>

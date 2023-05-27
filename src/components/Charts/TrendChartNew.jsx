@@ -12,7 +12,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
+import { setChartJSDefaults } from "../common/utils";
 import { chartColors } from "../../context/ThemeContext";
 
 ChartJS.register(

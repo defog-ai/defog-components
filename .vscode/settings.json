@@ -1,7 +1,4 @@
 {
-    "window.title": "${activeEditorMedium}${separator}${rootName}${separator}${profileName}",
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
-    },
-    "editor.formatOnSave": true,
+  "window.title": "${activeEditorMedium}${separator}${rootName}${separator}${profileName}",
+  "editor.formatOnSave": true
 }

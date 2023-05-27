@@ -180,13 +180,26 @@ export function processData(data, columns) {
   };
 }
 
-export function transformToChartJSType(
+export function isEmpty(obj) {
+  for (const prop in obj) {
+    if (Object.hasOwn(obj, prop)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function createChartData(
   data,
   xAxisColumn,
   yAxisColumns,
-  categoricalColumns,
+  selectedXValues,
   xAxisIsDate
 ) {
+  console.log(data, xAxisColumn, yAxisColumns, selectedXValues, xAxisIsDate);
+
+  return;
   // a helper function to get values of the xAxisColumn later
   // valueOf is to get the value of a dayjs object
   const xAxisColVal = xAxisIsDate ? (d) => d.valueOf() : (d) => d;
