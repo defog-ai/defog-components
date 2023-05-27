@@ -1,13 +1,20 @@
-import React, { useState, useRef, useContext, Fragment } from "react";
+import React, { useState, useRef, Fragment, useEffect } from "react";
 import Lottie from "lottie-react";
 import { Input, Collapse, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState.js";
-import LoadingLottie from "./components/svg/ridinloop_1.json";
+import LoadingLottie from "./components/svg/loader.json";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import { inferColumnType } from "./components/common/utils.js";
-import Context from "./components/common/Context.js";
 import "./main.scss";
+import QALayout from "./components/common/QALayout.js";
+import {
+  ThemeContext,
+  darkThemeColor,
+  lightThemeColor,
+} from "./context/ThemeContext.js";
+import styled from "styled-components";
+import ThemeSwitchButton from "./components/common/ThemeSwitchButton.js";
 
 export const AskDefogChat = ({
   apiEndpoint,
@@ -20,7 +27,6 @@ export const AskDefogChat = ({
   additionalParams = {},
   // can be "websocket" or "http"
   mode = "http",
-  theme = "light",
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -34,8 +40,33 @@ export const AskDefogChat = ({
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
   const [query, setQuery] = useState("");
-  const [context, setContext] = useState({ theme: theme });
   const divRef = useRef(null);
+
+  const [theme, setTheme] = useState({
+    type: "dark",
+    config: darkThemeColor,
+  });
+
+  useEffect(() => {
+    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+      .matches
+      ? "dark"
+      : "light";
+
+    if (systemTheme === "dark") {
+      setTheme({ type: "dark", config: darkThemeColor });
+    } else {
+      setTheme({ type: "light", config: lightThemeColor });
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(
+      theme.type === "light"
+        ? { type: "dark", config: darkThemeColor }
+        : { type: "light", config: lightThemeColor }
+    );
+  };
 
   // const generateChatPath = "generate_query_chat";
   // const generateDataPath = "generate_data";
@@ -66,16 +97,26 @@ export const AskDefogChat = ({
       const response = JSON.parse(event.data);
 
       if (response.response_type === "model-completion") {
-        handleChatResponse(response);
+        handleChatResponse(response, query, false);
       } else if (response.response_type === "generated-data") {
-        handleDataResponse(response);
+        handleDataResponse(response, query);
       }
     };
   }
 
   const handleSubmit = async (query) => {
+    if (!query.trim()) {
+      message.error("Please enter a question to search");
+      return;
+    }
     setButtonLoading(true);
     setQuery(query);
+    setTimeout(() => {
+      window.scrollTo({
+        top: divRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }, 100);
 
     if (mode === "websocket") {
       comms.current.send(
@@ -110,9 +151,8 @@ export const AskDefogChat = ({
     }
   };
 
-  function handleChatResponse(queryChatResponse, query) {
-    console.log(queryChatResponse);
-    // set response array to have the latest everuthing except data and columns
+  function handleChatResponse(queryChatResponse, query, executeData = true) {
+    // set response array to have the latest everything except data and columns
     setChatResponseArray([
       ...chatResponseArray,
       {
@@ -128,10 +168,13 @@ export const AskDefogChat = ({
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
-    handleDataResponse(queryChatResponse, query);
+    if (executeData) {
+      handleDataResponse(queryChatResponse, query);
+    }
   }
 
   function handleDataResponse(dataResponse, query) {
+    console.log(dataResponse);
     setRawData(dataResponse.data);
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
@@ -213,7 +256,6 @@ export const AskDefogChat = ({
       newCols = [];
       newRows = [];
     }
-
     // update the last item in response array with the above data and columns
     setDataResponseArray([
       ...dataResponseArray,
@@ -231,24 +273,24 @@ export const AskDefogChat = ({
     const resultsDiv = document.getElementById("results");
     resultsDiv.scrollTop = resultsDiv.scrollHeight;
   }
+  const genExtra = () => (
+    <ThemeSwitchButton mode={theme.type} handleMode={toggleTheme} />
+  );
 
   return (
-    <Context.Provider value={[context, setContext]}>
-      <div>
-        <div
-          style={{
-            padding: 0,
-            color: "#fff",
-            border: "1px solid lightgrey",
-            borderRadius: 10,
-          }}
-        >
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <Wrap theme={theme.config}>
+        <div ref={divRef}>
           {/* add a button on the top right of this div with an expand arrow */}
           <Collapse
             bordered={false}
             defaultActiveKey={["1"]}
             expandIconPosition="end"
-            style={{ color: "#fff", backgroundColor: "#fff" }}
+            style={{
+              color: theme.config.primaryText,
+              backgroundColor: theme.config.background1,
+              borderRadius: 0,
+            }}
             expandIcon={() => (
               <CaretRightOutlined rotate={isActive ? 270 : 90} />
             )}
@@ -256,66 +298,100 @@ export const AskDefogChat = ({
               state.length > 1 ? setIsActive(true) : setIsActive(false)
             }
           >
-            <Panel header={buttonText} key="1" style={{ color: "#fff" }}>
+            <Panel
+              header={buttonText}
+              key="1"
+              style={{ color: theme.config.primaryText }}
+              extra={genExtra()}
+            >
               <div
                 style={{
                   width: "100%",
                   maxWidth: maxWidth,
                   maxHeight: maxHeight,
-                  overflow: "auto",
                 }}
                 id="results"
-                ref={divRef}
               >
                 {chatResponseArray.map((response, index) => {
                   return (
-                    <div key={index}>
-                      <hr style={{ borderTop: "1px dashed lightgrey" }} />
-                      <p style={{ marginTop: 10 }}>{response.question}</p>
-                      <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
-                        {response.queryReason}
-                      </p>
-                      {!dataResponseArray[index] ? (
-                        <div
-                          className="data-loading-search-state"
-                          style={{ width: "50%", margin: "0 auto" }}
-                        >
-                          <SearchState
-                            message={"Query generated! Getting your data..."}
-                            lottie={
-                              <Lottie
-                                animationData={LoadingLottie}
-                                loop={true}
+                    <ColoredContainer key={index} theme={theme.config}>
+                      <QALayout type={"Question"}>
+                        <p style={{ margin: 0 }}>{response.question}</p>
+                      </QALayout>
+                      <QALayout type={"Answer"}>
+                        <>
+                          <p style={{ marginTop: 0 }}>{response.queryReason}</p>
+                          {!dataResponseArray[index] ? (
+                            <div
+                              className="data-loading-search-state"
+                              style={{ width: "50%", margin: "0 auto" }}
+                            >
+                              <SearchState
+                                message={
+                                  "Query generated! Getting your data..."
+                                }
+                                lottie={
+                                  <Lottie
+                                    animationData={LoadingLottie}
+                                    loop={true}
+                                  />
+                                }
                               />
-                            }
-                          />
-                        </div>
-                      ) : (
-                        <DefogDynamicViz
-                          vizType={vizType}
-                          response={Object.assign(
-                            chatResponseArray[index],
-                            dataResponseArray[index]
+                            </div>
+                          ) : (
+                            <DefogDynamicViz
+                              vizType={vizType}
+                              response={Object.assign(
+                                chatResponseArray[index],
+                                dataResponseArray[index]
+                              )}
+                              rawData={rawData}
+                              query={query}
+                              debugMode={debugMode}
+                              apiKey={apiKey}
+                            />
                           )}
-                          rawData={rawData}
-                          query={query}
-                          debugMode={debugMode}
-                          apiKey={apiKey}
-                        />
-                      )}
-                      <p style={{ color: "grey", fontSize: 12, marginTop: 10 }}>
-                        {response.suggestedQuestions}
-                      </p>
-                    </div>
+                          {response.suggestedQuestions && (
+                            <>
+                              <h5
+                                style={{
+                                  margin: "12px 0 0 8px",
+                                  color: theme.config.primaryText,
+                                  opacity: 0.6,
+                                }}
+                              >
+                                Suggested Question(s)
+                              </h5>
+                              <SuggestedQuestionWrap
+                                theme={theme.config}
+                                onClick={() =>
+                                  handleSubmit(response.suggestedQuestions)
+                                }
+                              >
+                                {response.suggestedQuestions}
+                              </SuggestedQuestionWrap>
+                            </>
+                          )}
+                        </>
+                      </QALayout>
+                    </ColoredContainer>
                   );
                 })}
               </div>
               {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
               {buttonLoading &&
               chatResponseArray.length === dataResponseArray.length ? (
-                <React.Fragment>
-                  <hr style={{ borderTop: "1px dashed lightgrey" }} />
-                  <p style={{ marginTop: 10 }}>{query}</p>
+                <div
+                  style={{
+                    background: theme.config.background2,
+                    borderRadius: "12px",
+                    padding: "20px",
+                  }}
+                >
+                  <QALayout type={"Question"}>
+                    <p style={{ margin: 0 }}>{query}</p>
+                  </QALayout>
+
                   <div
                     className="data-loading-search-state"
                     style={{ width: "50%", margin: "0 auto" }}
@@ -327,24 +403,121 @@ export const AskDefogChat = ({
                       }
                     />
                   </div>
-                </React.Fragment>
+                </div>
               ) : (
                 ""
               )}
-              <Search
-                placeholder="input search text"
-                allowClear
-                enterButton={buttonText}
-                size="large"
-                onSearch={handleSubmit}
-                style={{ width: "100%", maxWidth: 600 }}
-                loading={buttonLoading}
-                disabled={buttonLoading}
-              />
+
+              <SearchWrap loading={buttonLoading} theme={theme.config}>
+                <Search
+                  placeholder="Ask a question"
+                  enterButton={buttonText}
+                  size="small"
+                  onSearch={handleSubmit}
+                  loading={buttonLoading}
+                  disabled={buttonLoading}
+                />
+              </SearchWrap>
             </Panel>
           </Collapse>
         </div>
-      </div>
-    </Context.Provider>
+      </Wrap>
+    </ThemeContext.Provider>
   );
 };
+
+const Wrap = styled.div`
+  position: relative;
+  .ant-collapse-content-box {
+    padding: 20px !important;
+
+    @media (max-width: 650px) {
+      padding: 8px !important;
+    }
+  }
+  .ant-collapse-header {
+    display: flex;
+    align-items: center;
+    color: ${(props) =>
+      props.theme ? props.theme.primaryText : "#0D0D0D"} !important;
+    background: ${(props) =>
+      props.theme ? props.theme.background2 : "#F8FAFB"} !important;
+
+    .ant-collapse-extra {
+      order: 3;
+      margin-left: 8px;
+    }
+  }
+`;
+
+const ColoredContainer = styled.div`
+  background: ${(props) => (props.theme ? props.theme.background3 : "#F8FAFB")};
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+
+  @media (max-width: 767px) {
+    padding: 12px;
+  }
+`;
+
+const SuggestedQuestionWrap = styled.button`
+  font-size: 14px;
+  margin-top: 4px;
+  background: ${(props) => (props.theme ? props.theme.background2 : "#F8FAFB")};
+  color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+  border-radius: 7px;
+  padding: 12px;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+
+  span {
+    display: block;
+    color: inherit;
+    font-weight: 600;
+  }
+`;
+
+const SearchWrap = styled.div`
+  display: flex;
+  background: ${(props) =>
+    props.loading ? props.theme.disabledColor : props.theme.background2};
+  border-width: 1px;
+  border-style: solid;
+  border-color: ${(props) =>
+    props.loading ? props.theme.disabledColor : props.theme.brandColor};
+  margin-top: 20px;
+  border-radius: 8px;
+  padding: 6px;
+  .ant-input-group-wrapper {
+    width: 100%;
+    .ant-input-wrapper {
+      display: flex;
+    }
+
+    .ant-input {
+      border: none;
+      width: calc(100% - 120px);
+      background-color: transparent;
+      color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+    }
+    .ant-input:focus,
+    .ant-input-focused {
+      box-shadow: none;
+    }
+    .ant-input-group-addon {
+      button {
+        min-height: 36px;
+        min-width: 120px;
+        border-radius: 6px !important;
+        border-color: transparent;
+        color: #fff;
+        background: ${(props) =>
+          props.theme ? props.theme.brandColor : "#2B59FF"};
+      }
+    }
+  }
+`;

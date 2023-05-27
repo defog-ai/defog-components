@@ -10,6 +10,7 @@ import {
 } from "chart.js";
 import { Pie } from "react-chartjs-2";
 import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
+import { chartColors } from "../../context/ThemeContext";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Colors);
 
@@ -32,6 +33,8 @@ const PieChart = React.memo(
                       {
                         label: d.title,
                         data: d,
+                        backgroundColor: chartColors,
+                        borderWidth: 0,
                       },
                     ],
                   }}

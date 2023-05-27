@@ -13,6 +13,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
+import { chartColors } from "../../context/ThemeContext";
 
 ChartJS.register(
   CategoryScale,
@@ -48,6 +49,7 @@ const TrendChartNew = React.memo(
                       label: d.title,
                       data: d,
                       tension: 0.2,
+                      backgroundColor: chartColors,
                     })),
                   }}
                 ></Line>
