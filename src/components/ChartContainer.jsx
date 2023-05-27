@@ -21,6 +21,9 @@ export default function ChartContainer({
   data,
   title,
 }) {
+  if (!data || !data.length) {
+    return <></>;
+  }
   // convert categorical column values to antd's select options
   const opts = useRef(
     xAxisColumns.reduce((obj, col) => {
@@ -63,7 +66,7 @@ export default function ChartContainer({
   });
 
   const xAxisDropdown = (
-    <div>
+    <div className="chart-container-select">
       <h4>X Axis</h4>
       <Select
         mode="multiple"
@@ -71,7 +74,8 @@ export default function ChartContainer({
         defaultValue={xAxis}
         placeholder="Select X Axis"
         onChange={(_, sel) => {
-          // also initialise any newly selected column
+          // initialise (or re-initialise) any newly selected column with the first value
+          // this refreshes the values for columns which were earlier selected and then removed and not being selected again
           const newCols = sel
             .filter((col) => !selectedXValues[col.value])
             .reduce((obj, col) => {
@@ -84,7 +88,7 @@ export default function ChartContainer({
             }, {});
 
           // in case a column is deselected,
-          // only keep columns still in the selection
+          // only keep columns still in the selection + in selectedXValues
           const keepCols = Object.keys(selectedXValues)
             // return those in selection + in selectedXValues
             .filter((col) => sel.filter((d) => d.value === col).length === 1)
@@ -104,7 +108,7 @@ export default function ChartContainer({
   );
 
   const yAxisDropdown = (
-    <div>
+    <div className="chart-container-select">
       <h4>Y Axis</h4>
       <Select
         mode="multiple"
@@ -122,11 +126,9 @@ export default function ChartContainer({
   const selectedXAxisDropdowns = xAxis.map((opt) => {
     const optValues = opts.current[opt.value];
 
-    console.log(optValues);
-
     return (
       // key force rerender when we change selectall->deselctall or vice versa
-      <div key={optValues[0].label}>
+      <div key={optValues[0].label} className="chart-container-select">
         <h4>{opt.label}</h4>
         <Select
           mode="multiple"
@@ -174,10 +176,12 @@ export default function ChartContainer({
   // });
 
   return (
-    <>
-      {xAxisDropdown}
-      {yAxisDropdown}
-      {selectedXAxisDropdowns}
-    </>
+    <div className="chart-container">
+      <div className="chart-container-controls">
+        {xAxisDropdown}
+        {yAxisDropdown}
+        {selectedXAxisDropdowns}
+      </div>
+    </div>
   );
 }

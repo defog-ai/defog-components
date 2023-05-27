@@ -7,6 +7,7 @@ import LoadingLottie from "./components/svg/ridinloop_1.json";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import { inferColumnType } from "./components/common/utils.js";
 import Context from "./components/common/Context.js";
+import "./main.scss";
 
 export const AskDefogChat = ({
   apiEndpoint,
