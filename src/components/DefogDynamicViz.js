@@ -325,6 +325,15 @@ const ResultsWrap = styled.div`
     background: ${(props) =>
       props.theme ? props.theme.background1 : "#F8FAFB"};
   }
+  .ant-table-wrapper .ant-table-column-sorter-up.active,
+  .ant-table-wrapper .ant-table-column-sorter-down.active {
+    color: ${(props) => (props.theme ? props.theme.brandColor : "#2B59FF")};
+  }
+
+  .ant-table-wrapper td.ant-table-column-sort {
+    background: ${(props) =>
+      props.theme ? props.theme.background3 : "#F8FAFB"};
+  }
   .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
   .ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
     background: ${(props) =>
@@ -433,7 +442,19 @@ const ResultsWrap = styled.div`
   }
   .ant-pagination .ant-pagination-item-active {
     border-color: ${(props) =>
-      props.theme ? props.theme.branColor : "#2B59FF"};
+      props.theme ? props.theme.brandColor : "#2B59FF"};
+  }
+
+  .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    background-color: ${(props) =>
+      props.theme ? props.theme.background1 : "#FFF"};
+    border: 1px solid
+      ${(props) => (props.theme ? props.theme.brandColor : "#FFF")};
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+
+    & + .ant-select-arrow {
+      color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+    }
   }
 
   .exportNarativeBtn {
