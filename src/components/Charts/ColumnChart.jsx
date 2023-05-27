@@ -15,6 +15,7 @@ import {
 import { Bar } from "react-chartjs-2";
 
 import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
+import { chartColors } from "../../context/ThemeContext";
 
 ChartJS.register(
   CategoryScale,
@@ -45,6 +46,7 @@ const ColumnChart = React.memo(
                   datasets: chartData.map((d, i) => ({
                     label: columns[i + 1].title,
                     data: d,
+                    backgroundColor: chartColors,
                   })),
                 }}
               ></Bar>
