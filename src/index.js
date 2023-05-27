@@ -6,7 +6,6 @@ import SearchState from "./components/SearchState.js";
 import LoadingLottie from "./components/svg/loader.json";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
 import { inferColumnType } from "./components/common/utils.js";
-import "./main.scss";
 import QALayout from "./components/common/QALayout.js";
 import {
   ThemeContext,

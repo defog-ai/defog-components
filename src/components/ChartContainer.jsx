@@ -4,6 +4,7 @@ import { cleanString, transformToChartJSType } from "./common/utils";
 import PieChart from "./Charts/PieChart";
 import ColumnChart from "./Charts/ColumnChart";
 import TrendChartNew from "./Charts/TrendChartNew";
+import styled from "styled-components";
 
 function arrToAntD(arr, labelProp = "key", valueProp = "key") {
   return arr.map((d) => ({
@@ -112,6 +113,7 @@ export default function ChartContainer({
       <h4>Y Axis</h4>
       <Select
         mode="multiple"
+        width
         options={arrToAntD(yAxisColumns)}
         defaultValue={yAxis}
         onChange={(_, sel) => {
@@ -135,7 +137,7 @@ export default function ChartContainer({
           options={optValues}
           defaultValue={selectedXValues[opt.value]}
           value={selectedXValues[opt.value]}
-          placeholder="Select Values to plot"
+          placeholder={`Select ${opt.value} to plot`}
           // allow select all
           showSearch={true}
           onChange={(_, sel) => {
@@ -176,12 +178,32 @@ export default function ChartContainer({
   // });
 
   return (
-    <div className="chart-container">
-      <div className="chart-container-controls">
-        {xAxisDropdown}
-        {yAxisDropdown}
-        {selectedXAxisDropdowns}
+    <ChartContainerWrap>
+      <div className="chart-container">
+        <div className="chart-container-controls">
+          {xAxisDropdown}
+          {yAxisDropdown}
+          {selectedXAxisDropdowns}
+        </div>
       </div>
-    </div>
+    </ChartContainerWrap>
   );
 }
+
+const ChartContainerWrap = styled.div`
+  .chart-container {
+    .chart-container-controls {
+      display: flex;
+      .chart-container-select {
+        margin: 10px 15px;
+        width: 300px;
+        .ant-select {
+          width: 100%;
+        }
+        h4 {
+          margin-bottom: 2px;
+        }
+      }
+    }
+  }
+`;
