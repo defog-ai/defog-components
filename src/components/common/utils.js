@@ -156,22 +156,27 @@ export function processData(data, columns) {
     (d) => d.variableType[0] !== "c" && d.colType !== "date"
   );
 
-  // find unique values for each of the categorical columns for the dropdowns
-  const categoricalColumnValues = {};
-  categoricalColumns.forEach((c) => {
-    categoricalColumnValues[c.key] = new Set();
+  const xAxisColumns = dateColumn
+    ? categoricalColumns.concat(dateColumn)
+    : categoricalColumns;
+
+  // find unique values for each of the x axis columns for the dropdowns
+  // this we'll use for "labels" prop for chartjs
+  const xAxisColumnValues = {};
+  xAxisColumns.forEach((c) => {
+    xAxisColumnValues[c.key] = new Set();
     data?.forEach((d) => {
-      categoricalColumnValues[c.key].add(d[c.key]);
+      xAxisColumnValues[c.key].add(d[c.key]);
     });
-    categoricalColumnValues[c.key] = Array.from(categoricalColumnValues[c.key]);
+    xAxisColumnValues[c.key] = Array.from(xAxisColumnValues[c.key]);
   });
 
   return {
-    xAxisColumn,
+    xAxisColumns,
     categoricalColumns,
     yAxisColumns,
-    categoricalColumnValues,
-    xAxisIsDate: dateColumn !== undefined,
+    dateColumn,
+    xAxisColumnValues,
   };
 }
 

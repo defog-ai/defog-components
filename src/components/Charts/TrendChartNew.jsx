@@ -25,14 +25,8 @@ ChartJS.register(
 );
 
 const TrendChartNew = React.memo(
-  (props) => {
-    const { data, columns, title } = props.data;
-    const height = props.height;
-    setChartJSDefaults(
-      ChartJS,
-      title,
-      columns.some((d) => d.colType === "date")
-    );
+  ({ chartData, chartLabels, title, height, xAxisIsDate }) => {
+    setChartJSDefaults(ChartJS, title, xAxisIsDate);
 
     Object.assign(ChartJS.defaults.elements.point, {
       borderWidth: 0,
@@ -42,26 +36,21 @@ const TrendChartNew = React.memo(
     });
 
     if (data instanceof Array) {
-      const { chartData, chartLabels } = transformToChartJSType(data, columns);
-
-      // construct config object for chartjs
-      const chartJsConfig = {
-        data: {
-          labels: chartLabels,
-          datasets: chartData.map((d, i) => ({
-            label: d.title,
-            data: d,
-            tension: 0.2,
-          })),
-        },
-      };
-
       return (
         <ErrorBoundary>
           <Row justify={"center"}>
             <Col md={{ span: 24 }} lg={12}>
               <div className="pie-chart-ctr" style={{ height: height + "px" }}>
-                <Line {...chartJsConfig}></Line>
+                <Line
+                  data={{
+                    labels: chartLabels,
+                    datasets: chartData.map((d, i) => ({
+                      label: d.title,
+                      data: d,
+                      tension: 0.2,
+                    })),
+                  }}
+                ></Line>
               </div>
             </Col>
           </Row>

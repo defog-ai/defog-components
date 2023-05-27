@@ -14,16 +14,8 @@ import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
 ChartJS.register(ArcElement, Tooltip, Legend, Colors);
 
 const PieChart = React.memo(
-  (props) => {
-    const { data, columns, title } = props.data;
-    const height = props.height;
-    setChartJSDefaults(
-      ChartJS,
-      title,
-      columns.some((d) => d.colType === "date")
-    );
-
-    const { chartData, chartLabels } = transformToChartJSType(data, columns);
+  ({ chartData, chartLabels, title, height, xAxisIsDate }) => {
+    setChartJSDefaults(ChartJS, title, xAxisIsDate);
 
     return (
       <ErrorBoundary>

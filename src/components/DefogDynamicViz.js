@@ -1,8 +1,5 @@
 import React, { useState, useContext, Fragment } from "react";
 import { Button, Table, message, Tabs, Modal, Input } from "antd";
-import PieChart from "./Charts/PieChart.jsx";
-import ColumnChart from "./Charts/ColumnChart.jsx";
-import TrendChartNew from "./Charts/TrendChartNew.jsx";
 import {
   download_csv,
   processData,
@@ -94,24 +91,24 @@ const DefogDynamicViz = ({
     const height = 400;
 
     const {
-      xAxisColumn,
+      xAxisColumns,
       categoricalColumns,
       yAxisColumns,
-      categoricalColumnValues,
-      xAxisIsDate,
+      xAxisColumnValues,
+      dateColumn,
     } = processData(response.data, response.columns);
 
     results.push(
       <ChartContainer
-        xAxisColumn={xAxisColumn}
+        xAxisColumns={xAxisColumns}
+        dateColumn={dateColumn}
         categoricalColumns={categoricalColumns}
         yAxisColumns={yAxisColumns}
-        categoricalColumnValues={categoricalColumnValues}
+        xAxisColumnValues={xAxisColumnValues}
         vizType={vizType}
         data={response.data}
         columns={response.columns}
         title={query}
-        xAxisIsDate={xAxisIsDate}
       ></ChartContainer>
     );
 
