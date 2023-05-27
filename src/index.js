@@ -415,7 +415,6 @@ export const AskDefogChat = ({
                   onSearch={handleSubmit}
                   loading={buttonLoading}
                   disabled={buttonLoading}
-                  defaultValue={"who are our best users by revenue"}
                 />
               </SearchWrap>
             </Panel>
