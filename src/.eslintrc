@@ -1,5 +1,13 @@
 {
   "env": {
     "jest": true
+  },
+  // Added these for the eslint error on Import 
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": "latest",
+    "ecmaFeatures": {
+      "jsx": true // <<<< Important
+    }
   }
 }
