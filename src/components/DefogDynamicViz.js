@@ -246,7 +246,7 @@ const DefogDynamicViz = ({
           <button onClick={() => uploadFeedback("Good")}>
             <ThumbsUp />
           </button>
-          <button onClick={() => uploadFeedback("Bad")}>
+          <button onClick={() => setModalVisible(true)}>
             <ThumbsDown />
           </button>
         </FeedbackWrap>
