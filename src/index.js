@@ -305,7 +305,7 @@ export const AskDefogChat = ({
                 style={{
                   width: "100%",
                   maxWidth: maxWidth,
-                  maxHeight: `calc(${maxHeight} - 90px)`,
+                  maxHeight: typeof(maxHeight) == "number" ? `calc(${maxHeight}px - 90px)` : `calc(${maxHeight} - 90px)`,
                   overflowY: "auto",
                   overflowX: "hidden",
                 }}
