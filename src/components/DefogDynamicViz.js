@@ -27,8 +27,6 @@ const DefogDynamicViz = ({
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
 
-  console.log(theme);
-
   const uploadFeedback = (feedback, feedbackText = "") => {
     if (feedback === "Good") {
       fetch(`https://api.defog.ai/feedback`, {
@@ -69,7 +67,6 @@ const DefogDynamicViz = ({
   };
 
   let results;
-  let defaultActiveKey = vizType === null || vizType === "table" ? "1" : "2";
 
   if (vizType === "text") {
     results = <pre>{response.results}</pre>;
@@ -80,6 +77,7 @@ const DefogDynamicViz = ({
 
     results = [
       <Table
+        key="0"
         dataSource={roundedData}
         columns={response.columns}
         scroll={{ x: "max-content" }}
@@ -90,8 +88,6 @@ const DefogDynamicViz = ({
         pagination={{ pageSize: 5 }}
       />,
     ];
-
-    const height = 400;
 
     const {
       xAxisColumns,
@@ -108,10 +104,11 @@ const DefogDynamicViz = ({
         categoricalColumns={categoricalColumns}
         yAxisColumns={yAxisColumns}
         xAxisColumnValues={xAxisColumnValues}
-        vizType={vizType}
         data={response.data}
         columns={response.columns}
         title={query}
+        key="1"
+        theme={theme.config}
       ></ChartContainer>
     );
 

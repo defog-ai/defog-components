@@ -1,13 +1,10 @@
-// a very, VERY simple checker to cehck if a value is a date.
-// if we need something more complex in the future, perhaps using dayjs would be a better option
-
-import { group } from "d3-array";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { chartColors } from "../../context/ThemeContext";
 
 dayjs.extend(customParseFormat);
 
-const dateFormats = ["YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss"];
+const dateFormats = ["YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss"];
 
 export function isDate(s) {
   return dayjs(s, dateFormats, true).isValid();
@@ -83,14 +80,19 @@ function formatTime(val) {
 export function setChartJSDefaults(
   ChartJSRef,
   title = "",
-  xAxisIsDate = false
+  xAxisIsDate = false,
+  pieChart = false
 ) {
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
   ChartJSRef.defaults.interaction.axis = "x";
   ChartJSRef.defaults.interaction.mode = "nearest";
   ChartJSRef.defaults.maintainAspectRatio = false;
   ChartJSRef.defaults.plugins.title.display = true;
-  ChartJSRef.defaults.plugins.title.text = title;
+  // pie charts can be multiple, so we don't want to show the overall title aka query
+  // we want to show each column's title above each pie chart instead (this is done in the component itself)
+  if (!pieChart) {
+    ChartJSRef.defaults.plugins.title.text = title;
+  }
 
   // if x axis is a date, add a d3 formatter
   if (xAxisIsDate) {
@@ -138,14 +140,6 @@ export const mapToObject = (
 export function processData(data, columns) {
   // find if there's a date column
   const dateColumn = columns.find((d) => d.colType === "date");
-  let xAxisColumn;
-  if (dateColumn !== undefined) {
-    xAxisColumn = dateColumn;
-  } else {
-    // use first column
-    xAxisColumn = columns[0];
-  }
-
   // date comes in as categorical column, but we use that for the x axis, so filter that out also
   const categoricalColumns = columns.filter(
     (d) => d.variableType[0] === "c" && d.colType !== "date"
@@ -190,136 +184,41 @@ export function isEmpty(obj) {
   return true;
 }
 
-export function createChartData(
+export function createChartConfig(
   data,
   xAxisColumn,
   yAxisColumns,
   selectedXValues,
   xAxisIsDate
 ) {
-  console.log(data, xAxisColumn, yAxisColumns, selectedXValues, xAxisIsDate);
+  // chart labels are just selectedXValues
+  const chartLabels = selectedXValues.map((d) => d.label);
 
-  return;
-  // a helper function to get values of the xAxisColumn later
-  // valueOf is to get the value of a dayjs object
-  const xAxisColVal = xAxisIsDate ? (d) => d.valueOf() : (d) => d;
-
-  let xAxisLabels = new Set();
-
-  data?.forEach((d) => {
-    xAxisLabels.add(d[xAxisColumn.key]);
+  // go through data and find data points for which the xAxisColumn value exists in chartLabels
+  const filteredData = data.filter((d) => {
+    return chartLabels.includes(d[xAxisColumn.label]);
   });
 
-  xAxisLabels = Array.from(xAxisLabels);
+  // use chartjs parsing to create chartData
+  // for each yAxisColumn, there is a chartjs "dataset"
+  const chartData = yAxisColumns.map((col, i) => ({
+    label: col.label,
+    data: filteredData,
+    backgroundColor: chartColors[i % chartColors.length],
+    parsing: {
+      xAxisKey: xAxisColumn.label,
+      yAxisKey: col.label,
+      // for pie charts
+      key: col.label,
+    },
+  }));
 
-  // sort x axis
-  if (xAxisIsDate) {
-    xAxisLabels = xAxisLabels.map((d) => dayjs(d, dateFormats));
-  } else {
-    xAxisLabels.sort();
-  }
+  // deal with mismatching length of chart labels and chart data
+  // for eg: data by quarter: Q1, Q2, Q3, Q4
+  // can have multiple values for Q1
+  // then chartlabels is just ['Q1'] while chartData is [15306, 28528, 32840, title: 'XX']
 
-  const chartData = yAxisColumns.map((d) => {
-    const x = [];
-    x.title = d.key;
-    return x;
-  });
-
-  data?.forEach((d) => {
-    for (let i = 0; i < yAxisColumns.length; i++) {
-      chartData[i].push(d[yAxisColumns[i].key]);
-    }
-  });
-
-  return { chartLabels: xAxisLabels, chartData: chartData };
-
-  if (false) {
-    // uhh, ignore for now
-    /* chartData has the y values.
-    this can be multiple lines being plotted simultaneously.
-    Example:
-    data: {
-              columns:  ['sale_date', 'username', 'avg_price_paid', 'avg_commission']
-              data: [
-                      ['2008-01-01', 'ABC', 1060.44, 159.06],
-                      ['2008-01-02', 'DEF',  665.6, 99.84],
-                      ....
-                    ]
-          ...
-    }
-   */
-
-    /* once we set the x axis, each categorical column for example username above is its own bar/line/etc
-    // each non date, non categorical, non boolean (hence purely number) column is the y axis.
-    // we need to group the data by all of the categorical columns
-    // and generate different datasets for each.
-    // d3.group by all categorical variables
-    */
-
-    // create chart data from
-
-    // nest data for each of the above categorical columns
-    // ref: https://stackoverflow.com/questions/57611237/javascript-convert-nested-map-to-object
-    // ref: https://observablehq.com/@severo/til-d3-group-with-arbitrary-keys
-    const keys = categoricalColumns.map((col) => (d) => d[col.key]);
-
-    let chartData = [];
-    if (keys.length > 0) {
-      mapToObject(group(data, ...keys), [], (_d) => {
-        let d = _d.slice();
-        d.title = _d.nestLocation.join("-");
-
-        // if there was a date column, convert date strings to objects, and also sort by date column
-        if (xAxisIsDate) {
-          d.forEach((o) => {
-            o[xAxisColumn.key] = dayjs(o[xAxisColumn.key], dateFormats);
-          });
-
-          d.sort(
-            (a, b) =>
-              xAxisColVal(a[xAxisColumn.key]) - xAxisColVal(b[xAxisColumn.key])
-          );
-        }
-        // else just sort
-        else {
-          d.sort();
-        }
-
-        // in this dataset, find the chart labels for which data is missing, and add nulls for that
-        let i = 0;
-        while (d.length <= xAxisLabels.length) {
-          if (
-            !d[i] ||
-            xAxisColVal(xAxisLabels[i]) !== xAxisColVal(d[i][xAxisColumn.key])
-          ) {
-            d.splice(i, 0, null);
-          }
-          i++;
-        }
-
-        const yVals = d.map((o) =>
-          o === null ? null : o[yAxisColumns[0].key]
-        );
-        yVals.title = d.title;
-
-        chartData.push(yVals);
-      });
-    } else {
-      // has no categorical columns
-
-      chartData = yAxisColumns.map((d) => {
-        const x = [];
-        x.title = d.key;
-        return x;
-      });
-
-      data?.forEach((d) => {
-        for (let i = 0; i < yAxisColumns.length; i++) {
-          chartData[i].push(d[yAxisColumns[i].key]);
-        }
-      });
-    }
-  }
+  return { chartData, chartLabels };
 }
 
 export function transformToCSV(rows, columnNames) {

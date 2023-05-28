@@ -10,12 +10,10 @@ import {
   Tooltip,
   Legend,
   Colors,
-  defaults,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
 
-import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
-import { chartColors } from "../../context/ThemeContext";
+import { setChartJSDefaults } from "../common/utils";
 
 ChartJS.register(
   CategoryScale,
@@ -23,12 +21,12 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend,
-  Colors
+  Legend
 );
 
 const ColumnChart = React.memo(
-  ({ chartData, chartLabels, title, height, xAxisIsDate }) => {
+  ({ chartConfig, title, height, xAxisIsDate }) => {
+    const { chartLabels, chartData } = chartConfig;
     setChartJSDefaults(ChartJS, title, xAxisIsDate);
 
     return (
@@ -39,10 +37,8 @@ const ColumnChart = React.memo(
               <Bar
                 data={{
                   labels: chartLabels,
-                  datasets: chartData.map((d, i) => ({
-                    label: d.title,
-                    data: d,
-                    backgroundColor: chartColors,
+                  datasets: chartData.map((d) => ({
+                    ...d,
                   })),
                 }}
               ></Bar>
@@ -54,5 +50,7 @@ const ColumnChart = React.memo(
   },
   () => false
 );
+
+ColumnChart.displayName = "ColumnChart";
 
 export default ColumnChart;

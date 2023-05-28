@@ -1,52 +1,65 @@
 import React from "react";
 import { Row, Col } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Colors,
-} from "chart.js";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import { setChartJSDefaults, transformToChartJSType } from "../common/utils";
+import { setChartJSDefaults } from "../common/utils";
 import { chartColors } from "../../context/ThemeContext";
 
-ChartJS.register(ArcElement, Tooltip, Legend, Colors);
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const PieChart = React.memo(
-  ({ chartData, chartLabels, title, height, xAxisIsDate }) => {
-    setChartJSDefaults(ChartJS, title, xAxisIsDate);
+  ({ chartConfig, title, height, xAxisIsDate }) => {
+    const { chartLabels, chartData } = chartConfig;
+    setChartJSDefaults(ChartJS, title, xAxisIsDate, true);
 
     return (
       <ErrorBoundary>
         <Row justify={"center"}>
           {/* don't nest pie charts */}
-          {chartData.map((d, i) => (
-            <Col md={{ span: 24 }} lg={12}>
-              <div className="pie-chart-ctr" style={{ height: height + "px" }}>
-                <Pie
-                  key={d.title}
-                  data={{
-                    labels: chartLabels,
-                    datasets: [
-                      {
-                        label: d.title,
-                        data: d,
-                        backgroundColor: chartColors,
-                        borderWidth: 0,
+          {chartData.map((d) => {
+            return (
+              <Col
+                md={{ span: 24 }}
+                lg={12}
+                key={d.label + d.data.map((_) => _[d.parsing.key]).join("__")}
+              >
+                <div
+                  className="pie-chart-ctr"
+                  style={{ height: height + "px" }}
+                >
+                  <Pie
+                    data={{
+                      labels: chartLabels,
+                      datasets: [
+                        {
+                          ...d,
+                          // pie chart specific.
+                          backgroundColor: chartColors,
+                        },
+                      ],
+                    }}
+                    // pie chart specific.
+                    options={{
+                      plugins: {
+                        title: {
+                          display: true,
+                          text: d.label,
+                        },
                       },
-                    ],
-                  }}
-                ></Pie>
-              </div>
-            </Col>
-          ))}
+                    }}
+                  ></Pie>
+                </div>
+              </Col>
+            );
+          })}
         </Row>
       </ErrorBoundary>
     );
   },
   () => false
 );
+
+PieChart.displayName = "PieChart";
 
 export default PieChart;

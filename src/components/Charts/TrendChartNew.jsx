@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Row, Col } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
 import {
@@ -13,7 +13,6 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { setChartJSDefaults } from "../common/utils";
-import { chartColors } from "../../context/ThemeContext";
 
 ChartJS.register(
   CategoryScale,
@@ -26,7 +25,8 @@ ChartJS.register(
 );
 
 const TrendChartNew = React.memo(
-  ({ chartData, chartLabels, title, height, xAxisIsDate }) => {
+  ({ chartConfig, title, height, xAxisIsDate }) => {
+    const { chartLabels, chartData } = chartConfig;
     setChartJSDefaults(ChartJS, title, xAxisIsDate);
 
     Object.assign(ChartJS.defaults.elements.point, {
@@ -36,7 +36,7 @@ const TrendChartNew = React.memo(
       hoverRadius: 5,
     });
 
-    if (data instanceof Array) {
+    if (chartData instanceof Array) {
       return (
         <ErrorBoundary>
           <Row justify={"center"}>
@@ -45,11 +45,9 @@ const TrendChartNew = React.memo(
                 <Line
                   data={{
                     labels: chartLabels,
-                    datasets: chartData.map((d, i) => ({
-                      label: d.title,
-                      data: d,
+                    datasets: chartData.map((d) => ({
+                      ...d,
                       tension: 0.2,
-                      backgroundColor: chartColors,
                     })),
                   }}
                 ></Line>
@@ -64,5 +62,7 @@ const TrendChartNew = React.memo(
   },
   () => false
 );
+
+TrendChartNew.displayName = "TrendChartNew";
 
 export default TrendChartNew;
