@@ -74,13 +74,14 @@ export function inferColumnType(rows, colIdx) {
 }
 
 function formatTime(val) {
-  return dayjs(val).format("D MMM 'YY");
+  return dayjs(val, dateFormats).format("D MMM 'YY");
 }
 
 export function setChartJSDefaults(
   ChartJSRef,
   title = "",
   xAxisIsDate = false,
+  theme,
   pieChart = false
 ) {
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
@@ -94,6 +95,18 @@ export function setChartJSDefaults(
     ChartJSRef.defaults.plugins.title.text = title;
   }
 
+  // tooltip background clor white
+  ChartJSRef.defaults.plugins.tooltip.backgroundColor = "white";
+  // title and label color is chartcolors primary color
+  ChartJSRef.defaults.plugins.tooltip.titleColor = "#0D0D0D";
+  ChartJSRef.defaults.plugins.tooltip.bodyColor = "#0D0D0D";
+  // border color is defog blue
+  ChartJSRef.defaults.plugins.tooltip.borderColor = "#2B59FF";
+  ChartJSRef.defaults.plugins.tooltip.borderWidth = 1;
+  ChartJSRef.defaults.plugins.tooltip.padding = 10;
+
+  ChartJSRef.defaults.plugins.title.color = theme.primaryText;
+
   // if x axis is a date, add a d3 formatter
   if (xAxisIsDate) {
     ChartJSRef.defaults.plugins.tooltip.displayColors = false;
@@ -106,7 +119,7 @@ export function setChartJSDefaults(
     ChartJSRef.defaults.plugins.tooltip.callbacks.label = function (
       tooltipItem
     ) {
-      return tooltipItem.formattedValue;
+      return tooltipItem.dataset.label + ": " + tooltipItem.formattedValue;
     };
 
     ChartJSRef.defaults.scales.category.ticks = {
@@ -114,6 +127,18 @@ export function setChartJSDefaults(
         return formatTime(this.getLabelForValue(value));
       },
     };
+
+    if (pieChart) {
+      // legend labels are also dates
+      // pie/doughnuts charts are weird in chartjs
+      // brilliant hack to edit some props of legendItems without having to remake them from here: https://stackoverflow.com/questions/39454586/pie-chart-legend-chart-js
+      ChartJSRef.overrides.pie.plugins.legend.labels.filter = function (
+        legendItem
+      ) {
+        legendItem.text = formatTime(legendItem.text);
+        return true;
+      };
+    }
   }
 }
 

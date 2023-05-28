@@ -9,9 +9,9 @@ import { chartColors } from "../../context/ThemeContext";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const PieChart = React.memo(
-  ({ chartConfig, title, height, xAxisIsDate }) => {
+  ({ chartConfig, title, height, xAxisIsDate, theme }) => {
     const { chartLabels, chartData } = chartConfig;
-    setChartJSDefaults(ChartJS, title, xAxisIsDate, true);
+    setChartJSDefaults(ChartJS, title, xAxisIsDate, theme, true);
 
     return (
       <ErrorBoundary>

@@ -24,10 +24,10 @@ ChartJS.register(
   Legend
 );
 
-const TrendChartNew = React.memo(
-  ({ chartConfig, title, height, xAxisIsDate }) => {
+const TrendChart = React.memo(
+  ({ chartConfig, title, height, xAxisIsDate, theme }) => {
     const { chartLabels, chartData } = chartConfig;
-    setChartJSDefaults(ChartJS, title, xAxisIsDate);
+    setChartJSDefaults(ChartJS, title, xAxisIsDate, theme);
 
     Object.assign(ChartJS.defaults.elements.point, {
       borderWidth: 0,
@@ -63,6 +63,6 @@ const TrendChartNew = React.memo(
   () => false
 );
 
-TrendChartNew.displayName = "TrendChartNew";
+TrendChart.displayName = "TrendChart";
 
-export default TrendChartNew;
+export default TrendChart;

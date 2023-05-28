@@ -3,7 +3,7 @@ import React, { useEffect, useState, Fragment, useRef } from "react";
 import { cleanString, createChartConfig, isEmpty } from "./common/utils";
 import PieChart from "./Charts/PieChart";
 import ColumnChart from "./Charts/ColumnChart";
-import TrendChartNew from "./Charts/TrendChartNew";
+import TrendChart from "./Charts/TrendChart";
 import styled from "styled-components";
 
 function arrToAntD(arr, labelProp = "key", valueProp = "key") {
@@ -190,6 +190,7 @@ export default function ChartContainer({
     title,
     xAxisIsDate,
     height: 400,
+    theme,
   };
 
   switch (chartType.label) {
@@ -201,7 +202,7 @@ export default function ChartContainer({
       break;
     case "Line Chart":
     default:
-      chart = <TrendChartNew {...chartProps} />;
+      chart = <TrendChart {...chartProps} />;
       break;
   }
 
@@ -277,6 +278,8 @@ const ChartContainerWrap = styled.div`
           width: 100%;
         }
         h4 {
+          color: ${(props) =>
+            props.theme ? props.theme.primaryText : "#606060"};
           margin-bottom: 2px;
         }
       }
