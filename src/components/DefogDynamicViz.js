@@ -1,10 +1,23 @@
 import React, { useState, useContext, Fragment } from "react";
-import { Button, Table, message, Tabs, Modal, Input } from "antd";
+import {
+  Button,
+  Table,
+  message,
+  Tabs,
+  Modal,
+  Input,
+  ConfigProvider,
+} from "antd";
+
 import PieChart from "./Charts/PieChart.jsx";
 import ColumnChart from "./Charts/ColumnChart.jsx";
 import TrendChartNew from "./Charts/TrendChartNew.jsx";
 import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
-import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
+import {
+  TableOutlined,
+  BarChartOutlined,
+  CloseOutlined,
+} from "@ant-design/icons";
 import styled from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp.js";
 import ThumbsDown from "./svg/ThumbsDown.js";
@@ -23,8 +36,6 @@ const DefogDynamicViz = ({
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
-
-  console.log(theme);
 
   const uploadFeedback = (feedback, feedbackText = "") => {
     if (feedback === "Good") {
@@ -201,24 +212,40 @@ const DefogDynamicViz = ({
 
   return (
     <>
-      <Modal
-        title="To improve the model, could you please give more details about why this is a bad query? :)"
-        open={modalVisible}
-        footer={null}
-        onCancel={() => setModalVisible(false)}
+      <ConfigProvider
+        theme={{
+          token: {
+            colorBgElevated: theme.config.background2,
+            colorText: theme.config.primaryText,
+            colorBgMask: "rgba(0, 0, 0, 0.75)",
+          },
+        }}
       >
-        <TextArea rows={4} id="feedback-text" placeholder="Optional" />
-        <Button
-          onClick={() => {
-            uploadFeedback(
-              "Bad",
-              document.getElementById("feedback-text").value
-            );
-          }}
+        <Modal
+          title="To improve the model, could you please give more details about why this is a bad query? :)"
+          open={modalVisible}
+          footer={null}
+          onCancel={() => setModalVisible(false)}
+          centered
+          closeIcon={
+            <CloseOutlined style={{ color: theme.config.brandColor }} />
+          }
         >
-          Submit
-        </Button>
-      </Modal>
+          <FeedbackModalWrap theme={theme.config}>
+            <TextArea rows={4} id="feedback-text" placeholder="Optional" />
+            <Button
+              onClick={() => {
+                uploadFeedback(
+                  "Bad",
+                  document.getElementById("feedback-text").value
+                );
+              }}
+            >
+              Submit
+            </Button>
+          </FeedbackModalWrap>
+        </Modal>
+      </ConfigProvider>
       <div>
         <ResultsWrap theme={theme.config}>
           {results && results}
@@ -324,6 +351,15 @@ const ResultsWrap = styled.div`
   .ant-table-wrapper .ant-table-thead th.ant-table-column-has-sorters:hover {
     background: ${(props) =>
       props.theme ? props.theme.background1 : "#F8FAFB"};
+  }
+  .ant-table-wrapper .ant-table-column-sorter-up.active,
+  .ant-table-wrapper .ant-table-column-sorter-down.active {
+    color: ${(props) => (props.theme ? props.theme.brandColor : "#2B59FF")};
+  }
+
+  .ant-table-wrapper td.ant-table-column-sort {
+    background: ${(props) =>
+      props.theme ? props.theme.background3 : "#F8FAFB"};
   }
   .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
   .ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
@@ -433,7 +469,19 @@ const ResultsWrap = styled.div`
   }
   .ant-pagination .ant-pagination-item-active {
     border-color: ${(props) =>
-      props.theme ? props.theme.branColor : "#2B59FF"};
+      props.theme ? props.theme.brandColor : "#2B59FF"};
+  }
+
+  .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    background-color: ${(props) =>
+      props.theme ? props.theme.background1 : "#FFF"};
+    border: 1px solid
+      ${(props) => (props.theme ? props.theme.brandColor : "#FFF")};
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+
+    & + .ant-select-arrow {
+      color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+    }
   }
 
   .exportNarativeBtn {
@@ -557,6 +605,43 @@ const FeedbackWrap = styled.div`
           fill: #444;
         }
       }
+    }
+  }
+`;
+
+const FeedbackModalWrap = styled.div`
+  padding-top: 12px;
+
+  .ant-input {
+    background: ${(props) =>
+      props.theme ? props.theme.background1 : "#F8FAFB"};
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+    box-shadow: none;
+    border-color: ${(props) =>
+      props.theme ? props.theme.questionBorder : "#F8FAFB"};
+
+    &:hover {
+      border-color: ${(props) =>
+        props.theme ? props.theme.brandColor : "#F8FAFB"};
+    }
+    &::placeholder {
+      color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+      opacity: 0.7;
+    }
+  }
+
+  button {
+    margin-top: 12px;
+    color: #fff;
+    box-shadow: none;
+    border: none;
+    background: ${(props) =>
+      props.theme ? props.theme.brandColor : "#2B59FF"};
+    width: 100%;
+
+    &:hover {
+      color: #fff !important;
+      opacity: 0.8;
     }
   }
 `;
