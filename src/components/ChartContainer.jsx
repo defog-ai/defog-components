@@ -132,7 +132,7 @@ export default function ChartContainer({
           // if select all is selected, select all options
           if (sel.findIndex((d) => d.value === "select-all") !== -1) {
             // add all options for this column
-            newVals[xAxis.label] = { label: "All", value: "all-selected" };
+            newVals[xAxis.label] = [{ label: "All", value: "all-selected" }];
             // change "select all" to "deselect all"
             optValues[0].label = "Deselect All";
             optValues[0].value = "deselect-all";
@@ -216,7 +216,9 @@ export default function ChartContainer({
         data,
         xAxis,
         yAxis,
-        selectedXValues[xAxis.label].value === "all-selected"
+        selectedXValues[xAxis.label].findIndex(
+          (d) => d.value === "all-selected"
+        ) > -1
           ? optValues.slice(1)
           : selectedXValues[xAxis.label],
         xAxisIsDate
@@ -236,10 +238,10 @@ export default function ChartContainer({
           </div>
         ) : (
           <div className="chart-container-controls">
+            {chartTypeDropdown}
             {xAxisDropdown}
             {yAxisDropdown}
             {xAxisValuesDropdown}
-            {chartTypeDropdown}
           </div>
         )}
 

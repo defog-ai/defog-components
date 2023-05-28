@@ -307,7 +307,9 @@ export const AskDefogChat = ({
                 style={{
                   width: "100%",
                   maxWidth: maxWidth,
-                  maxHeight: maxHeight,
+                  maxHeight: typeof(maxHeight) == "number" ? `calc(${maxHeight}px - 90px)` : `calc(${maxHeight} - 90px)`,
+                  overflowY: "auto",
+                  overflowX: "hidden",
                 }}
                 id="results"
               >
@@ -502,6 +504,12 @@ const SearchWrap = styled.div`
       width: calc(100% - 120px);
       background-color: transparent;
       color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+
+      &::placeholder {
+        color: ${(props) =>
+          props.theme ? props.theme.primaryText : "#0D0D0D"};
+        opacity: 0.7;
+      }
     }
     .ant-input:focus,
     .ant-input-focused {
@@ -514,6 +522,7 @@ const SearchWrap = styled.div`
         border-radius: 6px !important;
         border-color: transparent;
         color: #fff;
+        box-shadow: none !important;
         background: ${(props) =>
           props.theme ? props.theme.brandColor : "#2B59FF"};
       }
