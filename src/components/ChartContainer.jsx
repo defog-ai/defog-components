@@ -18,7 +18,7 @@ const nullChartConfig = { chartLabels: [], chartData: [] };
 
 export default function ChartContainer({
   xAxisColumns,
-  dateColumn,
+  dateColumns,
   yAxisColumns,
   xAxisColumnValues,
   data,
@@ -39,14 +39,11 @@ export default function ChartContainer({
         value: col.colType === "string" ? cleanString(d) : d,
       }));
 
-      // if less than 10 options or is a date column, add a "Select all option"
-      if (obj[colName].length <= 10 || col.colType === "date") {
-        // add a "Select all option"
-        obj[colName].unshift({
-          label: "Select All",
-          value: "select-all",
-        });
-      }
+      // add a "Select all option"
+      obj[colName].unshift({
+        label: "Select All",
+        value: "select-all",
+      });
       return obj;
     }, {})
   );
@@ -57,7 +54,7 @@ export default function ChartContainer({
   // Other dropdowns based on the X axis selection. Using categorical columns opts above.
 
   const [xAxis, setXAxis] = useState(
-    arrToAntD([dateColumn ? dateColumn : xAxisColumns[0]])[0]
+    arrToAntD([dateColumns.length > 0 ? dateColumns[0] : xAxisColumns[0]])[0]
   );
 
   const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
@@ -208,7 +205,7 @@ export default function ChartContainer({
 
   // change chart data
   useEffect(() => {
-    if (!xAxis || !yAxis.length || !selectedXValues[xAxis.label].length) {
+    if (!xAxis || !yAxis.length || !selectedXValues[xAxis.label]?.length) {
       setChartConfig(nullChartConfig);
     }
 
@@ -250,8 +247,8 @@ export default function ChartContainer({
         yAxisColumns.length &&
         xAxis &&
         yAxis.length &&
-        chartConfig.chartData.length &&
-        selectedXValues[xAxis.label].length ? (
+        chartConfig.chartData?.length &&
+        selectedXValues[xAxis.label]?.length ? (
           <div className="chart">{chart}</div>
         ) : !xAxis || !yAxis.length ? (
           <div className="chart-error">

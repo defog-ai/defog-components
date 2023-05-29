@@ -210,10 +210,12 @@ export const AskDefogChat = ({
     // so coerce them to a number
     // store the indexes of such columns
     const numericAsString = [];
+    // deal with columns like "user_id" etc coming in as numbers.
+    // if inferred type is numeric but variable Type is "categorical"
+    const stringAsNumeric = [];
 
     if (dataResponse.columns && dataResponse?.data.length > 0) {
       const cols = dataResponse.columns;
-      const colVariableTypes = dataResponse.column_variable_types || {};
       const rows = dataResponse.data;
       newCols = [];
       newRows = [];
@@ -224,7 +226,6 @@ export const AskDefogChat = ({
               title: cols[i],
               dataIndex: cols[i],
               key: cols[i],
-              variableType: colVariableTypes[cols[i]],
               // simple typeof. if a number is coming in as string, this will be string.
               simpleTypeOf: typeof rows[0][i],
               sorter:
@@ -233,11 +234,18 @@ export const AskDefogChat = ({
                   : (a, b) =>
                       String(a[cols[i]]).localeCompare(String(b[cols[i]])),
             },
-            inferColumnType(rows, i)
+            inferColumnType(rows, i, cols[i])
           )
         );
         if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
           numericAsString.push(i);
+        }
+        if (
+          newCols[i].numeric &&
+          newCols[i].simpleTypeOf === "number" &&
+          newCols[i].variableType === "categorical"
+        ) {
+          stringAsNumeric.push(i);
         }
       }
 
@@ -246,6 +254,9 @@ export const AskDefogChat = ({
         for (let j = 0; j < cols.length; j++) {
           if (numericAsString.indexOf(j) >= 0) {
             row[cols[j]] = +rows[i][j];
+          }
+          if (stringAsNumeric.indexOf(j) >= 0) {
+            row[cols[j]] = "" + rows[i][j];
           } else row[cols[j]] = rows[i][j];
         }
         rows["key"] = i;
@@ -307,7 +318,10 @@ export const AskDefogChat = ({
                 style={{
                   width: "100%",
                   maxWidth: maxWidth,
-                  maxHeight: typeof(maxHeight) == "number" ? `calc(${maxHeight}px - 90px)` : `calc(${maxHeight} - 90px)`,
+                  maxHeight:
+                    typeof maxHeight == "number"
+                      ? `calc(${maxHeight}px - 90px)`
+                      : `calc(${maxHeight} - 90px)`,
                   overflowY: "auto",
                   overflowX: "hidden",
                 }}

@@ -42,29 +42,45 @@ function isNumber(val) {
   return /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)$/.test(val);
 }
 
-export function inferColumnType(rows, colIdx) {
+export function inferColumnType(rows, colIdx, colName) {
   // go through rows
   const res = {};
   res["numeric"] = false;
+  res["variableType"] = "quantitative";
 
   for (let i = 0; i < rows.length; i++) {
     const val = rows[i][colIdx];
     if (val === null) continue;
     else if (isDate(val)) {
       res["colType"] = "date";
+      res["variableType"] = "categorical";
     }
     // is a number and also has a decimal
     else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
       res["colType"] = "decimal";
       res["numeric"] = true;
+      res["variableType"] = "quantitative";
     }
     // if number but no decimal
     else if (isNumber(val)) {
       res["colType"] = "integer";
       res["numeric"] = true;
+      res["variableType"] = "quantitative";
     } else {
       res["colType"] = typeof val;
       res["numeric"] = res["colType"] === "number";
+      res["variableType"] =
+        res["colType"] === "number" ? "quantitative" : "categorical";
+    }
+
+    // special cases for ids coming in as numbers
+    if (
+      colName === "id" ||
+      colName.startsWith("id_") ||
+      colName.endsWith("id")
+    ) {
+      res["colType"] = "string";
+      res["variableType"] = "categorical";
     }
 
     res["simpleTypeOf"] = typeof val;
@@ -163,8 +179,9 @@ export const mapToObject = (
   );
 
 export function processData(data, columns) {
+  console.log(columns);
   // find if there's a date column
-  const dateColumn = columns.find((d) => d.colType === "date");
+  const dateColumns = columns.filter((d) => d.colType === "date");
   // date comes in as categorical column, but we use that for the x axis, so filter that out also
   const categoricalColumns = columns.filter(
     (d) => d.variableType[0] === "c" && d.colType !== "date"
@@ -175,9 +192,10 @@ export function processData(data, columns) {
     (d) => d.variableType[0] !== "c" && d.colType !== "date"
   );
 
-  const xAxisColumns = dateColumn
-    ? categoricalColumns.concat(dateColumn)
-    : categoricalColumns;
+  const xAxisColumns =
+    dateColumns.length > 0
+      ? categoricalColumns.concat(dateColumns)
+      : categoricalColumns;
 
   // find unique values for each of the x axis columns for the dropdowns
   // this we'll use for "labels" prop for chartjs
@@ -194,7 +212,7 @@ export function processData(data, columns) {
     xAxisColumns,
     categoricalColumns,
     yAxisColumns,
-    dateColumn,
+    dateColumns,
     xAxisColumnValues,
   };
 }
@@ -218,7 +236,6 @@ export function createChartConfig(
 ) {
   // chart labels are just selectedXValues
   const chartLabels = selectedXValues.map((d) => d.label);
-  console.log(chartLabels);
 
   // go through data and find data points for which the xAxisColumn value exists in chartLabels
   let filteredData = data.filter((d) => {
@@ -242,7 +259,14 @@ export function createChartConfig(
     });
     return acc;
   }, {});
-  
+
+  // sort labels and fitleredData by the first yAxisColumn
+  chartLabels.sort(
+    (a, b) =>
+      filteredData[b][yAxisColumns[0].label] -
+      filteredData[a][yAxisColumns[0].label]
+  );
+
   // convert filteredData to an array of objects
   // this is the format that chartjs expects
   filteredData = Object.entries(filteredData).map(([key, value]) => {
@@ -252,10 +276,7 @@ export function createChartConfig(
     });
     return obj;
   });
-  
-  // sort this by the first yAxisColumn
-  filteredData.sort((a, b) => b[yAxisColumns[0].label] - a[yAxisColumns[0].label]);
-  
+
   // use chartjs parsing to create chartData
   // for each yAxisColumn, there is a chartjs "dataset"
   const chartData = yAxisColumns.map((col, i) => ({
@@ -269,11 +290,6 @@ export function createChartConfig(
       key: col.label,
     },
   }));
-
-  // deal with mismatching length of chart labels and chart data
-  // for eg: data by quarter: Q1, Q2, Q3, Q4
-  // can have multiple values for Q1
-  // then chartlabels is just ['Q1'] while chartData is [15306, 28528, 32840, title: 'XX']
 
   return { chartData, chartLabels };
 }

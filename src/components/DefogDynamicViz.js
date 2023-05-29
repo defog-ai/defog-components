@@ -110,13 +110,13 @@ const DefogDynamicViz = ({
       categoricalColumns,
       yAxisColumns,
       xAxisColumnValues,
-      dateColumn,
+      dateColumns,
     } = processData(response.data, response.columns);
 
     results.push(
       <ChartContainer
         xAxisColumns={xAxisColumns}
-        dateColumn={dateColumn}
+        dateColumns={dateColumns}
         categoricalColumns={categoricalColumns}
         yAxisColumns={yAxisColumns}
         xAxisColumnValues={xAxisColumnValues}
