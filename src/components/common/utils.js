@@ -259,12 +259,15 @@ export function createChartConfig(
     return acc;
   }, {});
 
+  // if x axis is not date,
   // sort labels and fitleredData by the first yAxisColumn
-  chartLabels.sort(
-    (a, b) =>
-      filteredData[b][yAxisColumns[0].label] -
-      filteredData[a][yAxisColumns[0].label]
-  );
+  if (!xAxisIsDate) {
+    chartLabels.sort(
+      (a, b) =>
+        filteredData[b][yAxisColumns[0].label] -
+        filteredData[a][yAxisColumns[0].label]
+    );
+  }
 
   // convert filteredData to an array of objects
   // this is the format that chartjs expects
