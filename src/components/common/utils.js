@@ -179,7 +179,6 @@ export const mapToObject = (
   );
 
 export function processData(data, columns) {
-  console.log(columns);
   // find if there's a date column
   const dateColumns = columns.filter((d) => d.colType === "date");
   // date comes in as categorical column, but we use that for the x axis, so filter that out also

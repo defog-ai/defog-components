@@ -173,8 +173,10 @@ export const AskDefogChat = ({
   }
 
   function handleDataResponse(dataResponse, query) {
-    console.log(dataResponse);
-    setRawData(dataResponse.data);
+    // remove rows for which every value is null
+    setRawData(
+      dataResponse.data.filter((d) => !d.every((val) => val === null))
+    );
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
@@ -214,9 +216,14 @@ export const AskDefogChat = ({
     // if inferred type is numeric but variable Type is "categorical"
     const stringAsNumeric = [];
 
-    if (dataResponse.columns && dataResponse?.data.length > 0) {
+    // remove rows for which every value is null
+    const validData = dataResponse?.data.filter(
+      (d) => !d.every((val) => val === null)
+    );
+
+    if (dataResponse.columns && validData.length > 0) {
       const cols = dataResponse.columns;
-      const rows = dataResponse.data;
+      const rows = validData.data;
       newCols = [];
       newRows = [];
       for (let i = 0; i < cols.length; i++) {
