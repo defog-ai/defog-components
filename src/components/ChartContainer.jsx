@@ -7,10 +7,6 @@ import TrendChart from "./Charts/TrendChart";
 import styled from "styled-components";
 
 function arrToAntD(arr, labelProp = "key", valueProp = "key") {
-  console.log(arr);
-  if (!arr.data || !arr.data.length) {
-    return [];
-  }
   return arr.map((d) => ({
     label: labelProp ? d[labelProp] : d,
     value: valueProp ? d[valueProp] : d,
@@ -67,10 +63,8 @@ export default function ChartContainer({
   const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
 
   const [selectedXValues, setSelectedXValues] = useState({
-    [xAxisColumns[0]?.key]: arrToAntD(
-      [
-        xAxisColumnValues[xAxisColumns[0]?.key]?.[0]
-      ],
+    [xAxisColumns[0].key]: arrToAntD(
+      [xAxisColumnValues[xAxisColumns[0].key][0]],
       null,
       null
     ),
@@ -89,8 +83,8 @@ export default function ChartContainer({
         placeholder="Select X Axis"
         onChange={(_, sel) => {
           setSelectedXValues({
-            [sel?.label]: arrToAntD(
-              [xAxisColumnValues[sel?.label]?.[0]],
+            [sel.label]: arrToAntD(
+              [xAxisColumnValues[sel.label][0]],
               null,
               null
             ),
@@ -119,18 +113,18 @@ export default function ChartContainer({
   );
 
   // create dropdowns for selected column(s) for the x axis
-  const optValues = opts.current?.[xAxis?.label];
+  const optValues = opts.current[xAxis.label];
 
   const xAxisValuesDropdown = (
     // key force rerender when we change selectall->deselctall or vice versa
-    <div key={optValues?.[0]?.label} className="chart-container-select">
-      <h4>{xAxis?.label}</h4>
+    <div key={optValues[0].label} className="chart-container-select">
+      <h4>{xAxis.label}</h4>
       <Select
         mode="multiple"
         options={optValues}
-        defaultValue={selectedXValues?.[xAxis?.label]}
-        value={selectedXValues[xAxis?.label]}
-        placeholder={`Select ${xAxis?.label} to plot`}
+        defaultValue={selectedXValues[xAxis.label]}
+        value={selectedXValues[xAxis.label]}
+        placeholder={`Select ${xAxis.label} to plot`}
         // allow select all
         showSearch={true}
         onChange={(_, sel) => {
@@ -138,7 +132,7 @@ export default function ChartContainer({
           // if select all is selected, select all options
           if (sel.findIndex((d) => d.value === "select-all") !== -1) {
             // add all options for this column
-            newVals[xAxis?.label] = [{ label: "All", value: "all-selected" }];
+            newVals[xAxis.label] = [{ label: "All", value: "all-selected" }];
             // change "select all" to "deselect all"
             optValues[0].label = "Deselect All";
             optValues[0].value = "deselect-all";
@@ -188,7 +182,7 @@ export default function ChartContainer({
     </div>
   );
 
-  const xAxisIsDate = xAxis?.__data__?.colType === "date";
+  const xAxisIsDate = xAxis.__data__.colType === "date";
 
   let chart = null;
   const chartProps = {
@@ -199,7 +193,7 @@ export default function ChartContainer({
     theme,
   };
 
-  switch (chartType?.label) {
+  switch (chartType.label) {
     case "Bar Chart":
       chart = <ColumnChart {...chartProps} />;
       break;
@@ -214,7 +208,7 @@ export default function ChartContainer({
 
   // change chart data
   useEffect(() => {
-    if (!xAxis || !yAxis.length || !selectedXValues[xAxis.label]?.length) {
+    if (!xAxis || !yAxis.length || !selectedXValues[xAxis.label].length) {
       setChartConfig(nullChartConfig);
     }
 
@@ -223,11 +217,11 @@ export default function ChartContainer({
         data,
         xAxis,
         yAxis,
-        selectedXValues[xAxis?.label].findIndex(
+        selectedXValues[xAxis.label].findIndex(
           (d) => d.value === "all-selected"
         ) > -1
           ? optValues.slice(1)
-          : selectedXValues[xAxis?.label],
+          : selectedXValues[xAxis.label],
         xAxisIsDate
       )
     );
