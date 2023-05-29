@@ -23,6 +23,7 @@ export const AskDefogChat = ({
   debugMode = false,
   personality = "Friendly",
   apiKey,
+  darkMode,
   additionalParams = {},
   // can be "websocket" or "http"
   mode = "http",
@@ -42,7 +43,7 @@ export const AskDefogChat = ({
   const divRef = useRef(null);
 
   const [theme, setTheme] = useState({
-    type: "dark",
+    type: darkMode === true ? "dark" : "light",
     config: darkThemeColor,
   });
 
@@ -51,11 +52,15 @@ export const AskDefogChat = ({
       .matches
       ? "dark"
       : "light";
-
-    if (systemTheme === "dark") {
-      setTheme({ type: "dark", config: darkThemeColor });
+    
+    if (!darkMode) {
+      if (systemTheme === "dark") {
+        setTheme({ type: "dark", config: darkThemeColor });
+      } else {
+        setTheme({ type: "light", config: lightThemeColor });
+      }
     } else {
-      setTheme({ type: "light", config: lightThemeColor });
+      setTheme({ type: "dark", config: darkThemeColor });
     }
   }, []);
 
