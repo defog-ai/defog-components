@@ -4,7 +4,7 @@ import { chartColors } from "../../context/ThemeContext";
 
 dayjs.extend(customParseFormat);
 
-const dateFormats = ["YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss"];
+const dateFormats = ["YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss", "YYYY-MM-DD HH:mm:ss"];
 
 export function isDate(s) {
   return dayjs(s, dateFormats, true).isValid();
