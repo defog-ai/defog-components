@@ -44,7 +44,7 @@ export const AskDefogChat = ({
 
   const [theme, setTheme] = useState({
     type: darkMode === true ? "dark" : "light",
-    config: darkThemeColor,
+    config: darkMode === true ? darkThemeColor : lightThemeColor,
   });
 
   useEffect(() => {
@@ -53,14 +53,16 @@ export const AskDefogChat = ({
       ? "dark"
       : "light";
     
-    if (!darkMode) {
+    if (darkMode === null || darkMode === undefined) {
       if (systemTheme === "dark") {
         setTheme({ type: "dark", config: darkThemeColor });
       } else {
         setTheme({ type: "light", config: lightThemeColor });
       }
-    } else {
+    } else if (darkMode === true) {
       setTheme({ type: "dark", config: darkThemeColor });
+    } else if (darkMode === false) {
+      setTheme({ type: "light", config: lightThemeColor });
     }
   }, []);
 
