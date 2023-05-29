@@ -218,12 +218,44 @@ export function createChartConfig(
 ) {
   // chart labels are just selectedXValues
   const chartLabels = selectedXValues.map((d) => d.label);
+  console.log(chartLabels);
 
   // go through data and find data points for which the xAxisColumn value exists in chartLabels
-  const filteredData = data.filter((d) => {
+  let filteredData = data.filter((d) => {
     return chartLabels.includes(d[xAxisColumn.label]);
   });
 
+  // groupby xAxisColumn value and the sum of the yAxisColumns
+  // this is the data that will be used for the chart
+  // don't use d3 while doing this, since d3 is not imported in this file
+  // use native js instead
+  filteredData = filteredData.reduce((acc, curr) => {
+    const key = curr[xAxisColumn.label];
+    if (!acc[key]) {
+      acc[key] = {};
+      yAxisColumns.forEach((col) => {
+        acc[key][col.label] = 0;
+      });
+    }
+    yAxisColumns.forEach((col) => {
+      acc[key][col.label] += curr[col.label];
+    });
+    return acc;
+  }, {});
+  
+  // convert filteredData to an array of objects
+  // this is the format that chartjs expects
+  filteredData = Object.entries(filteredData).map(([key, value]) => {
+    const obj = { [xAxisColumn.label]: key };
+    yAxisColumns.forEach((col) => {
+      obj[col.label] = value[col.label];
+    });
+    return obj;
+  });
+  
+  // sort this by the first yAxisColumn
+  filteredData.sort((a, b) => b[yAxisColumns[0].label] - a[yAxisColumns[0].label]);
+  
   // use chartjs parsing to create chartData
   // for each yAxisColumn, there is a chartjs "dataset"
   const chartData = yAxisColumns.map((col, i) => ({

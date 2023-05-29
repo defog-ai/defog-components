@@ -208,7 +208,7 @@ export default function ChartContainer({
 
   // change chart data
   useEffect(() => {
-    if (!xAxis || !yAxis.length || !selectedXValues[xAxis.label].length) {
+    if (!xAxis || !yAxis.length || !selectedXValues[xAxis.label]?.length) {
       setChartConfig(nullChartConfig);
     }
 

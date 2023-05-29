@@ -213,7 +213,7 @@ export const AskDefogChat = ({
 
     if (dataResponse.columns && dataResponse?.data.length > 0) {
       const cols = dataResponse.columns;
-      const colVariableTypes = dataResponse.column_variable_types;
+      const colVariableTypes = dataResponse.column_variable_types || {};
       const rows = dataResponse.data;
       newCols = [];
       newRows = [];
