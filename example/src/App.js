@@ -13,6 +13,7 @@ const App = () => {
       // mode={"websocket"}
       debugMode={true}
       apiKey={"test"}
+      darkMode={true}
     />
   );
 };
