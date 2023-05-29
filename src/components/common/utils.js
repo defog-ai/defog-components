@@ -222,7 +222,7 @@ export function createChartConfig(
 
   // go through data and find data points for which the xAxisColumn value exists in chartLabels
   let filteredData = data.filter((d) => {
-    return chartLabels.includes(d[xAxisColumn.label]);
+    return chartLabels.includes(d[xAxisColumn?.label]);
   });
 
   // groupby xAxisColumn value and the sum of the yAxisColumns
@@ -230,7 +230,7 @@ export function createChartConfig(
   // don't use d3 while doing this, since d3 is not imported in this file
   // use native js instead
   filteredData = filteredData.reduce((acc, curr) => {
-    const key = curr[xAxisColumn.label];
+    const key = curr[xAxisColumn?.label];
     if (!acc[key]) {
       acc[key] = {};
       yAxisColumns.forEach((col) => {
