@@ -1,27 +1,32 @@
-// a very, VERY simple checker to cehck if a value is a date.
-// if we need something more complex in the future, perhaps using dayjs would be a better option
-
 import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+import { chartColors } from "../../context/ThemeContext";
 
-// https://day.js.org/docs/en/parse/is-valid
+dayjs.extend(customParseFormat);
+
+const dateFormats = ["YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss"];
+
 export function isDate(s) {
-  // assuming a format like so: "2008-01-01T00:00:00"
-  // YYYY-MM-DDTHH:MM:SS
-  return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
+  return dayjs(s, dateFormats, true).isValid();
+  // return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
+}
+
+export function cleanString(s) {
+  return s.toLowerCase().replace(/ /gi, "-");
 }
 
 // change float cols with decimals to 2 decimal places
 export function roundColumns(data, columns) {
   const decimalCols = columns
     .filter((d) => d.colType === "decimal")
-    .map((d) => d.dataIndex);
+    .map((d) => d.key);
 
   // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
   const roundedData = [];
-  data.forEach((d, i) => {
+  data?.forEach((d, i) => {
     roundedData.push(Object.assign({}, d));
 
-    decimalCols.forEach((colName) => {
+    decimalCols?.forEach((colName) => {
       // round to two decimals
       roundedData[i][colName] = roundedData[i][colName].toFixed(2);
     });
@@ -69,20 +74,38 @@ export function inferColumnType(rows, colIdx) {
 }
 
 function formatTime(val) {
-  return dayjs(val, "YYYY-MM-DDTHH:MM:SS").format("D MMM 'YY");
+  return dayjs(val, dateFormats).format("D MMM 'YY");
 }
 
 export function setChartJSDefaults(
   ChartJSRef,
   title = "",
-  xAxisIsDate = false
+  xAxisIsDate = false,
+  theme,
+  pieChart = false
 ) {
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
   ChartJSRef.defaults.interaction.axis = "x";
   ChartJSRef.defaults.interaction.mode = "nearest";
   ChartJSRef.defaults.maintainAspectRatio = false;
   ChartJSRef.defaults.plugins.title.display = true;
-  ChartJSRef.defaults.plugins.title.text = title;
+  // pie charts can be multiple, so we don't want to show the overall title aka query
+  // we want to show each column's title above each pie chart instead (this is done in the component itself)
+  if (!pieChart) {
+    ChartJSRef.defaults.plugins.title.text = title;
+  }
+
+  // tooltip background clor white
+  ChartJSRef.defaults.plugins.tooltip.backgroundColor = "white";
+  // title and label color is chartcolors primary color
+  ChartJSRef.defaults.plugins.tooltip.titleColor = "#0D0D0D";
+  ChartJSRef.defaults.plugins.tooltip.bodyColor = "#0D0D0D";
+  // border color is defog blue
+  ChartJSRef.defaults.plugins.tooltip.borderColor = "#2B59FF";
+  ChartJSRef.defaults.plugins.tooltip.borderWidth = 1;
+  ChartJSRef.defaults.plugins.tooltip.padding = 10;
+
+  ChartJSRef.defaults.plugins.title.color = theme.primaryText;
 
   // if x axis is a date, add a d3 formatter
   if (xAxisIsDate) {
@@ -96,7 +119,7 @@ export function setChartJSDefaults(
     ChartJSRef.defaults.plugins.tooltip.callbacks.label = function (
       tooltipItem
     ) {
-      return tooltipItem.formattedValue;
+      return tooltipItem.dataset.label + ": " + tooltipItem.formattedValue;
     };
 
     ChartJSRef.defaults.scales.category.ticks = {
@@ -104,43 +127,123 @@ export function setChartJSDefaults(
         return formatTime(this.getLabelForValue(value));
       },
     };
+
+    if (pieChart) {
+      // legend labels are also dates
+      // pie/doughnuts charts are weird in chartjs
+      // brilliant hack to edit some props of legendItems without having to remake them from here: https://stackoverflow.com/questions/39454586/pie-chart-legend-chart-js
+      ChartJSRef.overrides.pie.plugins.legend.labels.filter = function (
+        legendItem
+      ) {
+        legendItem.text = formatTime(legendItem.text);
+        return true;
+      };
+    }
   }
 }
 
-export function transformToChartJSType(data, columns) {
-  // the first column is x axis.
-  // that goes into "labels" for chartjs options.
-  // store it and keep aside at first.
-  const chartLabels = [];
-  // chartData has the y values.
-  // this can be multiple lines being plotted simultaneously.
-  // Example:
-  // data: {
-  //          columns:  ['sale_date', 'username', 'avg_price_paid', 'avg_commission']
-  //          data: [
-  //                  ['2008-01-01', 'ABC', 1060.44, 159.06],
-  //                  ['2008-01-02', 'DEF',  665.6, 99.84],
-  //                  ....
-  //                 ]
-  //       ...
-  // }
+export const mapToObject = (
+  map = new Map(),
+  parentNestLocation = [],
+  processValue = (d) => d,
+  // hook will allow you to do extra computation on every recursive call to this function
+  hook = () => {}
+) =>
+  Object.fromEntries(
+    Array.from(map.entries(), ([key, value]) => {
+      // also store nestLocation for all of the deepest children
+      value.nestLocation = parentNestLocation.slice();
+      value.nestLocation.push(key);
+      hook(key, value);
 
-  // it should contain (columns.length - 1) arrays
-  const chartData = columns.map((d) => []).slice(1);
+      return value instanceof Map
+        ? [key, mapToObject(value, value.nestLocation, processValue)]
+        : [key, processValue(value)];
+    })
+  );
 
-  /* Notes for a still experimental thing:
-  // once we set the date axis to be the x axis, each categorical column for example username above is its own bar/line/etc
-  // each non date, non categorical, non boolean (hence purely number) column is the y axis.
-  // we need to group the data by all of the categorical columns
-  */
+export function processData(data, columns) {
+  // find if there's a date column
+  const dateColumn = columns.find((d) => d.colType === "date");
+  // date comes in as categorical column, but we use that for the x axis, so filter that out also
+  const categoricalColumns = columns.filter(
+    (d) => d.variableType[0] === "c" && d.colType !== "date"
+  );
 
-  data.forEach((d) => {
-    chartLabels.push(d[0]);
-    for (let i = 1; i < d.length; i++) {
-      chartData[i - 1].push(d[i]);
-    }
+  // y axis columns are the remaining columns:
+  const yAxisColumns = columns.filter(
+    (d) => d.variableType[0] !== "c" && d.colType !== "date"
+  );
+
+  const xAxisColumns = dateColumn
+    ? categoricalColumns.concat(dateColumn)
+    : categoricalColumns;
+
+  // find unique values for each of the x axis columns for the dropdowns
+  // this we'll use for "labels" prop for chartjs
+  const xAxisColumnValues = {};
+  xAxisColumns.forEach((c) => {
+    xAxisColumnValues[c.key] = new Set();
+    data?.forEach((d) => {
+      xAxisColumnValues[c.key].add(d[c.key]);
+    });
+    xAxisColumnValues[c.key] = Array.from(xAxisColumnValues[c.key]);
   });
-  return { chartLabels, chartData };
+
+  return {
+    xAxisColumns,
+    categoricalColumns,
+    yAxisColumns,
+    dateColumn,
+    xAxisColumnValues,
+  };
+}
+
+export function isEmpty(obj) {
+  for (const prop in obj) {
+    if (Object.hasOwn(obj, prop)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function createChartConfig(
+  data,
+  xAxisColumn,
+  yAxisColumns,
+  selectedXValues,
+  xAxisIsDate
+) {
+  // chart labels are just selectedXValues
+  const chartLabels = selectedXValues.map((d) => d.label);
+
+  // go through data and find data points for which the xAxisColumn value exists in chartLabels
+  const filteredData = data.filter((d) => {
+    return chartLabels.includes(d[xAxisColumn.label]);
+  });
+
+  // use chartjs parsing to create chartData
+  // for each yAxisColumn, there is a chartjs "dataset"
+  const chartData = yAxisColumns.map((col, i) => ({
+    label: col.label,
+    data: filteredData,
+    backgroundColor: chartColors[i % chartColors.length],
+    parsing: {
+      xAxisKey: xAxisColumn.label,
+      yAxisKey: col.label,
+      // for pie charts
+      key: col.label,
+    },
+  }));
+
+  // deal with mismatching length of chart labels and chart data
+  // for eg: data by quarter: Q1, Q2, Q3, Q4
+  // can have multiple values for Q1
+  // then chartlabels is just ['Q1'] while chartData is [15306, 28528, 32840, title: 'XX']
+
+  return { chartData, chartLabels };
 }
 
 export function transformToCSV(rows, columnNames) {
