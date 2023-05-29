@@ -9,22 +9,28 @@ import {
   ConfigProvider,
 } from "antd";
 
-import PieChart from "./Charts/PieChart.jsx";
-import ColumnChart from "./Charts/ColumnChart.jsx";
-import TrendChartNew from "./Charts/TrendChartNew.jsx";
-import { download_csv, roundColumns, transformToCSV } from "./common/utils.js";
 import {
   TableOutlined,
   BarChartOutlined,
   CloseOutlined,
 } from "@ant-design/icons";
+
+import {
+  download_csv,
+  processData,
+  roundColumns,
+  transformToCSV,
+} from "./common/utils.js";
+
+import ChartContainer from "./ChartContainer.jsx";
+
 import styled from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp.js";
 import ThumbsDown from "./svg/ThumbsDown.js";
 import { ThemeContext } from "../context/ThemeContext.js";
 
 const DefogDynamicViz = ({
-  vizType,
+  vizType = null,
   response,
   rawData,
   query,
@@ -77,6 +83,7 @@ const DefogDynamicViz = ({
   };
 
   let results;
+
   if (vizType === "text") {
     results = <pre>{response.results}</pre>;
   } else {
@@ -86,6 +93,7 @@ const DefogDynamicViz = ({
 
     results = [
       <Table
+        key="0"
         dataSource={roundedData}
         columns={response.columns}
         scroll={{ x: "max-content" }}
@@ -97,56 +105,29 @@ const DefogDynamicViz = ({
       />,
     ];
 
-    // if there's a viztype specified, show that
-    if (vizType === "piechart") {
-      results.push(
-        <PieChart
-          data={{
-            // dataJSON: rawData.map((el) => ({ name: el[0], y: el[1] })),
-            data: rawData,
-            columns: response.columns,
-            title: query,
-          }}
-          height={400}
-        />
-      );
-    } else if (vizType === "columnchart" || vizType === "chart") {
-      results.push(
-        <ColumnChart
-          data={{
-            // dataJSON: rawData.map((el) => ({ x: el[0], y: el[1] })),
-            data: rawData,
-            columns: response.columns,
-            // xAxisCategories: rawData.map((el) => el[0]),
-            title: query,
-          }}
-          height={400}
-        />
-      );
-    } else if (vizType === "trendchart") {
-      results.push(
-        <TrendChartNew
-          data={{
-            data: rawData,
-            columns: response.columns,
-            title: query,
-          }}
-          height={400}
-        />
-      );
-    } else {
-      // by default, show column chart
-      results.push(
-        <ColumnChart
-          data={{
-            data: rawData,
-            columns: response.columns,
-            title: query,
-          }}
-          height={400}
-        />
-      );
-    }
+    const {
+      xAxisColumns,
+      categoricalColumns,
+      yAxisColumns,
+      xAxisColumnValues,
+      dateColumns,
+    } = processData(response.data, response.columns);
+
+    results.push(
+      <ChartContainer
+        xAxisColumns={xAxisColumns}
+        dateColumns={dateColumns}
+        categoricalColumns={categoricalColumns}
+        yAxisColumns={yAxisColumns}
+        xAxisColumnValues={xAxisColumnValues}
+        data={response.data}
+        columns={response.columns}
+        title={query}
+        key="1"
+        theme={theme.config}
+      ></ChartContainer>
+    );
+
     // convert to antd tabs
     results = (
       <Tabs
