@@ -261,8 +261,7 @@ export const AskDefogChat = ({
         for (let j = 0; j < cols.length; j++) {
           if (numericAsString.indexOf(j) >= 0) {
             row[cols[j]] = +rows[i][j];
-          }
-          if (stringAsNumeric.indexOf(j) >= 0) {
+          } else if (stringAsNumeric.indexOf(j) >= 0) {
             row[cols[j]] = "" + rows[i][j];
           } else row[cols[j]] = rows[i][j];
         }
@@ -273,6 +272,7 @@ export const AskDefogChat = ({
       newCols = [];
       newRows = [];
     }
+
     // update the last item in response array with the above data and columns
     setDataResponseArray([
       ...dataResponseArray,
