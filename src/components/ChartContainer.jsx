@@ -58,10 +58,10 @@ export default function ChartContainer({
   );
 
   const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
-
+  
   const [selectedXValues, setSelectedXValues] = useState({
     [xAxisColumns[0].key]: arrToAntD(
-      [xAxisColumnValues[xAxisColumns[0].key][0]],
+      xAxisColumnValues[xAxisColumns[0].key].length > 400 ? [xAxisColumnValues[xAxisColumns[0].key][0]] : ["all-selected"],
       null,
       null
     ),
