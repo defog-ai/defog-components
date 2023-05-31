@@ -5,10 +5,10 @@ import { chartColors } from "../../context/ThemeContext";
 dayjs.extend(customParseFormat);
 
 const dateFormats = [
-  "YYYY-MM",
-  "YYYY-MM-DD",
-  "YYYY-MM-DDTHH:mm:ss",
   "YYYY-MM-DD HH:mm:ss",
+  "YYYY-MM-DDTHH:mm:ss",
+  "YYYY-MM-DD",
+  "YYYY-MM",
 ];
 
 export function isDate(s) {
