@@ -52,11 +52,7 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
-  if (
-    colName.includes("user") ||
-    colName.endsWith("_id") ||
-    colName.startsWith("id_")
-  ) {
+  if (colName.endsWith("_id") || colName.startsWith("id_")) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
     res["numeric"] = false;
@@ -225,7 +221,7 @@ export function processData(data, columns) {
     (d) => d.variableType[0] === "c" && d.colType !== "date"
   );
 
-  // y axis columns are only numeric columns
+  // y axis columns are only numeric non date columns
   const yAxisColumns = columns.filter(
     (d) => d.variableType[0] !== "c" && d.colType !== "date"
   );

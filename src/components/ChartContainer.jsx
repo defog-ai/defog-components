@@ -162,7 +162,7 @@ export default function ChartContainer({
   );
 
   const xAxisValuesDropdown =
-    xAxisLabel === "" ? (
+    xAxisLabel === "" || !xAxisLabel ? (
       <></>
     ) : (
       // key force rerender when we change selectall->deselctall or vice versa
@@ -299,29 +299,31 @@ export default function ChartContainer({
             </span>
           </div>
         ) : (
-          <div className="chart-container-controls">
-            {chartTypeDropdown}
-            {xAxisDropdown}
-            {yAxisDropdown}
-            {xAxisValuesDropdown}
-          </div>
-        )}
+          <>
+            <div className="chart-container-controls">
+              {chartTypeDropdown}
+              {xAxisDropdown}
+              {yAxisDropdown}
+              {xAxisValuesDropdown}
+            </div>
 
-        {xAxisColumns.length &&
-        yAxisColumns.length &&
-        xAxis.length &&
-        yAxis.length &&
-        chartConfig.chartData?.length &&
-        selectedXValues[xAxisLabel]?.length ? (
-          <div className="chart">{chart}</div>
-        ) : !xAxis.length || !yAxis.length ? (
-          <div className="chart-error">
-            <span>Select both X and Y axis to plot</span>
-          </div>
-        ) : (
-          <div className="chart-error">
-            <span>No data to plot</span>
-          </div>
+            {xAxisColumns.length &&
+            yAxisColumns.length &&
+            xAxis.length &&
+            yAxis.length &&
+            chartConfig.chartData?.length &&
+            selectedXValues[xAxisLabel]?.length ? (
+              <div className="chart">{chart}</div>
+            ) : !xAxis.length || !yAxis.length ? (
+              <div className="chart-error">
+                <span>Select both X and Y axis to plot</span>
+              </div>
+            ) : (
+              <div className="chart-error">
+                <span>No data to plot</span>
+              </div>
+            )}
+          </>
         )}
       </div>
     </ChartContainerWrap>

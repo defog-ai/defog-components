@@ -285,6 +285,8 @@ export const AskDefogChat = ({
       newRows = [];
     }
 
+    console.log(newCols);
+
     // update the last item in response array with the above data and columns
     setDataResponseArray([
       ...dataResponseArray,
@@ -297,12 +299,12 @@ export const AskDefogChat = ({
     setButtonLoading(false);
 
     // scroll to the bottom of the results div
-    
+
     setTimeout(() => {
       const divEl = document.getElementById("answers");
       divEl.scrollTo({
         top: divEl.scrollHeight - 600,
-        behavior: 'auto'
+        behavior: "auto",
       });
     }, 200);
   }
@@ -313,10 +315,14 @@ export const AskDefogChat = ({
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <Wrap theme={theme.config}>
-        <div ref={divRef} id="results" style={{
-          overflow: "hidden",
-          maxHeight: maxHeight,
-        }}>
+        <div
+          ref={divRef}
+          id="results"
+          style={{
+            overflow: "hidden",
+            maxHeight: maxHeight,
+          }}
+        >
           {/* add a button on the top right of this div with an expand arrow */}
           <Collapse
             bordered={false}
