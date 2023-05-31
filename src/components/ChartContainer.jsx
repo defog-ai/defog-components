@@ -31,12 +31,12 @@ export default function ChartContainer({
   title,
   theme,
 }) {
-  if (!data || !data.length) {
-    return <></>;
-  }
-
   function createColumnValueOpts(col) {
     const colName = col.key;
+    if (!xAxisColumnValues[colName]) {
+      return [];
+    }
+
     const opts = xAxisColumnValues[colName].map((d) => ({
       label: d,
       value: col.colType === "string" ? cleanString(d) : d,
@@ -84,6 +84,8 @@ export default function ChartContainer({
           [xAxisLabel]:
             xAxisColumnValues[xAxisLabel]?.length > sizeThresh
               ? [xAxisOpts.current[xAxisLabel]?.[1]]
+              : xAxisOpts.current[xAxisLabel].length === 0
+              ? []
               : [{ label: "All", value: "all-selected" }],
         }
   );
@@ -136,6 +138,8 @@ export default function ChartContainer({
             [selLabel]:
               xAxisOpts.current[selLabel].length > sizeThresh
                 ? [xAxisOpts.current[selLabel][1]]
+                : xAxisOpts.current[selLabel].length === 0
+                ? []
                 : [{ label: "All", value: "all-selected" }],
           });
 
@@ -177,6 +181,10 @@ export default function ChartContainer({
           // allow select all
           showSearch={true}
           onChange={(_, sel) => {
+            if (!xAxisOptValues.length) {
+              return;
+            }
+
             const newVals = {};
             // if select all is selected, select all options
             if (sel.findIndex((d) => d.value === "select-all") !== -1) {
@@ -288,14 +296,21 @@ export default function ChartContainer({
     );
   }, [selectedXValues, xAxis, yAxis]);
 
+  const errorMessages = {
+    noCols:
+      "There seem to be no plottable columns in your data. Is this a mistake? Please contact us!",
+    noData: "No data to plot",
+    noDataSelected: "Select data to plot.",
+    noColsSelected: "Select both X and Y axis to plot.",
+  };
+
   return (
     <ChartContainerWrap theme={theme}>
       <div className="chart-container">
-        {!xAxisColumns.length || !yAxisColumns.length ? (
+        {!xAxisColumns.length || !yAxisColumns.length || !data.length ? (
           <div className="chart-error">
             <span>
-              There seem to be no plottable columns in your data. Is this a
-              mistake? Please contact us!
+              {!data.length ? errorMessages.noData : errorMessages.noCols}
             </span>
           </div>
         ) : (
@@ -316,11 +331,11 @@ export default function ChartContainer({
               <div className="chart">{chart}</div>
             ) : !xAxis.length || !yAxis.length ? (
               <div className="chart-error">
-                <span>Select both X and Y axis to plot</span>
+                <span>{errorMessages.noColsSelected}</span>
               </div>
             ) : (
               <div className="chart-error">
-                <span>No data to plot</span>
+                <span>{errorMessages.noDataSelected}</span>
               </div>
             )}
           </>
