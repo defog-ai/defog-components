@@ -34,7 +34,6 @@ export const AskDefogChat = ({
   const [buttonLoading, setButtonLoading] = useState(false);
 
   const [previousQuestions, setPreviousQuestions] = useState([]);
-  const [widgetHeight, setWidgetHeight] = useState(40);
   const [chatResponseArray, setChatResponseArray] = useState([]);
   const [dataResponseArray, setDataResponseArray] = useState([]);
   const [vizType, setVizType] = useState("table");
@@ -64,7 +63,7 @@ export const AskDefogChat = ({
     } else if (darkMode === false) {
       setTheme({ type: "light", config: lightThemeColor });
     }
-  }, []);
+  }, [darkMode]);
 
   const toggleTheme = () => {
     setTheme(
@@ -80,10 +79,6 @@ export const AskDefogChat = ({
   function makeURL(urlPath = "") {
     return apiEndpoint + urlPath;
   }
-
-  const scrollToDiv = () => {
-    divRef.current.scrollTop = divRef.current.scrollHeight;
-  };
 
   var comms = useRef(null);
 
@@ -118,7 +113,8 @@ export const AskDefogChat = ({
     setButtonLoading(true);
     setQuery(query);
     setTimeout(() => {
-      window.scrollTo({
+      const divEl = document.getElementById("results");
+      divEl.scrollTo({
         top: divRef.current.scrollHeight,
         behavior: "smooth",
       });
@@ -289,13 +285,17 @@ export const AskDefogChat = ({
       },
     ]);
 
-    setWidgetHeight(400);
-
     setButtonLoading(false);
 
     // scroll to the bottom of the results div
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.scrollTop = resultsDiv.scrollHeight;
+    
+    setTimeout(() => {
+      const divEl = document.getElementById("answers");
+      divEl.scrollTo({
+        top: divEl.scrollHeight - 600,
+        behavior: 'auto'
+      });
+    }, 200);
   }
   const genExtra = () => (
     <ThemeSwitchButton mode={theme.type} handleMode={toggleTheme} />
@@ -304,7 +304,10 @@ export const AskDefogChat = ({
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <Wrap theme={theme.config}>
-        <div ref={divRef}>
+        <div ref={divRef} id="results" style={{
+          overflow: "hidden",
+          maxHeight: maxHeight,
+        }}>
           {/* add a button on the top right of this div with an expand arrow */}
           <Collapse
             bordered={false}
@@ -329,17 +332,19 @@ export const AskDefogChat = ({
               extra={genExtra()}
             >
               <div
+                id="answers"
                 style={{
                   width: "100%",
                   maxWidth: maxWidth,
                   maxHeight:
                     typeof maxHeight == "number"
-                      ? `calc(${maxHeight}px - 90px)`
-                      : `calc(${maxHeight} - 90px)`,
-                  overflowY: "auto",
-                  overflowX: "hidden",
+                      ? `calc(${maxHeight}px - 120px)`
+                      : `calc(${maxHeight} - 120px)`,
+                  overflowY: "scroll",
+                  overflowX: "scroll",
+                  paddingTop: 0,
+                  paddingBottom: 0,
                 }}
-                id="results"
               >
                 {chatResponseArray.map((response, index) => {
                   return (
@@ -380,7 +385,7 @@ export const AskDefogChat = ({
                               apiKey={apiKey}
                             />
                           )}
-                          {response.suggestedQuestions && (
+                          {/* {response.suggestedQuestions && (
                             <>
                               <h5
                                 style={{
@@ -400,7 +405,7 @@ export const AskDefogChat = ({
                                 {response.suggestedQuestions}
                               </SuggestedQuestionWrap>
                             </>
-                          )}
+                          )} */}
                         </>
                       </QALayout>
                     </ColoredContainer>
@@ -518,7 +523,6 @@ const SearchWrap = styled.div`
   border-style: solid;
   border-color: ${(props) =>
     props.loading ? props.theme.disabledColor : props.theme.brandColor};
-  margin-top: 20px;
   border-radius: 8px;
   padding: 6px;
   .ant-input-group-wrapper {
