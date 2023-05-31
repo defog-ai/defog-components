@@ -52,7 +52,7 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
-  if (colName.endsWith("_id") || colName.startsWith("id_")) {
+  if( colName.endsWith("_id") || colName.startsWith("id_") || colName === "id" ) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
     res["numeric"] = false;
