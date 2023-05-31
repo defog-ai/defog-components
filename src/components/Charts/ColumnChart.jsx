@@ -28,7 +28,7 @@ const ColumnChart = React.memo(
   ({ chartConfig, title, height, xAxisIsDate, theme }) => {
     const { chartLabels, chartData } = chartConfig;
     setChartJSDefaults(ChartJS, title, xAxisIsDate, theme);
-
+    
     return (
       <ErrorBoundary>
         <Row justify={"center"}>

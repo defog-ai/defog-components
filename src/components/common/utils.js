@@ -12,7 +12,8 @@ export function isDate(s) {
 }
 
 export function cleanString(s) {
-  return s.toLowerCase().replace(/ /gi, "-");
+  let res = String(s);
+  return res.toLowerCase().replace(/ /gi, "-");
 }
 
 // change float cols with decimals to 2 decimal places
@@ -47,22 +48,26 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
-  if( colName.includes("user") || colName.endsWith("id") || colName.startsWith("id_") ) {
+  if( colName.includes("user") || colName.endsWith("_id") || colName.startsWith("id_") || colName === "id" ) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
+    res['numeric'] = false;
+    res["simpleTypeOf"] = typeof val;
     return res;
   } else if (colName === "year" || colName === "month") {
     res["colType"] = "date";
     res["variableType"] = "categorical";
+    res['numeric'] = false;
+    res["simpleTypeOf"] = typeof val;
     return res;
-  }
-  else {
+  } else {
     for (let i = 0; i < rows.length; i++) {
       const val = rows[i][colIdx];
       if (val === null) continue;
       else if (isDate(val)) {
         res["colType"] = "date";
         res["variableType"] = "categorical";
+        res['numeric'] = false;
       }
       // is a number and also has a decimal
       else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
@@ -291,7 +296,6 @@ export function createChartConfig(
       key: col.label,
     },
   }));
-
   return { chartData, chartLabels };
 }
 

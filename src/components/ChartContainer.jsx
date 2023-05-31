@@ -29,12 +29,6 @@ export default function ChartContainer({
     return <></>;
   }
 
-  console.log(data);
-  console.log(xAxisColumns);
-  console.log(xAxisColumnValues);
-  console.log(yAxisColumns);
-  console.log(dateColumns);
-
   // convert categorical column values to antd's select options
   const opts = useRef(
     xAxisColumns.reduce((obj, col) => {
