@@ -175,7 +175,7 @@ const DefogDynamicViz = ({
               body: JSON.stringify({
                 apiKey: apiKey,
                 data: {
-                  data: rawData,
+                  data: rawData.slice(0,100),
                   columns: response.columns,
                 },
               }),

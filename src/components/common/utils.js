@@ -59,10 +59,14 @@ export function inferColumnType(rows, colIdx, colName) {
   ) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
+    res["numeric"] = false;
+    res["simpleTypeOf"] = typeof val;
     return res;
   } else if (/^year$/gi.test(colName) || /^month$/gi.test(colName)) {
     res["colType"] = "date";
     res["variableType"] = "categorical";
+    res["numeric"] = false;
+    res["simpleTypeOf"] = typeof val;
     return res;
   } else {
     for (let i = 0; i < rows.length; i++) {
@@ -71,6 +75,7 @@ export function inferColumnType(rows, colIdx, colName) {
       else if (isDate(val)) {
         res["colType"] = "date";
         res["variableType"] = "categorical";
+        res["numeric"] = false;
       }
       // is a number and also has a decimal
       else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
@@ -337,7 +342,6 @@ export function createChartConfig(
       key: col.label,
     },
   }));
-
   return { chartData, chartLabels };
 }
 
