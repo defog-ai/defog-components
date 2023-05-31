@@ -126,6 +126,7 @@ const DefogDynamicViz = ({
           columns={response.columns}
           title={query}
           key="1"
+          vizType={vizType === "table" ? "Bar Chart" : vizType}
           theme={theme.config}
         ></ChartContainer>
       </ErrorBoundary>
