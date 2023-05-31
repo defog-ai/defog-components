@@ -29,6 +29,7 @@ export default function ChartContainer({
   xAxisColumnValues,
   data,
   title,
+  vizType,
   theme,
 }) {
   function createColumnValueOpts(col) {
@@ -223,7 +224,8 @@ export default function ChartContainer({
     null,
     null
   );
-  const [chartType, setChartType] = useState(chartTypes[0]);
+  
+  const [chartType, setChartType] = useState({label: vizType, value: vizType, __data__: vizType});
 
   const chartTypeDropdown = (
     <div className="chart-container-select">
@@ -233,6 +235,7 @@ export default function ChartContainer({
         options={chartTypes}
         value={chartType}
         onChange={(_, sel) => {
+          console.log(sel);
           setChartType(sel);
         }}
       ></Select>
