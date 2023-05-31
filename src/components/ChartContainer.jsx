@@ -8,8 +8,8 @@ import styled from "styled-components";
 
 function arrToAntD(arr, labelProp = "key", valueProp = "key") {
   return arr.map((d) => ({
-    label: labelProp ? d[labelProp] : d,
-    value: valueProp ? d[valueProp] : d,
+    label: labelProp ? d?.[labelProp] : d,
+    value: valueProp ? d?.[valueProp] : d,
     __data__: d,
   }));
 }
@@ -28,6 +28,12 @@ export default function ChartContainer({
   if (!data || !data.length) {
     return <></>;
   }
+
+  console.log(data);
+  console.log(xAxisColumns);
+  console.log(xAxisColumnValues);
+  console.log(yAxisColumns);
+  console.log(dateColumns);
 
   // convert categorical column values to antd's select options
   const opts = useRef(
@@ -60,8 +66,8 @@ export default function ChartContainer({
   const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
   
   const [selectedXValues, setSelectedXValues] = useState({
-    [xAxisColumns[0].key]: arrToAntD(
-      xAxisColumnValues[xAxisColumns[0].key].length > 400 ? [xAxisColumnValues[xAxisColumns[0].key][0]] : ["all-selected"],
+    [xAxisColumns[0]?.key]: arrToAntD(
+      xAxisColumnValues[xAxisColumns[0]?.key]?.length > 400 ? [xAxisColumnValues[xAxisColumns[0]?.key]?.[0]] : ["all-selected"],
       null,
       null
     ),
@@ -114,7 +120,7 @@ export default function ChartContainer({
 
   const xAxisValuesDropdown = (
     // key force rerender when we change selectall->deselctall or vice versa
-    <div key={optValues[0].label} className="chart-container-select">
+    <div key={optValues?.[0]?.label} className="chart-container-select">
       <h4>{xAxis.label}</h4>
       <Select
         mode="multiple"
@@ -179,7 +185,7 @@ export default function ChartContainer({
     </div>
   );
 
-  const xAxisIsDate = xAxis.__data__.colType === "date";
+  const xAxisIsDate = xAxis.__data__?.colType === "date";
 
   let chart = null;
   const chartProps = {
@@ -217,8 +223,8 @@ export default function ChartContainer({
         selectedXValues[xAxis.label].findIndex(
           (d) => d.value === "all-selected"
         ) > -1
-          ? optValues.slice(1)
-          : selectedXValues[xAxis.label],
+          ? optValues?.slice(1)
+          : selectedXValues[xAxis?.label],
         xAxisIsDate
       )
     );
