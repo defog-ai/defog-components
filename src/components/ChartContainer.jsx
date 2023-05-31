@@ -20,6 +20,7 @@ function arrToAntD(arr, labelProp = "key", valueProp = "key") {
 }
 
 const nullChartConfig = { chartLabels: [], chartData: [] };
+const sizeThresh = 400;
 
 export default function ChartContainer({
   xAxisColumns,
@@ -42,9 +43,10 @@ export default function ChartContainer({
     }));
 
     // add a "Select all option"
+    // we will default to all selected if length is below threshols
     opts.unshift({
-      label: "Select All",
-      value: "select-all",
+      label: opts.length > sizeThresh ? "Select All" : "Deselect-all",
+      value: opts.length > sizeThresh ? "select-all" : "deselect-all",
     });
     return opts;
   }
@@ -69,15 +71,22 @@ export default function ChartContainer({
 
   const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
 
-  const [selectedXValues, setSelectedXValues] = useState({
-    [xAxisColumns[0]?.key]: arrToAntD(
-      xAxisColumnValues[xAxisColumns[0]?.key]?.length > 400
-        ? [xAxisColumnValues[xAxisColumns[0]?.key]?.[0]]
-        : ["all-selected"],
-      null,
-      null
-    ),
-  });
+  const xAxisLabel = !xAxis.length
+    ? undefined
+    : xAxis.map((d) => d.label).join("-");
+  // create dropdowns for selected column(s) for the x axis
+  const xAxisOptValues = !xAxisLabel ? [] : xAxisOpts.current[xAxisLabel];
+
+  const [selectedXValues, setSelectedXValues] = useState(
+    !xAxisLabel
+      ? {}
+      : {
+          [xAxisLabel]:
+            xAxisColumnValues[xAxisLabel]?.length > sizeThresh
+              ? [xAxisOpts.current[xAxisLabel]?.[1]]
+              : [{ label: "All", value: "all-selected" }],
+        }
+  );
 
   // chart data
   const [chartConfig, setChartConfig] = useState(nullChartConfig);
@@ -111,10 +120,23 @@ export default function ChartContainer({
               key: selLabel,
               colType: "string",
             });
+          } else {
+            // if less than size thresh
+            // reset first option to select all
+            if (xAxisColumnValues[selLabel].length > sizeThresh) {
+              xAxisOpts.current[selLabel][0].label = "Select All";
+              xAxisOpts.current[selLabel][0].value = "select-all";
+            } else {
+              xAxisOpts.current[selLabel][0].label = "Deselect All";
+              xAxisOpts.current[selLabel][0].value = "deselect-all";
+            }
           }
 
           setSelectedXValues({
-            [selLabel]: arrToAntD([xAxisColumnValues[selLabel][0]], null, null),
+            [selLabel]:
+              xAxisOpts.current[selLabel].length > sizeThresh
+                ? [xAxisOpts.current[selLabel][1]]
+                : [{ label: "All", value: "all-selected" }],
           });
 
           setXAxis(sel);
@@ -138,10 +160,6 @@ export default function ChartContainer({
       ></Select>
     </div>
   );
-
-  const xAxisLabel = xAxis.map((d) => d.label).join("-");
-  // create dropdowns for selected column(s) for the x axis
-  const xAxisOptValues = xAxisOpts.current[xAxisLabel];
 
   const xAxisValuesDropdown =
     xAxisLabel === "" ? (
@@ -212,8 +230,6 @@ export default function ChartContainer({
       ></Select>
     </div>
   );
-
-  console.log(xAxisOpts);
 
   const xAxisIsDate =
     xAxis.length === 1 && xAxis[0].__data__?.colType === "date";
