@@ -47,50 +47,49 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
-
-  for (let i = 0; i < rows.length; i++) {
-    const val = rows[i][colIdx];
-    if (val === null) continue;
-    else if (isDate(val)) {
-      res["colType"] = "date";
-      res["variableType"] = "categorical";
-    }
-    // is a number and also has a decimal
-    else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
-      res["colType"] = "decimal";
-      res["numeric"] = true;
-      res["variableType"] = "quantitative";
-    }
-    // if number but no decimal
-    else if (isNumber(val)) {
-      res["colType"] = "integer";
-      res["numeric"] = true;
-      res["variableType"] = "quantitative";
-    } else {
-      res["colType"] = typeof val;
-      res["numeric"] = res["colType"] === "number";
-      res["variableType"] =
-        res["colType"] === "number" ? "quantitative" : "categorical";
-    }
-
-    // special cases for ids coming in as numbers
-    if (
-      colName === "id" ||
-      colName.startsWith("id_") ||
-      colName.endsWith("id")
-    ) {
-      res["colType"] = "string";
-      res["variableType"] = "categorical";
-    }
-
-    res["simpleTypeOf"] = typeof val;
-
+  if( colName.includes("user") || colName.endsWith("id") || colName.startsWith("id_") ) {
+    res["colType"] = "string";
+    res["variableType"] = "categorical";
     return res;
+  } else if (colName === "year" || colName === "month") {
+    res["colType"] = "date";
+    res["variableType"] = "categorical";
+    return res;
+  }
+  else {
+    for (let i = 0; i < rows.length; i++) {
+      const val = rows[i][colIdx];
+      if (val === null) continue;
+      else if (isDate(val)) {
+        res["colType"] = "date";
+        res["variableType"] = "categorical";
+      }
+      // is a number and also has a decimal
+      else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
+        res["colType"] = "decimal";
+        res["numeric"] = true;
+        res["variableType"] = "quantitative";
+      }
+      // if number but no decimal
+      else if (isNumber(val)) {
+        res["colType"] = "integer";
+        res["numeric"] = true;
+        res["variableType"] = "quantitative";
+      } else {
+        res["colType"] = typeof val;
+        res["numeric"] = res["colType"] === "number";
+        res["variableType"] =
+          res["colType"] === "number" ? "quantitative" : "categorical";
+      }
+  
+      res["simpleTypeOf"] = typeof val;
+      return res;
+    }
   }
 }
 
 function formatTime(val) {
-  return dayjs(val, dateFormats).format("D MMM 'YY");
+  return dayjs(val, [...dateFormats, ["YYYY", "MM", "MMM", "M", "MMMM"]]).format("D MMM 'YY");
 }
 
 export function setChartJSDefaults(
@@ -234,11 +233,11 @@ export function createChartConfig(
   xAxisIsDate
 ) {
   // chart labels are just selectedXValues
-  const chartLabels = selectedXValues.map((d) => d.label);
+  const chartLabels = selectedXValues?.map((d) => d.label);
 
   // go through data and find data points for which the xAxisColumn value exists in chartLabels
   let filteredData = data.filter((d) => {
-    return chartLabels.includes(d[xAxisColumn.label]);
+    return chartLabels?.includes(d[xAxisColumn?.label]);
   });
 
   // groupby xAxisColumn value and the sum of the yAxisColumns
@@ -262,7 +261,7 @@ export function createChartConfig(
   // if x axis is not date,
   // sort labels and fitleredData by the first yAxisColumn
   if (!xAxisIsDate) {
-    chartLabels.sort(
+    chartLabels?.sort(
       (a, b) =>
         filteredData[b][yAxisColumns[0].label] -
         filteredData[a][yAxisColumns[0].label]
@@ -281,7 +280,7 @@ export function createChartConfig(
 
   // use chartjs parsing to create chartData
   // for each yAxisColumn, there is a chartjs "dataset"
-  const chartData = yAxisColumns.map((col, i) => ({
+  const chartData = yAxisColumns?.map((col, i) => ({
     label: col.label,
     data: filteredData,
     backgroundColor: chartColors[i % chartColors.length],
