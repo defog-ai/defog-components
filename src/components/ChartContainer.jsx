@@ -211,6 +211,7 @@ export default function ChartContainer({
                 (d) => !isEmpty(d) && d.value !== "all-selected"
               );
             }
+
             setSelectedXValues(Object.assign({}, selectedXValues, newVals));
           }}
         ></Select>
@@ -339,112 +340,9 @@ export default function ChartContainer({
             )}
           </>
         )}
-  
-    const chartTypes = arrToAntD(
-      ["Bar Chart", "Pie Chart", "Line Chart"],
-      null,
-      null
-    );
-    const [chartType, setChartType] = useState(chartTypes[0]);
-  
-    const chartTypeDropdown = (
-      <div className="chart-container-select">
-        <h4>Chart Type</h4>
-        <Select
-          mode="single"
-          options={chartTypes}
-          value={chartType}
-          onChange={(_, sel) => {
-            setChartType(sel);
-          }}
-        ></Select>
       </div>
-    );
-  
-    const xAxisIsDate = xAxis.__data__?.colType === "date";
-  
-    let chart = null;
-    const chartProps = {
-      chartConfig,
-      title,
-      xAxisIsDate,
-      height: 400,
-      theme,
-    };
-  
-    switch (chartType.label) {
-      case "Bar Chart":
-        chart = <ColumnChart {...chartProps} />;
-        break;
-      case "Pie Chart":
-        chart = <PieChart {...chartProps} />;
-        break;
-      case "Line Chart":
-      default:
-        chart = <TrendChart {...chartProps} />;
-        break;
-    }
-  
-    // change chart data
-    useEffect(() => {
-      if (!xAxis || !yAxis.length || !selectedXValues[xAxis.label]?.length) {
-        setChartConfig(nullChartConfig);
-      }
-  
-      setChartConfig(
-        createChartConfig(
-          data,
-          xAxis,
-          yAxis,
-          selectedXValues[xAxis.label].findIndex(
-            (d) => d.value === "all-selected"
-          ) > -1
-            ? optValues?.slice(1)
-            : selectedXValues[xAxis?.label],
-          xAxisIsDate
-        )
-      );
-    }, [selectedXValues, xAxis, yAxis]);
-  
-    return (
-      <ChartContainerWrap theme={theme}>
-        <div className="chart-container">
-          {!xAxisColumns.length || !yAxisColumns.length ? (
-            <div className="chart-error">
-              <span>
-                There seem to be no plottable columns in your data. Is this a
-                mistake? Please contact us!
-              </span>
-            </div>
-          ) : (
-            <div className="chart-container-controls">
-              {chartTypeDropdown}
-              {xAxisDropdown}
-              {yAxisDropdown}
-              {xAxisValuesDropdown}
-            </div>
-          )}
-  
-          {xAxisColumns.length &&
-          yAxisColumns.length &&
-          xAxis &&
-          yAxis.length &&
-          chartConfig.chartData?.length &&
-          selectedXValues[xAxis.label]?.length ? (
-            <div className="chart">{chart}</div>
-          ) : !xAxis || !yAxis.length ? (
-            <div className="chart-error">
-              <span>Select both X and Y axis to plot</span>
-            </div>
-          ) : (
-            <div className="chart-error">
-              <span>No data to plot</span>
-            </div>
-          )}
-        </div>
-      </ChartContainerWrap>
-    );
-  }
+    </ChartContainerWrap>
+  );
 }
 
 const ChartContainerWrap = styled.div`
