@@ -51,7 +51,7 @@ export const AskDefogChat = ({
       .matches
       ? "dark"
       : "light";
-    
+
     if (darkMode === null || darkMode === undefined) {
       if (systemTheme === "dark") {
         setTheme({ type: "dark", config: darkThemeColor });
@@ -142,6 +142,14 @@ export const AskDefogChat = ({
           }),
         }).then((d) => d.json());
 
+        if (queryChatResponse.ran_successfully === false) {
+          throw Error(
+            `query didn't run successfully. Here's the response received: ${JSON.stringify(
+              queryChatResponse
+            )}`
+          );
+        }
+
         handleChatResponse(queryChatResponse, query);
       } catch (e) {
         console.log(e);
@@ -176,9 +184,10 @@ export const AskDefogChat = ({
   }
 
   function handleDataResponse(dataResponse, query) {
+    console.log(dataResponse);
     // remove rows for which every value is null
     setRawData(
-      dataResponse.data.filter((d) => !d.every((val) => val === null))
+      dataResponse?.data.filter((d) => !d.every((val) => val === null))
     );
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
@@ -276,6 +285,8 @@ export const AskDefogChat = ({
       newRows = [];
     }
 
+    console.log(newCols);
+
     // update the last item in response array with the above data and columns
     setDataResponseArray([
       ...dataResponseArray,
@@ -288,12 +299,12 @@ export const AskDefogChat = ({
     setButtonLoading(false);
 
     // scroll to the bottom of the results div
-    
+
     setTimeout(() => {
       const divEl = document.getElementById("answers");
       divEl.scrollTo({
         top: divEl.scrollHeight - 600,
-        behavior: 'auto'
+        behavior: "auto",
       });
     }, 200);
   }
@@ -304,10 +315,14 @@ export const AskDefogChat = ({
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <Wrap theme={theme.config}>
-        <div ref={divRef} id="results" style={{
-          overflow: "hidden",
-          maxHeight: maxHeight,
-        }}>
+        <div
+          ref={divRef}
+          id="results"
+          style={{
+            overflow: "hidden",
+            maxHeight: maxHeight,
+          }}
+        >
           {/* add a button on the top right of this div with an expand arrow */}
           <Collapse
             bordered={false}
