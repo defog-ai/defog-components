@@ -193,25 +193,25 @@ export const AskDefogChat = ({
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
     ) {
-      setVizType("piechart");
+      setVizType("Pie Chart");
     } else if (
       query.toLowerCase().indexOf("bar chart") > -1 ||
       query.toLowerCase().indexOf("barchart") > -1 ||
       query.toLowerCase().indexOf("column chart") > -1 ||
       query.toLowerCase().indexOf("columnchart") > -1
     ) {
-      setVizType("columnchart");
+      setVizType("Bar Chart");
     } else if (
       query.toLowerCase().indexOf("trend chart") > -1 ||
       query.toLowerCase().indexOf("trendchart") > -1 ||
       query.toLowerCase().indexOf("line chart") > -1 ||
       query.toLowerCase().indexOf("linechart") > -1
     ) {
-      setVizType("trendchart");
+      setVizType("Line Chart");
     } else if (dataResponse.code) {
       setVizType("text");
     } else if (query.toLowerCase().indexOf(" chart ") > -1) {
-      setVizType("columnchart");
+      setVizType("Bar Chart");
     } else {
       setVizType("table");
     }
