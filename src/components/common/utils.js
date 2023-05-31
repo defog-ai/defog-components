@@ -4,7 +4,12 @@ import { chartColors } from "../../context/ThemeContext";
 
 dayjs.extend(customParseFormat);
 
-const dateFormats = ["YYYY-MM", "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss", "YYYY-MM-DD HH:mm:ss"];
+const dateFormats = [
+  "YYYY-MM",
+  "YYYY-MM-DD",
+  "YYYY-MM-DDTHH:mm:ss",
+  "YYYY-MM-DD HH:mm:ss",
+];
 
 export function isDate(s) {
   return dayjs(s, dateFormats, true).isValid();
@@ -12,7 +17,7 @@ export function isDate(s) {
 }
 
 export function cleanString(s) {
-  return s.toLowerCase().replace(/ /gi, "-");
+  return String(s).toLowerCase().replace(/ /gi, "-");
 }
 
 // change float cols with decimals to 2 decimal places
@@ -47,16 +52,19 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
-  if( colName.includes("user") || colName.endsWith("id") || colName.startsWith("id_") ) {
+  if (
+    colName.includes("user") ||
+    colName.endsWith("_id") ||
+    colName.startsWith("id_")
+  ) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
     return res;
-  } else if (colName === "year" || colName === "month") {
+  } else if (/^year$/gi.test(colName) || /^month$/gi.test(colName)) {
     res["colType"] = "date";
     res["variableType"] = "categorical";
     return res;
-  }
-  else {
+  } else {
     for (let i = 0; i < rows.length; i++) {
       const val = rows[i][colIdx];
       if (val === null) continue;
@@ -81,7 +89,7 @@ export function inferColumnType(rows, colIdx, colName) {
         res["variableType"] =
           res["colType"] === "number" ? "quantitative" : "categorical";
       }
-  
+
       res["simpleTypeOf"] = typeof val;
       return res;
     }
@@ -89,7 +97,10 @@ export function inferColumnType(rows, colIdx, colName) {
 }
 
 function formatTime(val) {
-  return dayjs(val, [...dateFormats, ["YYYY", "MM", "MMM", "M", "MMMM"]]).format("D MMM 'YY");
+  return dayjs(val, [
+    ...dateFormats,
+    ["YYYY", "MM", "MMM", "M", "MMMM"],
+  ]).format("D MMM 'YY");
 }
 
 export function setChartJSDefaults(
@@ -123,37 +134,40 @@ export function setChartJSDefaults(
   ChartJSRef.defaults.plugins.title.color = theme.primaryText;
 
   // if x axis is a date, add a d3 formatter
-  if (xAxisIsDate) {
-    ChartJSRef.defaults.plugins.tooltip.displayColors = false;
+  ChartJSRef.defaults.plugins.tooltip.displayColors = false;
 
-    ChartJSRef.defaults.plugins.tooltip.callbacks.title = function (
-      tooltipItems
+  ChartJSRef.defaults.plugins.tooltip.callbacks.title = function (
+    tooltipItems
+  ) {
+    return tooltipItems.map((item) =>
+      xAxisIsDate ? formatTime(item.label) : item.label
+    );
+  };
+
+  ChartJSRef.defaults.scales.category.ticks = {
+    callback: function (value) {
+      return xAxisIsDate
+        ? formatTime(this.getLabelForValue(value))
+        : this.getLabelForValue(value);
+    },
+  };
+
+  ChartJSRef.defaults.plugins.tooltip.callbacks.label = function (tooltipItem) {
+    return tooltipItem.dataset.label + ": " + tooltipItem.formattedValue;
+  };
+
+  if (pieChart) {
+    // legend labels are also dates
+    // pie/doughnuts charts are weird in chartjs
+    // brilliant hack to edit some props of legendItems without having to remake them from here: https://stackoverflow.com/questions/39454586/pie-chart-legend-chart-js
+    ChartJSRef.overrides.pie.plugins.legend.labels.filter = function (
+      legendItem
     ) {
-      return tooltipItems.map((item) => formatTime(item.label));
+      legendItem.text = xAxisIsDate
+        ? formatTime(legendItem.text)
+        : legendItem.text;
+      return true;
     };
-    ChartJSRef.defaults.plugins.tooltip.callbacks.label = function (
-      tooltipItem
-    ) {
-      return tooltipItem.dataset.label + ": " + tooltipItem.formattedValue;
-    };
-
-    ChartJSRef.defaults.scales.category.ticks = {
-      callback: function (value) {
-        return formatTime(this.getLabelForValue(value));
-      },
-    };
-
-    if (pieChart) {
-      // legend labels are also dates
-      // pie/doughnuts charts are weird in chartjs
-      // brilliant hack to edit some props of legendItems without having to remake them from here: https://stackoverflow.com/questions/39454586/pie-chart-legend-chart-js
-      ChartJSRef.overrides.pie.plugins.legend.labels.filter = function (
-        legendItem
-      ) {
-        legendItem.text = formatTime(legendItem.text);
-        return true;
-      };
-    }
   }
 }
 
@@ -177,6 +191,27 @@ export const mapToObject = (
     })
   );
 
+export function getColValues(data = [], columns = []) {
+  if (!columns.length || !data || !data.length) return [];
+
+  // if single column, just return that column value
+  // if multiple, join the column values with separator
+  const vals = new Set();
+  data.forEach((d) => {
+    const val = columns.reduce((acc, c, i) => {
+      if (i > 0) {
+        acc += "-";
+      }
+      acc += d[c];
+      return acc;
+    }, "");
+
+    vals.add(val);
+  });
+
+  return Array.from(vals);
+}
+
 export function processData(data, columns) {
   // find if there's a date column
   const dateColumns = columns.filter((d) => d.colType === "date");
@@ -185,25 +220,18 @@ export function processData(data, columns) {
     (d) => d.variableType[0] === "c" && d.colType !== "date"
   );
 
-  // y axis columns are the remaining columns:
+  // y axis columns are only numeric columns
   const yAxisColumns = columns.filter(
     (d) => d.variableType[0] !== "c" && d.colType !== "date"
   );
 
-  const xAxisColumns =
-    dateColumns.length > 0
-      ? categoricalColumns.concat(dateColumns)
-      : categoricalColumns;
+  const xAxisColumns = columns.slice();
 
   // find unique values for each of the x axis columns for the dropdowns
   // this we'll use for "labels" prop for chartjs
   const xAxisColumnValues = {};
   xAxisColumns.forEach((c) => {
-    xAxisColumnValues[c.key] = new Set();
-    data?.forEach((d) => {
-      xAxisColumnValues[c.key].add(d[c.key]);
-    });
-    xAxisColumnValues[c.key] = Array.from(xAxisColumnValues[c.key]);
+    xAxisColumnValues[c.key] = getColValues(data, [c.key]);
   });
 
   return {
@@ -227,31 +255,49 @@ export function isEmpty(obj) {
 
 export function createChartConfig(
   data,
-  xAxisColumn,
+  xAxisColumns,
   yAxisColumns,
   selectedXValues,
   xAxisIsDate
 ) {
+  if (
+    !xAxisColumns.length ||
+    !yAxisColumns.length ||
+    !selectedXValues ||
+    !data ||
+    !data.length
+  ) {
+    return [];
+  }
+
   // chart labels are just selectedXValues
   const chartLabels = selectedXValues?.map((d) => d.label);
 
-  // go through data and find data points for which the xAxisColumn value exists in chartLabels
+  // go through data and find data points for which the x value exists in chartLabels
   let filteredData = data.filter((d) => {
-    return chartLabels?.includes(d[xAxisColumn?.label]);
+    const xLab = getColValues(
+      [d],
+      xAxisColumns.map((d) => d.label)
+    )[0];
+
+    d.__xLab__ = xLab;
+    return chartLabels?.includes(xLab);
   });
 
-  // groupby xAxisColumn value and the sum of the yAxisColumns
+  // if there's multiple data rows for an x axis label, sum all the yAxisColumns for them
   // this is the data that will be used for the chart
   // don't use d3 while doing this, since d3 is not imported in this file
   // use native js instead
   filteredData = filteredData.reduce((acc, curr) => {
-    const key = curr[xAxisColumn.label];
+    const key = curr.__xLab__;
+
     if (!acc[key]) {
       acc[key] = {};
       yAxisColumns.forEach((col) => {
         acc[key][col.label] = 0;
       });
     }
+
     yAxisColumns.forEach((col) => {
       acc[key][col.label] += curr[col.label];
     });
@@ -271,7 +317,7 @@ export function createChartConfig(
   // convert filteredData to an array of objects
   // this is the format that chartjs expects
   filteredData = Object.entries(filteredData).map(([key, value]) => {
-    const obj = { [xAxisColumn.label]: key };
+    const obj = { __xLab__: key };
     yAxisColumns.forEach((col) => {
       obj[col.label] = value[col.label];
     });
@@ -285,7 +331,7 @@ export function createChartConfig(
     data: filteredData,
     backgroundColor: chartColors[i % chartColors.length],
     parsing: {
-      xAxisKey: xAxisColumn.label,
+      xAxisKey: "__xLab__",
       yAxisKey: col.label,
       // for pie charts
       key: col.label,
