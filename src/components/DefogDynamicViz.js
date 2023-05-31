@@ -22,6 +22,7 @@ import {
   transformToCSV,
 } from "./common/utils.js";
 
+import ErrorBoundary from "./common/ErrorBoundary.js";
 import ChartContainer from "./ChartContainer.jsx";
 
 import styled from "styled-components";
@@ -114,18 +115,20 @@ const DefogDynamicViz = ({
     } = processData(response.data, response.columns);
 
     results.push(
-      <ChartContainer
-        xAxisColumns={xAxisColumns}
-        dateColumns={dateColumns}
-        categoricalColumns={categoricalColumns}
-        yAxisColumns={yAxisColumns}
-        xAxisColumnValues={xAxisColumnValues}
-        data={response.data}
-        columns={response.columns}
-        title={query}
-        key="1"
-        theme={theme.config}
-      ></ChartContainer>
+      <ErrorBoundary>
+        <ChartContainer
+          xAxisColumns={xAxisColumns}
+          dateColumns={dateColumns}
+          categoricalColumns={categoricalColumns}
+          yAxisColumns={yAxisColumns}
+          xAxisColumnValues={xAxisColumnValues}
+          data={response.data}
+          columns={response.columns}
+          title={query}
+          key="1"
+          theme={theme.config}
+        ></ChartContainer>
+      </ErrorBoundary>
     );
 
     // convert to antd tabs
