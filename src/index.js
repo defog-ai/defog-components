@@ -184,10 +184,9 @@ export const AskDefogChat = ({
   }
 
   function handleDataResponse(dataResponse, query) {
-    console.log(dataResponse);
     // remove rows for which every value is null
     setRawData(
-      dataResponse?.data.filter((d) => !d.every((val) => val === null))
+      dataResponse?.data?.filter((d) => !d.every((val) => val === null))
     );
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
@@ -229,7 +228,7 @@ export const AskDefogChat = ({
     const stringAsNumeric = [];
 
     // remove rows for which every value is null
-    const validData = dataResponse?.data.filter(
+    const validData = dataResponse?.data?.filter(
       (d) => !d.every((val) => val === null)
     );
 
