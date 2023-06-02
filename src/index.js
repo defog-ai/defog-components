@@ -25,6 +25,7 @@ export const AskDefogChat = ({
   apiKey,
   darkMode,
   additionalParams = {},
+  additionalHeaders= {},
   // can be "websocket" or "http"
   mode = "http",
 }) => {
@@ -133,6 +134,7 @@ export const AskDefogChat = ({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...additionalHeaders,
           },
           body: JSON.stringify({
             question: query,
