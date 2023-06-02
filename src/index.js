@@ -301,10 +301,11 @@ export const AskDefogChat = ({
 
     setTimeout(() => {
       const divEl = document.getElementById("answers");
+      {divEl &&
       divEl.scrollTo({
         top: divEl.scrollHeight - 600,
         behavior: "auto",
-      });
+      });}
     }, 200);
   }
   const genExtra = () => (
