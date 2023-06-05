@@ -476,7 +476,10 @@ const ResultsWrap = styled.div`
     display: flex;
     gap: 2px;
 
-    @media (max-width: 650px) {
+    container-type: inline-size;
+    container-name: export-button-container;
+
+    @container  (max-width: 650px) {
       position: relative;
       margin-top: 12px;
       gap: 12px;
@@ -491,7 +494,7 @@ const ResultsWrap = styled.div`
       border: none;
       box-shadow: none;
 
-      @media (max-width: 650px) {
+      @container  (max-width: 650px) {
         border-radius: 7px;
         width: 100%;
       }
@@ -550,7 +553,8 @@ const FeedbackWrap = styled.div`
   gap: 12px;
   margin-top: 20px;
   line-height: 1;
-  @media (max-width: 650px) {
+
+  @container  (max-width: 650px) {
     padding: 12px;
     gap: 8px;
   }
@@ -558,7 +562,7 @@ const FeedbackWrap = styled.div`
   & > p {
     margin: 0;
     margin-right: 20px;
-    @media (max-width: 650px) {
+    @container  (max-width: 650px) {
       font-size: 13px;
       margin-right: 12px;
     }
@@ -574,7 +578,7 @@ const FeedbackWrap = styled.div`
     svg {
       width: 12px;
       height: 12px;
-      @media (max-width: 650px) {
+      @container  (max-width: 650px) {
         width: 12px;
         height: 12px;
       }

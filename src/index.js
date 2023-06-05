@@ -479,10 +479,14 @@ export const AskDefogChat = ({
 
 const Wrap = styled.div`
   position: relative;
+
+  container-type: inline-size;
+  container-name: main-wrap;
+
   .ant-collapse-content-box {
     padding: 20px !important;
 
-    @media (max-width: 650px) {
+    @container  (max-width: 650px) {
       padding: 8px !important;
     }
   }
@@ -508,29 +512,29 @@ const ColoredContainer = styled.div`
   margin-bottom: 20px;
   margin-top: 20px;
 
-  @media (max-width: 767px) {
+  @container  (max-width: 767px) {
     padding: 12px;
   }
 `;
 
-const SuggestedQuestionWrap = styled.button`
-  font-size: 14px;
-  margin-top: 4px;
-  background: ${(props) => (props.theme ? props.theme.background2 : "#F8FAFB")};
-  color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
-  border-radius: 7px;
-  padding: 12px;
-  display: inline-block;
-  border: none;
-  cursor: pointer;
-  text-align: left;
+// const SuggestedQuestionWrap = styled.button`
+//   font-size: 14px;
+//   margin-top: 4px;
+//   background: ${(props) => (props.theme ? props.theme.background2 : "#F8FAFB")};
+//   color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+//   border-radius: 7px;
+//   padding: 12px;
+//   display: inline-block;
+//   border: none;
+//   cursor: pointer;
+//   text-align: left;
 
-  span {
-    display: block;
-    color: inherit;
-    font-weight: 600;
-  }
-`;
+//   span {
+//     display: block;
+//     color: inherit;
+//     font-weight: 600;
+//   }
+// `;
 
 const SearchWrap = styled.div`
   display: flex;

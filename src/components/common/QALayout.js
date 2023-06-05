@@ -27,7 +27,11 @@ const QAWrap = styled.div`
   gap: 12px;
   margin-bottom: 20px;
   align-items: flex-start;
-  @media (max-width: 650px) {
+
+  container-type: inline-size;
+  container-name: qa-layout;
+
+  @container  (max-width: 650px) {
     gap: 8px;
   }
 
@@ -48,7 +52,7 @@ const QAWrap = styled.div`
           : props.theme.questionBorder
         : "#fff"};
 
-    @media (max-width: 650px) {
+    @container  (max-width: 650px) {
       min-width: 28px;
       min-height: 28px;
     }
@@ -56,7 +60,7 @@ const QAWrap = styled.div`
     & > svg {
       width: ${(props) => (props.isAnswer ? "24px" : "28px")};
       height: 28px;
-      @media (max-width: 650px) {
+      @container  (max-width: 650px) {
         width: 14px;
         height: 14px;
       }
@@ -76,7 +80,7 @@ const QAWrap = styled.div`
           : props.theme.questionBorder
         : "#fff"};
 
-    @media (max-width: 650px) {
+    @container  (max-width: 650px) {
       padding: 12px;
       max-width: calc(100% - 60px);
     }
