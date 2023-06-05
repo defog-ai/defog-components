@@ -17,6 +17,7 @@ import {
 
 import {
   download_csv,
+  isEmpty,
   processData,
   roundColumns,
   transformToCSV,
@@ -30,6 +31,11 @@ import ThumbsUp from "./svg/ThumbsUp.js";
 import ThumbsDown from "./svg/ThumbsDown.js";
 import { ThemeContext } from "../context/ThemeContext.js";
 
+const errorMessages = {
+  noReponse:
+    "There seems to be no response from our servers. Please try again.",
+};
+
 const DefogDynamicViz = ({
   vizType = null,
   response,
@@ -39,12 +45,22 @@ const DefogDynamicViz = ({
   apiKey,
   sqlOnly = false,
 }) => {
-  console.log(response, rawData, query, debugMode, apiKey);
   const { theme } = useContext(ThemeContext);
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
+
+  // if no response, return error
+  if (!response || isEmpty(response)) {
+    return (
+      <ErrorMessageWrap>
+        <div className="defog-viz-error">
+          <span>{errorMessages.noReponse}</span>
+        </div>
+      </ErrorMessageWrap>
+    );
+  }
 
   const uploadFeedback = (feedback, feedbackText = "") => {
     if (feedback === "Good") {
@@ -635,6 +651,21 @@ const FeedbackModalWrap = styled.div`
     &:hover {
       color: #fff !important;
       opacity: 0.8;
+    }
+  }
+`;
+
+const ErrorMessageWrap = styled.div`
+    .defog-viz-error {
+      width: 100%;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      span {
+        color: ${(props) =>
+          props.theme ? props.theme.secondaryText : "#606060"};
+      }
     }
   }
 `;
