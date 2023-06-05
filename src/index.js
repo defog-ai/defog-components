@@ -26,6 +26,7 @@ export const AskDefogChat = ({
   darkMode,
   additionalParams = {},
   additionalHeaders= {},
+  sqlOnly = false,
   // can be "websocket" or "http"
   mode = "http",
 }) => {
@@ -180,8 +181,12 @@ export const AskDefogChat = ({
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
-    if (executeData) {
+    if (sqlOnly === false && executeData) {
       handleDataResponse(queryChatResponse, query);
+    }
+
+    if (sqlOnly === true) {
+      setButtonLoading(false);
     }
   }
 
@@ -286,8 +291,6 @@ export const AskDefogChat = ({
       newRows = [];
     }
 
-    console.log(newCols);
-
     // update the last item in response array with the above data and columns
     setDataResponseArray([
       ...dataResponseArray,
@@ -372,7 +375,20 @@ export const AskDefogChat = ({
                       <QALayout type={"Answer"}>
                         <>
                           <p style={{ marginTop: 0 }}>{response.queryReason}</p>
-                          {!dataResponseArray[index] ? (
+                          {sqlOnly === true ? (
+                            <DefogDynamicViz
+                              vizType={vizType}
+                              response={Object.assign(
+                                chatResponseArray[index],
+                              )}
+                              rawData={[]}
+                              query={query}
+                              debugMode={debugMode}
+                              apiKey={apiKey}
+                              sqlOnly={true}
+                            />
+                          ) :
+                          !dataResponseArray[index] ? (
                             <div
                               className="data-loading-search-state"
                               style={{ width: "50%", margin: "0 auto" }}

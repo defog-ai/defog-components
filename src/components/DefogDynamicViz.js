@@ -37,6 +37,7 @@ const DefogDynamicViz = ({
   query,
   debugMode,
   apiKey,
+  sqlOnly=false,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [narrative, setNarrative] = useState(null);
@@ -85,7 +86,9 @@ const DefogDynamicViz = ({
 
   let results;
 
-  if (vizType === "text") {
+  if (sqlOnly === true) {
+    results = null;
+  } else if (vizType === "text") {
     results = <pre>{response.results}</pre>;
   } else {
     // always have a table
