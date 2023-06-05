@@ -22,7 +22,8 @@ export function cleanString(s) {
 
 // change float cols with decimals to 2 decimal places
 export function roundColumns(data, columns) {
-  const decimalCols = columns?.filter((d) => d.colType === "decimal")
+  const decimalCols = columns
+    ?.filter((d) => d.colType === "decimal")
     .map((d) => d.key);
 
   // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
@@ -51,7 +52,11 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
-  if( colName.endsWith("_id") || colName.startsWith("id_") || colName === "id" ) {
+  if (
+    colName.endsWith("_id") ||
+    colName.startsWith("id_") ||
+    colName === "id"
+  ) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
     res["numeric"] = false;
@@ -235,10 +240,10 @@ export function processData(data, columns) {
   });
 
   return {
-    xAxisColumns,
-    categoricalColumns,
-    yAxisColumns,
-    dateColumns,
+    xAxisColumns: xAxisColumns ? xAxisColumns : [],
+    categoricalColumns: categoricalColumns ? categoricalColumns : [],
+    yAxisColumns: yAxisColumns ? yAxisColumns : [],
+    dateColumns: dateColumns ? dateColumns : [],
     xAxisColumnValues,
   };
 }

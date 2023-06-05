@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`doesn't crash when all props are null 1`] = `
+<div
+  className="sc-hfDuwB bnLcPV"
+>
+  <div
+    className="chart-container"
+  >
+    <div
+      className="chart-error"
+    >
+      <span>
+        No data to plot
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`doesn't crash when all props are null or empty arrays/objects 1`] = `
+<div
+  className="sc-hfDuwB bnLcPV"
+>
+  <div
+    className="chart-container"
+  >
+    <div
+      className="chart-error"
+    >
+      <span>
+        No data to plot
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`doesn't crash when all props empty arrays/objects/nulls 1`] = `
+<div
+  className="sc-hfDuwB bnLcPV"
+>
+  <div
+    className="chart-container"
+  >
+    <div
+      className="chart-error"
+    >
+      <span>
+        No data to plot
+      </span>
+    </div>
+  </div>
+</div>
+`;

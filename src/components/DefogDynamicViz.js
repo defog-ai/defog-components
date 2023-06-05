@@ -37,8 +37,9 @@ const DefogDynamicViz = ({
   query,
   debugMode,
   apiKey,
-  sqlOnly=false,
+  sqlOnly = false,
 }) => {
+  console.log(response, rawData, query, debugMode, apiKey);
   const { theme } = useContext(ThemeContext);
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
@@ -182,7 +183,7 @@ const DefogDynamicViz = ({
               body: JSON.stringify({
                 apiKey: apiKey,
                 data: {
-                  data: rawData.slice(0,100),
+                  data: rawData.slice(0, 100),
                   columns: response.columns,
                 },
               }),
@@ -482,7 +483,7 @@ const ResultsWrap = styled.div`
     container-type: inline-size;
     container-name: export-button-container;
 
-    @container  (max-width: 650px) {
+    @container (max-width: 650px) {
       position: relative;
       margin-top: 12px;
       gap: 12px;
@@ -497,7 +498,7 @@ const ResultsWrap = styled.div`
       border: none;
       box-shadow: none;
 
-      @container  (max-width: 650px) {
+      @container (max-width: 650px) {
         border-radius: 7px;
         width: 100%;
       }
@@ -557,7 +558,7 @@ const FeedbackWrap = styled.div`
   margin-top: 20px;
   line-height: 1;
 
-  @container  (max-width: 650px) {
+  @container (max-width: 650px) {
     padding: 12px;
     gap: 8px;
   }
@@ -565,7 +566,7 @@ const FeedbackWrap = styled.div`
   & > p {
     margin: 0;
     margin-right: 20px;
-    @container  (max-width: 650px) {
+    @container (max-width: 650px) {
       font-size: 13px;
       margin-right: 12px;
     }
@@ -581,7 +582,7 @@ const FeedbackWrap = styled.div`
     svg {
       width: 12px;
       height: 12px;
-      @container  (max-width: 650px) {
+      @container (max-width: 650px) {
         width: 12px;
         height: 12px;
       }
