@@ -22,8 +22,7 @@ export function cleanString(s) {
 
 // change float cols with decimals to 2 decimal places
 export function roundColumns(data, columns) {
-  const decimalCols = columns
-    .filter((d) => d.colType === "decimal")
+  const decimalCols = columns?.filter((d) => d.colType === "decimal")
     .map((d) => d.key);
 
   // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
@@ -215,23 +214,23 @@ export function getColValues(data = [], columns = []) {
 
 export function processData(data, columns) {
   // find if there's a date column
-  const dateColumns = columns.filter((d) => d.colType === "date");
+  const dateColumns = columns?.filter((d) => d.colType === "date");
   // date comes in as categorical column, but we use that for the x axis, so filter that out also
-  const categoricalColumns = columns.filter(
+  const categoricalColumns = columns?.filter(
     (d) => d.variableType[0] === "c" && d.colType !== "date"
   );
 
   // y axis columns are only numeric non date columns
-  const yAxisColumns = columns.filter(
+  const yAxisColumns = columns?.filter(
     (d) => d.variableType[0] !== "c" && d.colType !== "date"
   );
 
-  const xAxisColumns = columns.slice();
+  const xAxisColumns = columns?.slice();
 
   // find unique values for each of the x axis columns for the dropdowns
   // this we'll use for "labels" prop for chartjs
   const xAxisColumnValues = {};
-  xAxisColumns.forEach((c) => {
+  xAxisColumns?.forEach((c) => {
     xAxisColumnValues[c.key] = getColValues(data, [c.key]);
   });
 
