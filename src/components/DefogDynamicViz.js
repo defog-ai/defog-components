@@ -237,7 +237,7 @@ const DefogDynamicViz = ({
       <div>
         <ResultsWrap theme={theme.config}>
           {results && results}
-          {csvDownload}
+          {sqlOnly === false ? csvDownload : null}
         </ResultsWrap>
         {debugMode && (
           <RateQualityContainer theme={theme.config}>

@@ -235,7 +235,6 @@ export default function ChartContainer({
         options={chartTypes}
         value={chartType}
         onChange={(_, sel) => {
-          console.log(sel);
           setChartType(sel);
         }}
       ></Select>
