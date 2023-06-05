@@ -18,6 +18,7 @@ const App = () => {
           personality={"sarcastic and aloof"}
           debugMode={true}
           apiKey={"test"}
+          sqlOnly={false}
           // additionalParams={{ "test": "test" }}
           // additionalHeaders={{ "test": "test" }}
         />
