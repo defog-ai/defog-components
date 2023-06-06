@@ -16,8 +16,8 @@ global.fetch = (url, options) => {
       log.innerHTML = global.logStr;
 
       if (res.done) {
-        console.log("All tests done");
-        return;
+        log.innerHTML = "All tests finished!";
+        return Promise.reject("All tests finished!");
       }
 
       return Promise.resolve(res.value);

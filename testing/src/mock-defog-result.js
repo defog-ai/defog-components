@@ -13,7 +13,7 @@ const mockColumns = [
   "holiday",
 ];
 
-const commonVals = [[], "", null, undefined, "delete"];
+const commonVals = ["", [], null, undefined, "delete"];
 
 function createData(columns) {
   const nrows = Math.random() * 100;
@@ -120,10 +120,11 @@ export function* testValid() {
 
 export function* testNoData() {
   let selectedCols = randomSlice(mockColumns);
-  const testVals = commonVals.slice();
+  const testVals = commonVals.slice().filter((d) => d !== "");
+  testVals.push([null]);
 
   const baseResult = {
-    columns: randomSlice(mockColumns),
+    columns: randomSlice(selectedCols),
     data: [],
     previous_context: [
       "test",
@@ -182,7 +183,7 @@ export function* testNoSQL() {
 }
 
 export function* testCases() {
-  const tests = [testNoColumns, testNoSQL, testNoData, testValid];
+  const tests = [testNoData, testNoColumns, testNoSQL, testValid];
   for (let i = 0; i < tests.length; i++) {
     yield* tests[i]();
   }
