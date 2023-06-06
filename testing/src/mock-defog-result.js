@@ -134,14 +134,19 @@ function createResponseObject(newProps = {}, testVals = null) {
   return Object.assign(base, newProps);
 }
 
-function* testPropVals(newProps, prop, vals = null) {
+function log(s1 = "", s2 = null) {
+  console.log(s1);
+  global.logStr = window.logStr = s2 ? s2 : s1;
+}
+
+function* testResponseProp(newProps, prop, vals = null) {
   if (!vals) {
     vals = commonVals.slice();
   }
 
   for (let i = 0; i < vals.length; i++) {
     const res = createResponseObject(newProps);
-    window.logStr =
+    global.logStr = window.logStr =
       `Testing ${prop} prop. Current value:` +
       JSON.stringify(vals[i] === "" ? "empty string" : vals[i]);
 
@@ -162,18 +167,14 @@ function* testPropVals(newProps, prop, vals = null) {
 }
 
 function* validData() {
-  console.log("Testing with valid response.");
+  log("Testing with valid response.");
 
-  window.logStr = `Testing with valid response.`;
-
-  // valid result
   yield createResponseObject();
 }
 
 function* onlyQuantitativeColumns() {
   let selectedCols = mockColumns.filter((col) => col.startsWith("value"));
-  console.log("Testing with only quantitative columns.");
-  window.logStr = `Testing with only quantitative columns.`;
+  log("Testing with only quantitative columns.");
 
   yield createResponseObject({
     columns: selectedCols,
@@ -185,21 +186,20 @@ function* noData() {
   const testVals = commonVals.slice().filter((d) => d !== "");
   testVals.push([null]);
 
-  yield* testPropVals({}, "data", testVals);
+  yield* testResponseProp({}, "data", testVals);
 }
 
 function* noColumns() {
-  yield* testPropVals({}, "columns");
+  yield* testResponseProp({}, "columns");
 }
 
 function* noSQL() {
-  yield* testPropVals({}, "query_generated");
+  yield* testResponseProp({}, "query_generated");
 }
 
 function* onlyDates() {
   let selectedCols = mockColumns.slice(0, 6);
-  console.log("Testing with only date columns.");
-  window.logStr = `Testing with only date columns.`;
+  log("Testing with only date columns.");
 
   yield createResponseObject({
     columns: selectedCols,
@@ -207,15 +207,56 @@ function* onlyDates() {
   });
 }
 
+export const chartTypes = [
+  "pie chart",
+  "piechart",
+  "bar chart",
+  "barchart",
+  "column chart",
+  "columnchart",
+  "trend chart",
+  "trendchart",
+  "line chart",
+  "linechart",
+];
+
+function* charts() {
+  for (let i = 0; i < chartTypes.length; i++) {
+    // always have data for charts
+
+    log(`Testing with "${chartTypes[i]}" in the query.`);
+    const res = createResponseObject({
+      columns: mockColumns.slice(),
+      data: createData(mockColumns.slice(), [], true),
+    });
+
+    yield res;
+  }
+}
+
+function* queryRunFailure() {
+  log("Testing ran_successfully = false.");
+  const res = createResponseObject();
+  res.ran_successfully = false;
+
+  yield res;
+}
+
 export function* testCases() {
   const tests = [
     onlyDates,
     onlyQuantitativeColumns,
     validData,
+    queryRunFailure,
     noData,
     noColumns,
     noSQL,
   ];
+
+  // will always have to test charts first unfortunately.
+  // can't figure out how to test and keep the chart type in the query (without editing src/index.js) otherwise
+  tests.unshift(charts);
+
   for (let i = 0; i < tests.length; i++) {
     yield* tests[i]();
   }

@@ -1,19 +1,27 @@
 import React, { useState, Fragment, useEffect } from "react";
 import { AskDefogChat } from "defog-react";
 import { Button } from "antd";
+import { chartTypes } from "./mock-defog-result";
+
+function* yieldChartTypes() {
+  yield* chartTypes.slice();
+}
+
+const cT = yieldChartTypes();
 
 const App = () => {
   const [key, setKey] = useState(0);
 
   useEffect(() => {
+    // we always test charts first because of the way the tests are set up
+    const c = cT.next();
+
     const input = document.getElementsByClassName("ant-input")[0];
-    input.value = "test";
+    input.value = "test " + (c.value ? c.value : "");
 
     const btn = document.querySelector("#results .ant-btn");
     btn.click();
   });
-
-  console.log(window.logStr, window.logStr === "All tests finished!");
 
   return (
     <>
@@ -22,9 +30,10 @@ const App = () => {
           width: "100%",
           height: "100px",
           display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          alignItems: "start",
           flexDirection: "column",
+          marginLeft: "20px",
+          marginTop: "20px",
         }}
         id="test-controller"
       >
