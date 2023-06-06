@@ -3,15 +3,28 @@ import "./index.css";
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import { noDataResult, getValidResult } from "./mock-defog-result";
+import { testCases } from "./mock-defog-result";
+
+const tests = (global.tests = testCases());
 
 global.fetch = (url, options) => {
-  console.log(url, options);
   return Promise.resolve({
-    json: () => Promise.resolve(getValidResult()),
+    json: () => {
+      const res = tests.next();
+
+      const log = document.getElementById("log");
+      log.innerHTML = global.logStr;
+
+      if (res.done) {
+        console.log("All tests done");
+        return;
+      }
+
+      return Promise.resolve(res.value);
+    },
   });
 };
 
-// window.fetch = global.fetch;
+window.fetch = global.fetch;
 
 ReactDOM.render(<App />, document.getElementById("root"));

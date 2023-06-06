@@ -13,6 +13,8 @@ const mockColumns = [
   "holiday",
 ];
 
+const commonVals = [[], "", null, undefined, "delete"];
+
 function createData(columns) {
   const nrows = Math.random() * 100;
   const data = [];
@@ -65,17 +67,41 @@ function createData(columns) {
   return data;
 }
 
-// random slice
+// random slice of an array
 function randomSlice(arr) {
   const start = Math.floor(Math.random() * arr.length);
   const end = Math.floor(Math.random() * (arr.length - start)) + start;
   return arr.slice(start, end);
 }
 
-export function getValidResult() {
+function* resultYielder(baseObj, prop, vals) {
+  for (let i = 0; i < vals.length; i++) {
+    global.logStr =
+      `Testing ${prop} prop. Current value:` +
+      JSON.stringify(vals[i] === "" ? "empty string" : vals[i]);
+
+    console.log(
+      `Testing %c${prop}\x1b[0m prop. Current value:`,
+      "color: #ff0000",
+      vals[i] === "" ? "empty string" : vals[i]
+    );
+
+    if (vals[i] === "delete") {
+      delete baseObj[prop];
+    } else {
+      baseObj[prop] = vals[i];
+    }
+
+    yield baseObj;
+  }
+}
+
+export function* testValid() {
   let selectedCols = randomSlice(mockColumns);
+  console.log("Testing with valid data");
+
   // valid result
-  return {
+  yield {
     // random slice
     columns: selectedCols,
     data: createData(selectedCols),
@@ -92,26 +118,72 @@ export function getValidResult() {
   };
 }
 
-// no data result
-export const noDataResult = {
-  columns: [
-    "dateid",
-    "caldate",
-    "day",
-    "week",
-    "month",
-    "qtr",
-    "year",
-    "holiday",
-  ],
-  data: [],
-  previous_context: [
-    "test",
-    "SELECT * FROM date ORDER BY caldate ASC NULLS LAST;",
-  ],
-  query_generated: "SELECT * FROM date ORDER BY caldate ASC NULLS LAST;",
-  ran_successfully: true,
-  reason_for_query:
-    "The user's question is not provided, so I will generate a query that selects all columns from the `date` table and orders the results by `caldate` in ascending order. This query will retrieve all the dates in the database and order them chronologically.",
-  suggestion_for_further_questions: null,
-};
+export function* testNoData() {
+  let selectedCols = randomSlice(mockColumns);
+  const testVals = commonVals.slice();
+
+  const baseResult = {
+    columns: randomSlice(mockColumns),
+    data: [],
+    previous_context: [
+      "test",
+      "SELECT * FROM date ORDER BY caldate ASC NULLS LAST;",
+    ],
+    query_generated: "SELECT * FROM date ORDER BY caldate ASC NULLS LAST;",
+    ran_successfully: true,
+    reason_for_query:
+      "The user's question is not provided, so I will generate a query that selects all columns from the `date` table and orders the results by `caldate` in ascending order. This query will retrieve all the dates in the database and order them chronologically.",
+    suggestion_for_further_questions: null,
+  };
+
+  yield* resultYielder(baseResult, "data", testVals);
+}
+
+export function* testNoColumns() {
+  let selectedCols = randomSlice(mockColumns);
+  const testVals = commonVals.slice();
+
+  const baseResult = {
+    columns: [],
+    data: createData(selectedCols),
+    previous_context: [
+      "test",
+      "SELECT * FROM date ORDER BY caldate ASC NULLS LAST;",
+    ],
+    query_generated: "SELECT * FROM date ORDER BY caldate ASC NULLS LAST;",
+    ran_successfully: true,
+    reason_for_query:
+      "The user's question is not provided, so I will generate a query that selects all columns from the `date` table and orders the results by `caldate` in ascending order. This query will retrieve all the dates in the database and order them chronologically.",
+    suggestion_for_further_questions: null,
+  };
+
+  yield* resultYielder(baseResult, "columns", testVals);
+}
+
+export function* testNoSQL() {
+  let selectedCols = randomSlice(mockColumns);
+  const testVals = commonVals.slice();
+
+  const baseResult = {
+    columns: selectedCols,
+    data: createData(selectedCols),
+    previous_context: [
+      "test",
+      "SELECT * FROM date ORDER BY caldate ASC NULLS LAST;",
+    ],
+    query_generated: null,
+    ran_successfully: true,
+    reason_for_query:
+      "The user's question is not provided, so I will generate a query that selects all columns from the `date` table and orders the results by `caldate` in ascending order. This query will retrieve all the dates in the database and order them chronologically.",
+    suggestion_for_further_questions: null,
+  };
+
+  yield* resultYielder(baseResult, "query_generated", testVals);
+}
+
+export function* testCases() {
+  const tests = [testNoColumns, testNoSQL, testNoData, testValid];
+  for (let i = 0; i < tests.length; i++) {
+    yield* tests[i]();
+  }
+}
