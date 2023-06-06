@@ -13,6 +13,8 @@ const App = () => {
     btn.click();
   });
 
+  console.log(window.logStr, window.logStr === "All tests finished!");
+
   return (
     <>
       <div
@@ -26,7 +28,12 @@ const App = () => {
         }}
         id="test-controller"
       >
-        <Button onClick={() => setKey(key + 1)}>Next test</Button>
+        <Button
+          onClick={() => setKey(key + 1)}
+          disabled={window.logStr === "All tests finished!"}
+        >
+          Next test
+        </Button>
         <p id="log"></p>
       </div>
 

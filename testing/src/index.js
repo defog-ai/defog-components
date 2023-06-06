@@ -13,10 +13,11 @@ global.fetch = (url, options) => {
       const res = tests.next();
 
       const log = document.getElementById("log");
-      log.innerHTML = global.logStr;
+      log.innerHTML = window.logStr;
 
       if (res.done) {
         log.innerHTML = "All tests finished!";
+        window.logStr = "All tests finished!";
         return Promise.reject("All tests finished!");
       }
 
