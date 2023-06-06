@@ -479,14 +479,9 @@ const ResultsWrap = styled.div`
     display: flex;
     gap: 2px;
 
-    container-type: inline-size;
-    container-name: export-button-container;
-
-    @container  (max-width: 650px) {
-      position: relative;
-      margin-top: 12px;
-      gap: 12px;
-    }
+    position: relative;
+    margin-top: 12px;
+    gap: 12px;
 
     button {
       background: ${(props) =>
