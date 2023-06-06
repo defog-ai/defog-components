@@ -51,6 +51,8 @@ const DefogDynamicViz = ({
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
 
+  console.log(response);
+
   // if no response, return error
   if (!response || isEmpty(response)) {
     return (
@@ -116,7 +118,8 @@ const DefogDynamicViz = ({
       <Table
         key="0"
         dataSource={roundedData}
-        columns={response.columns}
+        // don't show index column in table
+        columns={response.columns.filter((d) => d.title !== "index")}
         scroll={{ x: "max-content" }}
         style={{
           maxHeight: 300,
