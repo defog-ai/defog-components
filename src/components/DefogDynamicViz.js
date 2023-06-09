@@ -257,7 +257,7 @@ const DefogDynamicViz = ({
       <div>
         <ResultsWrap theme={theme.config}>
           {results && results}
-          {csvDownload}
+          {sqlOnly === false ? csvDownload : null}
         </ResultsWrap>
         {debugMode && (
           <RateQualityContainer theme={theme.config}>
@@ -499,14 +499,9 @@ const ResultsWrap = styled.div`
     display: flex;
     gap: 2px;
 
-    container-type: inline-size;
-    container-name: export-button-container;
-
-    @container (max-width: 650px) {
-      position: relative;
-      margin-top: 12px;
-      gap: 12px;
-    }
+    position: relative;
+    margin-top: 12px;
+    gap: 12px;
 
     button {
       background: ${(props) =>

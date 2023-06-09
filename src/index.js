@@ -33,6 +33,7 @@ export const AskDefogChat = ({
   sqlOnly = false,
   // can be "websocket" or "http"
   mode = "http",
+  loadingMessage = "Generating a query for your question...",
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -478,7 +479,7 @@ export const AskDefogChat = ({
                     style={{ width: "50%", margin: "0 auto" }}
                   >
                     <SearchState
-                      message={"Generating a query for your question..."}
+                      message={loadingMessage}
                       lottie={
                         <Lottie animationData={LoadingLottie} loop={true} />
                       }

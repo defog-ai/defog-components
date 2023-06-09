@@ -46,8 +46,10 @@ export function roundColumns(data, columns) {
 // sigh. sometimes model returns numbers as strings for some reason.
 // so use regex instead of typeof
 // from here: https://stackoverflow.com/questions/2811031/decimal-or-numeric-values-in-regular-expression-validation
-function isNumber(val) {
-  return /^-?(0|[1-9]\d*)?(\.\d+)?(?<=\d)$/.test(val);
+function isNumber(input) {
+  const regex1 = /^-?(0|[1-9]\d*)?(\.\d+)?$/;
+  const regex2 = /\d$/;
+  return regex1.test(input) && regex2.test(input);
 }
 
 export function inferColumnType(rows, colIdx, colName) {
