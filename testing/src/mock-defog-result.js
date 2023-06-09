@@ -261,3 +261,12 @@ export function* testCases() {
     yield* tests[i]();
   }
 }
+
+export function autoTest() {
+  if (window && !window.testsFinished && window.autoTesting) {
+    const nextTestBtn = document.querySelector(
+      "#test-controller .next-test-btn"
+    );
+    nextTestBtn.click();
+  }
+}

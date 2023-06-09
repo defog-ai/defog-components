@@ -121,10 +121,12 @@ export const AskDefogChat = ({
     setQuery(query);
     setTimeout(() => {
       const divEl = document.getElementById("results");
-      divEl.scrollTo({
-        top: divRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+      if (divEl.current) {
+        divEl.scrollTo({
+          top: divRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }
     }, 100);
 
     if (mode === "websocket") {

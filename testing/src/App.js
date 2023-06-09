@@ -1,7 +1,7 @@
-import React, { useState, Fragment, useEffect } from "react";
+import React, { useState, Fragment, useEffect, useCallback } from "react";
 import { AskDefogChat } from "defog-react";
 import { Button } from "antd";
-import { chartTypes } from "./mock-defog-result";
+import { autoTest, chartTypes } from "./mock-defog-result";
 
 function* yieldChartTypes() {
   yield* chartTypes.slice();
@@ -11,17 +11,26 @@ const cT = yieldChartTypes();
 
 const App = () => {
   const [key, setKey] = useState(0);
+  const [dummy, setDummy] = useState(0);
+
+  const handleClick = () => {
+    window.autoTesting = !window.autoTesting;
+    if (window.autoTesting) {
+      setTimeout(autoTest, 1000);
+    }
+    setDummy(dummy + 1);
+  };
 
   useEffect(() => {
-    // we always test charts first because of the way the tests are set up
+    // unfortunately.. we always test charts first because of the way the tests are set up
     const c = cT.next();
 
-    const input = document.getElementsByClassName("ant-input")[0];
-    input.value = "test " + (c.value ? c.value : "");
+    const defogQuery = document.getElementsByClassName("ant-input")[0];
+    defogQuery.value = "test " + (c.value ? c.value : "");
 
-    const btn = document.querySelector("#results .ant-btn");
-    btn.click();
-  });
+    const defogSubmit = document.querySelector("#results .ant-btn");
+    defogSubmit.click();
+  }, [key]);
 
   return (
     <>
@@ -37,12 +46,36 @@ const App = () => {
         }}
         id="test-controller"
       >
-        <Button
-          onClick={() => setKey(key + 1)}
-          disabled={window.logStr === "All tests finished!"}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+          }}
         >
-          Next test
-        </Button>
+          <Button
+            key={key}
+            className="next-test-btn"
+            onClick={() => setKey(key + 1)}
+            disabled={window.testsFinished}
+            style={{
+              opacity: window.autoTesting ? 0 : 1,
+              height: window.autoTesting ? 0 : "auto",
+              marginRight: window.autoTesting ? 0 : "20px",
+              width: window.autoTesting ? 0 : "auto",
+              pointerEvents: window.autoTesting ? "none" : "auto",
+            }}
+          >
+            Next test
+          </Button>
+
+          <Button
+            className="pause-auto-test-btn"
+            onClick={handleClick}
+            disabled={window.testsFinished}
+          >
+            {window.autoTesting ? "Pause auto testing" : "Resume auto testing"}
+          </Button>
+        </div>
         <p id="log"></p>
       </div>
 
