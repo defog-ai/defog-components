@@ -43,16 +43,15 @@ const DefogDynamicViz = ({
   query,
   debugMode,
   apiKey,
-  sqlOnly = false,
+  resetChat,
+  sqlOnly,
 }) => {
   const { theme } = useContext(ThemeContext);
-  const [narrative, setNarrative] = useState(null);
-  const [narrativeLoading, setNarrativeLoading] = useState(false);
+  // const [narrative, setNarrative] = useState(null);
+  // const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
-
-  console.log(response);
-
+  
   // if no response, return error
   if (!response || isEmpty(response)) {
     return (
@@ -185,10 +184,10 @@ const DefogDynamicViz = ({
           )
         }
       >
-        Download CSV
+        ⬇️ CSV
       </Button>
 
-      <Button
+      {/* <Button
         loading={narrativeLoading}
         onClick={async () => {
           setNarrativeLoading(true);
@@ -213,7 +212,11 @@ const DefogDynamicViz = ({
           setNarrativeLoading(false);
         }}
       >
-        Get Narrative
+        💭 Narrative
+      </Button> */}
+
+      <Button onClick={() => resetChat()}>
+        Reset Chat
       </Button>
     </div>
   );
@@ -260,6 +263,7 @@ const DefogDynamicViz = ({
           {sqlOnly === false ? csvDownload : null}
         </ResultsWrap>
         {debugMode && (
+          <>
           <RateQualityContainer theme={theme.config}>
             {response.generatedSql && (
               <>
@@ -275,16 +279,18 @@ const DefogDynamicViz = ({
               </div>
             )}
           </RateQualityContainer>
+
+          <FeedbackWrap theme={theme.config}>
+            <p>How did we do with is this query?</p>
+            <button onClick={() => uploadFeedback("Good")}>
+              <ThumbsUp />
+            </button>
+            <button onClick={() => setModalVisible(true)}>
+              <ThumbsDown />
+            </button>
+          </FeedbackWrap>
+          </>
         )}
-        <FeedbackWrap theme={theme.config}>
-          <p>How did we do with is this query?</p>
-          <button onClick={() => uploadFeedback("Good")}>
-            <ThumbsUp />
-          </button>
-          <button onClick={() => setModalVisible(true)}>
-            <ThumbsDown />
-          </button>
-        </FeedbackWrap>
       </div>
     </>
   );

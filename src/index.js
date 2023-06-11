@@ -53,12 +53,19 @@ export const AskDefogChat = ({
     config: darkMode === true ? darkThemeColor : lightThemeColor,
   });
 
+  const resetChat = () => {
+    setChatResponseArray([]);
+    setDataResponseArray([]);
+    setPreviousQuestions([]);
+    setRawData([]);
+  };
+
   useEffect(() => {
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
       .matches
       ? "dark"
       : "light";
-
+    
     if (darkMode === null || darkMode === undefined) {
       if (systemTheme === "dark") {
         setTheme({ type: "dark", config: darkThemeColor });
@@ -402,6 +409,13 @@ export const AskDefogChat = ({
                               debugMode={debugMode}
                               apiKey={apiKey}
                               sqlOnly={true}
+                              resetChat={() => {
+                                setChatResponseArray([]);
+                                setDataResponseArray([]);
+                                setPreviousQuestions([]);
+                                setRawData([]);
+                                return;
+                              }}
                             />
                           ) : !dataResponseArray[index] ? (
                             <div
@@ -431,6 +445,14 @@ export const AskDefogChat = ({
                               query={query}
                               debugMode={debugMode}
                               apiKey={apiKey}
+                              sqlOnly={false}
+                              resetChat={() => {
+                                setChatResponseArray([]);
+                                setDataResponseArray([]);
+                                setPreviousQuestions([]);
+                                setRawData([]);
+                                return;
+                              }}
                             />
                           )}
                           {/* {response.suggestedQuestions && (
