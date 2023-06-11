@@ -15,7 +15,6 @@
     "build": "microbundle-crl --no-compress --format modern,cjs",
     "start": "microbundle-crl watch --no-compress --format modern,cjs",
     "prepare": "run-s build",
-    "test": "jest --colors",
     "test:build": "run-s build",
     "test:lint": "eslint .",
     "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
@@ -49,8 +48,7 @@
     "prettier": "^2.0.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "^5.0.1",
-    "react-test-renderer": "^16.14.0"
+    "react-scripts": "^5.0.1"
   },
   "files": [
     "dist"
