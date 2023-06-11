@@ -51,7 +51,7 @@ const DefogDynamicViz = ({
   // const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
-  
+
   // if no response, return error
   if (!response || isEmpty(response)) {
     return (
@@ -215,9 +215,7 @@ const DefogDynamicViz = ({
         💭 Narrative
       </Button> */}
 
-      <Button onClick={() => resetChat()}>
-        Reset Chat
-      </Button>
+      <Button onClick={() => resetChat()}>Reset Chat</Button>
     </div>
   );
 
@@ -264,31 +262,31 @@ const DefogDynamicViz = ({
         </ResultsWrap>
         {debugMode && (
           <>
-          <RateQualityContainer theme={theme.config}>
-            {response.generatedSql && (
-              <>
-                <p>The following query was generated:</p>
-                <pre>{response.generatedSql}</pre>
-              </>
-            )}
+            <RateQualityContainer theme={theme.config}>
+              {response.generatedSql && (
+                <>
+                  <p>The following query was generated:</p>
+                  <pre>{response.generatedSql}</pre>
+                </>
+              )}
 
-            {narrative && (
+              {/* {narrative && (
               <div className="generatedNarrative">
                 <p>Narrative</p>
                 {narrative}
               </div>
-            )}
-          </RateQualityContainer>
+            )} */}
+            </RateQualityContainer>
 
-          <FeedbackWrap theme={theme.config}>
-            <p>How did we do with is this query?</p>
-            <button onClick={() => uploadFeedback("Good")}>
-              <ThumbsUp />
-            </button>
-            <button onClick={() => setModalVisible(true)}>
-              <ThumbsDown />
-            </button>
-          </FeedbackWrap>
+            <FeedbackWrap theme={theme.config}>
+              <p>How did we do with is this query?</p>
+              <button onClick={() => uploadFeedback("Good")}>
+                <ThumbsUp />
+              </button>
+              <button onClick={() => setModalVisible(true)}>
+                <ThumbsDown />
+              </button>
+            </FeedbackWrap>
           </>
         )}
       </div>
@@ -508,7 +506,7 @@ const ResultsWrap = styled.div`
     position: relative;
     margin-top: 12px;
     gap: 12px;
-    
+
     button {
       background: ${(props) =>
         props.theme ? props.theme.background2 : "#F8FAFB"};

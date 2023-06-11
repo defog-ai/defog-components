@@ -2,12 +2,15 @@ import "./index.css";
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { testCases } from "./mock-defog-result";
+import { autoTest, testCases } from "./mock-defog-result";
 import App from "./App";
 
-const tests = (global.tests = testCases());
+const tests = testCases();
 
-global.fetch = (url, options) => {
+window.autoTesting = true;
+window.testsFinished = false;
+
+window.fetch = (url, options) => {
   return Promise.resolve({
     json: () => {
       const res = tests.next();
@@ -18,14 +21,16 @@ global.fetch = (url, options) => {
       if (res.done) {
         log.innerHTML = "All tests finished!";
         window.logStr = "All tests finished!";
-        return Promise.resolve();
+        window.testsFinished = true;
+
+        return Promise.resolve({ ran_successfully: true });
       }
+
+      setTimeout(autoTest, 1000);
 
       return Promise.resolve(res.value);
     },
   });
 };
-
-window.fetch = global.fetch;
 
 ReactDOM.render(<App />, document.getElementById("root"));
