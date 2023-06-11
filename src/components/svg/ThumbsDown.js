@@ -3,7 +3,7 @@ import React from "react";
 const ThumbsDown = () => {
   return (
     <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g clip-path="url(#clip0_986_6061)">
+      <g clipPath="url(#clip0_986_6061)">
         <path
           d="M1.02083 0.583008H2.47917C3.04208 0.583008 3.5 1.04093 3.5 1.60384V8.31217C3.5 8.87509 3.04208 9.33301 2.47917 9.33301H1.02083C0.457917 9.33301 0 8.87509 0 8.31217V1.60384C0 1.04093 0.457917 0.583008 1.02083 0.583008Z"
           fill="#888888"

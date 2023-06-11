@@ -5,7 +5,11 @@ import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState.js";
 import LoadingLottie from "./components/svg/loader.json";
 import DefogDynamicViz from "./components/DefogDynamicViz.js";
-import { inferColumnType } from "./components/common/utils.js";
+import {
+  inferColumnType,
+  sanitiseColumns,
+  sanitiseData,
+} from "./components/common/utils.js";
 import QALayout from "./components/common/QALayout.js";
 import {
   ThemeContext,
@@ -25,7 +29,7 @@ export const AskDefogChat = ({
   apiKey,
   darkMode,
   additionalParams = {},
-  additionalHeaders= {},
+  additionalHeaders = {},
   sqlOnly = false,
   // can be "websocket" or "http"
   mode = "http",
@@ -193,9 +197,8 @@ export const AskDefogChat = ({
 
   function handleDataResponse(dataResponse, query) {
     // remove rows for which every value is null
-    setRawData(
-      dataResponse?.data?.filter((d) => !d.every((val) => val === null))
-    );
+    setRawData(sanitiseData(dataResponse?.data));
+
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
@@ -235,12 +238,10 @@ export const AskDefogChat = ({
     // if inferred type is numeric but variable Type is "categorical"
     const stringAsNumeric = [];
 
-    // remove rows for which every value is null
-    const validData = dataResponse?.data?.filter(
-      (d) => !d.every((val) => val === null)
-    );
+    let validData = sanitiseData(dataResponse?.data);
+    let validColumns = sanitiseColumns(dataResponse?.columns);
 
-    if (dataResponse.columns && validData.length > 0) {
+    if (validColumns.length && validData.length) {
       const cols = dataResponse.columns;
       const rows = validData;
       newCols = [];
@@ -277,6 +278,9 @@ export const AskDefogChat = ({
 
       for (let i = 0; i < rows.length; i++) {
         let row = {};
+        row["key"] = i;
+        row["index"] = i;
+
         for (let j = 0; j < cols.length; j++) {
           if (numericAsString.indexOf(j) >= 0) {
             row[cols[j]] = +rows[i][j];
@@ -284,9 +288,20 @@ export const AskDefogChat = ({
             row[cols[j]] = "" + rows[i][j];
           } else row[cols[j]] = rows[i][j];
         }
-        rows["key"] = i;
         newRows.push(row);
       }
+
+      // push an index column
+      newCols.push({
+        title: "index",
+        dataIndex: "index",
+        key: "index",
+        sorter: (a, b) => a["index"] - b["index"],
+        colType: "integer",
+        variableType: "integer",
+        numeric: true,
+        simpleTypeOf: "number",
+      });
     } else {
       newCols = [];
       newRows = [];
@@ -307,11 +322,13 @@ export const AskDefogChat = ({
 
     setTimeout(() => {
       const divEl = document.getElementById("answers");
-      {divEl &&
-      divEl.scrollTo({
-        top: divEl.scrollHeight - 600,
-        behavior: "auto",
-      });}
+      {
+        divEl &&
+          divEl.scrollTo({
+            top: divEl.scrollHeight - 600,
+            behavior: "auto",
+          });
+      }
     }, 200);
   }
   const genExtra = () => (
@@ -379,17 +396,14 @@ export const AskDefogChat = ({
                           {sqlOnly === true ? (
                             <DefogDynamicViz
                               vizType={vizType}
-                              response={Object.assign(
-                                chatResponseArray[index],
-                              )}
+                              response={Object.assign(chatResponseArray[index])}
                               rawData={[]}
                               query={query}
                               debugMode={debugMode}
                               apiKey={apiKey}
                               sqlOnly={true}
                             />
-                          ) :
-                          !dataResponseArray[index] ? (
+                          ) : !dataResponseArray[index] ? (
                             <div
                               className="data-loading-search-state"
                               style={{ width: "50%", margin: "0 auto" }}
@@ -503,7 +517,7 @@ const Wrap = styled.div`
   .ant-collapse-content-box {
     padding: 20px !important;
 
-    @container  (max-width: 650px) {
+    @container (max-width: 650px) {
       padding: 8px !important;
     }
   }
@@ -529,7 +543,7 @@ const ColoredContainer = styled.div`
   margin-bottom: 20px;
   margin-top: 20px;
 
-  @container  (max-width: 767px) {
+  @container (max-width: 767px) {
     padding: 12px;
   }
 `;
