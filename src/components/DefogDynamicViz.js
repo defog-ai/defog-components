@@ -17,6 +17,7 @@ import {
 
 import {
   download_csv,
+  isEmpty,
   processData,
   roundColumns,
   transformToCSV,
@@ -30,6 +31,11 @@ import ThumbsUp from "./svg/ThumbsUp.js";
 import ThumbsDown from "./svg/ThumbsDown.js";
 import { ThemeContext } from "../context/ThemeContext.js";
 
+const errorMessages = {
+  noReponse:
+    "There seems to be no response from our servers. Please try again.",
+};
+
 const DefogDynamicViz = ({
   vizType = null,
   response,
@@ -37,13 +43,26 @@ const DefogDynamicViz = ({
   query,
   debugMode,
   apiKey,
-  sqlOnly=false,
+  sqlOnly = false,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
+
+  console.log(response);
+
+  // if no response, return error
+  if (!response || isEmpty(response)) {
+    return (
+      <ErrorMessageWrap>
+        <div className="defog-viz-error">
+          <span>{errorMessages.noReponse}</span>
+        </div>
+      </ErrorMessageWrap>
+    );
+  }
 
   const uploadFeedback = (feedback, feedbackText = "") => {
     if (feedback === "Good") {
@@ -99,7 +118,8 @@ const DefogDynamicViz = ({
       <Table
         key="0"
         dataSource={roundedData}
-        columns={response.columns}
+        // don't show index column in table
+        columns={response.columns.filter((d) => d.title !== "index")}
         scroll={{ x: "max-content" }}
         style={{
           maxHeight: 300,
@@ -182,7 +202,7 @@ const DefogDynamicViz = ({
               body: JSON.stringify({
                 apiKey: apiKey,
                 data: {
-                  data: rawData.slice(0,100),
+                  data: rawData.slice(0, 100),
                   columns: response.columns,
                 },
               }),
@@ -482,7 +502,7 @@ const ResultsWrap = styled.div`
     position: relative;
     margin-top: 12px;
     gap: 12px;
-
+    
     button {
       background: ${(props) =>
         props.theme ? props.theme.background2 : "#F8FAFB"};
@@ -492,7 +512,7 @@ const ResultsWrap = styled.div`
       border: none;
       box-shadow: none;
 
-      @container  (max-width: 650px) {
+      @container (max-width: 650px) {
         border-radius: 7px;
         width: 100%;
       }
@@ -552,7 +572,7 @@ const FeedbackWrap = styled.div`
   margin-top: 20px;
   line-height: 1;
 
-  @container  (max-width: 650px) {
+  @container (max-width: 650px) {
     padding: 12px;
     gap: 8px;
   }
@@ -560,7 +580,7 @@ const FeedbackWrap = styled.div`
   & > p {
     margin: 0;
     margin-right: 20px;
-    @container  (max-width: 650px) {
+    @container (max-width: 650px) {
       font-size: 13px;
       margin-right: 12px;
     }
@@ -576,7 +596,7 @@ const FeedbackWrap = styled.div`
     svg {
       width: 12px;
       height: 12px;
-      @container  (max-width: 650px) {
+      @container (max-width: 650px) {
         width: 12px;
         height: 12px;
       }
@@ -629,6 +649,21 @@ const FeedbackModalWrap = styled.div`
     &:hover {
       color: #fff !important;
       opacity: 0.8;
+    }
+  }
+`;
+
+const ErrorMessageWrap = styled.div`
+    .defog-viz-error {
+      width: 100%;
+      height: 200px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      span {
+        color: ${(props) =>
+          props.theme ? props.theme.secondaryText : "#606060"};
+      }
     }
   }
 `;

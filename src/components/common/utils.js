@@ -1,9 +1,12 @@
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { chartColors } from "../../context/ThemeContext";
-
+import weekOfYear from "dayjs/plugin/weekOfYear";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+dayjs.extend(advancedFormat);
+dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
 
+import { chartColors } from "../../context/ThemeContext";
 const dateFormats = [
   "YYYY-MM-DD HH:mm:ss",
   "YYYY-MM-DDTHH:mm:ss",
@@ -22,10 +25,11 @@ export function cleanString(s) {
 
 // change float cols with decimals to 2 decimal places
 export function roundColumns(data, columns) {
-  const decimalCols = columns?.filter((d) => d.colType === "decimal")
+  const decimalCols = columns
+    ?.filter((d) => d.colType === "decimal")
     .map((d) => d.key);
 
-  // create new data by copying it deeply because in the future we might have tabs for a chart and want to plot accurate vals in charts.
+  // create new data by copying it deeply because we want to plot accurate vals in charts
   const roundedData = [];
   data?.forEach((d, i) => {
     roundedData.push(Object.assign({}, d));
@@ -53,7 +57,11 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
-  if( colName.endsWith("_id") || colName.startsWith("id_") || colName === "id" ) {
+  if (
+    colName.endsWith("_id") ||
+    colName.startsWith("id_") ||
+    colName === "id"
+  ) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
     res["numeric"] = false;
@@ -237,10 +245,10 @@ export function processData(data, columns) {
   });
 
   return {
-    xAxisColumns,
-    categoricalColumns,
-    yAxisColumns,
-    dateColumns,
+    xAxisColumns: xAxisColumns ? xAxisColumns : [],
+    categoricalColumns: categoricalColumns ? categoricalColumns : [],
+    yAxisColumns: yAxisColumns ? yAxisColumns : [],
+    dateColumns: dateColumns ? dateColumns : [],
     xAxisColumnValues,
   };
 }
@@ -253,6 +261,29 @@ export function isEmpty(obj) {
   }
 
   return true;
+}
+
+export function sanitiseColumns(columns) {
+  // check if it's not an array or undefined
+  if (!Array.isArray(columns) || !columns) {
+    return [];
+  }
+  // convert all existing columns to strings
+  const cleanColumns = columns.map((c) => String(c));
+  return cleanColumns;
+}
+
+export function sanitiseData(data) {
+  // check if it's not an array or undefined
+  if (!Array.isArray(data) || !data) {
+    return [];
+  }
+  // filter out null elements from data array
+  // for the remaining rows, check if the whole row is null
+  const cleanData = data
+    .filter((d) => d)
+    .filter((d) => !d.every((val) => val === null));
+  return cleanData;
 }
 
 export function createChartConfig(
@@ -269,7 +300,10 @@ export function createChartConfig(
     !data ||
     !data.length
   ) {
-    return [];
+    return {
+      chartLabels: [],
+      chartData: [],
+    };
   }
 
   // chart labels are just selectedXValues

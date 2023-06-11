@@ -224,8 +224,12 @@ export default function ChartContainer({
     null,
     null
   );
-  
-  const [chartType, setChartType] = useState({label: vizType, value: vizType, __data__: vizType});
+
+  const [chartType, setChartType] = useState({
+    label: vizType,
+    value: vizType,
+    __data__: vizType,
+  });
 
   const chartTypeDropdown = (
     <div className="chart-container-select">
