@@ -1,6 +1,6 @@
 import React, { useState, useRef, Fragment, useEffect } from "react";
 import Lottie from "lottie-react";
-import { Input, Collapse, message } from "antd";
+import { Input, Collapse, Row, Col, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState.js";
 import LoadingLottie from "./components/svg/loader.json";
@@ -31,8 +31,8 @@ export const AskDefogChat = ({
   additionalParams = {},
   additionalHeaders = {},
   sqlOnly = false,
-  // can be "websocket" or "http"
-  mode = "http",
+  dashboard = false,
+  mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
 }) => {
   const { Search } = Input;
@@ -45,6 +45,8 @@ export const AskDefogChat = ({
   const [dataResponseArray, setDataResponseArray] = useState([]);
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
+  const [dashboardCharts, setDashboardCharts] = useState([]);
+
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
 
@@ -52,14 +54,7 @@ export const AskDefogChat = ({
     type: darkMode === true ? "dark" : "light",
     config: darkMode === true ? darkThemeColor : lightThemeColor,
   });
-
-  const resetChat = () => {
-    setChatResponseArray([]);
-    setDataResponseArray([]);
-    setPreviousQuestions([]);
-    setRawData([]);
-  };
-
+  
   useEffect(() => {
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
       .matches
@@ -79,6 +74,107 @@ export const AskDefogChat = ({
     }
   }, [darkMode]);
 
+  const reFormatData = (data, columns) => {
+    let newCols;
+    let newRows;
+
+    // if inferred typeof column is number, decimal, or integer
+    // but simple typeof value is string, means it's a numeric value coming in as string
+    // so coerce them to a number
+    // store the indexes of such columns
+    const numericAsString = [];
+    // deal with columns like "user_id" etc coming in as numbers.
+    // if inferred type is numeric but variable Type is "categorical"
+    const stringAsNumeric = [];
+
+    let validData = sanitiseData(data);
+    let validColumns = sanitiseColumns(columns);
+    
+    if (validColumns.length && validData.length) {
+      const cols = columns;
+      const rows = validData;
+      newCols = [];
+      newRows = [];
+      for (let i = 0; i < cols.length; i++) {
+        newCols.push(
+          Object.assign(
+            {
+              title: cols[i],
+              dataIndex: cols[i],
+              key: cols[i],
+              // simple typeof. if a number is coming in as string, this will be string.
+              simpleTypeOf: typeof rows[0][i],
+              sorter:
+                rows.length > 0 && typeof rows[0][i] === "number"
+                  ? (a, b) => a[cols[i]] - b[cols[i]]
+                  : (a, b) =>
+                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+            },
+            inferColumnType(rows, i, cols[i])
+          )
+        );
+        if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
+          numericAsString.push(i);
+        }
+        if (
+          newCols[i].numeric &&
+          newCols[i].simpleTypeOf === "number" &&
+          newCols[i].variableType === "categorical"
+        ) {
+          stringAsNumeric.push(i);
+        }
+      }
+
+      for (let i = 0; i < rows.length; i++) {
+        let row = {};
+        row["key"] = i;
+        row["index"] = i;
+
+        for (let j = 0; j < cols.length; j++) {
+          if (numericAsString.indexOf(j) >= 0) {
+            row[cols[j]] = +rows[i][j];
+          } else if (stringAsNumeric.indexOf(j) >= 0) {
+            row[cols[j]] = "" + rows[i][j];
+          } else row[cols[j]] = rows[i][j];
+        }
+        newRows.push(row);
+      }
+
+      // push an index column
+      newCols.push({
+        title: "index",
+        dataIndex: "index",
+        key: "index",
+        sorter: (a, b) => a["index"] - b["index"],
+        colType: "integer",
+        variableType: "integer",
+        numeric: true,
+        simpleTypeOf: "number",
+      });
+    } else {
+      newCols = [];
+      newRows = [];
+    }
+
+    return {newCols, newRows};
+  };
+
+  useState(() => {
+    // getDashboardCharts();
+    const data = [["name1", 200], ["name2", 300]];
+    const columns = ["col1", "col2"];
+    const {newRows, newCols} = reFormatData(data, columns);
+
+    setDashboardCharts([
+      {
+        data: newRows,
+        columns: newCols,
+        vizType: "table",
+        rawData: data,
+      }
+    ])
+  }, []);
+
   const toggleTheme = () => {
     setTheme(
       theme.type === "light"
@@ -94,13 +190,13 @@ export const AskDefogChat = ({
     return apiEndpoint + urlPath;
   }
 
+  function setupWebsocket() {
+    comms.current = new WebSocket(apiEndpoint);
+  }
+
   var comms = useRef(null);
 
   if (mode === "websocket") {
-    function setupWebsocket() {
-      comms.current = new WebSocket(apiEndpoint);
-    }
-
     // if it's not open or not created yet, recreate
     if (!comms.current || comms.current.readyState !== comms.current.OPEN) {
       setupWebsocket();
@@ -204,7 +300,7 @@ export const AskDefogChat = ({
     }
   }
 
-  function handleDataResponse(dataResponse, query) {
+  const handleDataResponse = (dataResponse, query) => {
     // remove rows for which every value is null
     setRawData(sanitiseData(dataResponse?.data));
 
@@ -235,86 +331,7 @@ export const AskDefogChat = ({
       setVizType("table");
     }
 
-    let newCols;
-    let newRows;
-
-    // if inferred typeof column is number, decimal, or integer
-    // but simple typeof value is string, means it's a numeric value coming in as string
-    // so coerce them to a number
-    // store the indexes of such columns
-    const numericAsString = [];
-    // deal with columns like "user_id" etc coming in as numbers.
-    // if inferred type is numeric but variable Type is "categorical"
-    const stringAsNumeric = [];
-
-    let validData = sanitiseData(dataResponse?.data);
-    let validColumns = sanitiseColumns(dataResponse?.columns);
-
-    if (validColumns.length && validData.length) {
-      const cols = dataResponse.columns;
-      const rows = validData;
-      newCols = [];
-      newRows = [];
-      for (let i = 0; i < cols.length; i++) {
-        newCols.push(
-          Object.assign(
-            {
-              title: cols[i],
-              dataIndex: cols[i],
-              key: cols[i],
-              // simple typeof. if a number is coming in as string, this will be string.
-              simpleTypeOf: typeof rows[0][i],
-              sorter:
-                rows.length > 0 && typeof rows[0][i] === "number"
-                  ? (a, b) => a[cols[i]] - b[cols[i]]
-                  : (a, b) =>
-                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-            },
-            inferColumnType(rows, i, cols[i])
-          )
-        );
-        if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
-          numericAsString.push(i);
-        }
-        if (
-          newCols[i].numeric &&
-          newCols[i].simpleTypeOf === "number" &&
-          newCols[i].variableType === "categorical"
-        ) {
-          stringAsNumeric.push(i);
-        }
-      }
-
-      for (let i = 0; i < rows.length; i++) {
-        let row = {};
-        row["key"] = i;
-        row["index"] = i;
-
-        for (let j = 0; j < cols.length; j++) {
-          if (numericAsString.indexOf(j) >= 0) {
-            row[cols[j]] = +rows[i][j];
-          } else if (stringAsNumeric.indexOf(j) >= 0) {
-            row[cols[j]] = "" + rows[i][j];
-          } else row[cols[j]] = rows[i][j];
-        }
-        newRows.push(row);
-      }
-
-      // push an index column
-      newCols.push({
-        title: "index",
-        dataIndex: "index",
-        key: "index",
-        sorter: (a, b) => a["index"] - b["index"],
-        colType: "integer",
-        variableType: "integer",
-        numeric: true,
-        simpleTypeOf: "number",
-      });
-    } else {
-      newCols = [];
-      newRows = [];
-    }
+    const { newRows, newCols } = reFormatData(dataResponse?.data, dataResponse?.columns);
 
     // update the last item in response array with the above data and columns
     setDataResponseArray([
@@ -339,7 +356,8 @@ export const AskDefogChat = ({
           });
       }
     }, 200);
-  }
+  };
+
   const genExtra = () => (
     <ThemeSwitchButton mode={theme.type} handleMode={toggleTheme} />
   );
@@ -526,6 +544,35 @@ export const AskDefogChat = ({
               </SearchWrap>
             </Panel>
           </Collapse>
+          <div>
+            <Row style={{paddingLeft: 20}} gutter={8}>
+              {dashboardCharts.map((chart, index) => {
+                return (
+                  <>
+                    <Col xs={{span: 24}} md={{span: 12}} key={index}>
+                      <h3>Heading</h3>
+                      <DefogDynamicViz
+                        vizType={chart.vizType}
+                        response={chart}
+                        rawData={chart.rawData}
+                        query={"this is a title"}
+                      />
+                    </Col>
+                    <Col xs={{span: 24}} md={{span: 12}} key={index}>
+                      <h3>Heading</h3>
+                      <DefogDynamicViz
+                        vizType={chart.vizType}
+                        response={chart}
+                        rawData={chart.rawData}
+                        query={"this is a title"}
+                      />
+                    </Col>
+                  </>
+                                      
+                )
+              })}
+            </Row>
+          </div>
         </div>
       </Wrap>
     </ThemeContext.Provider>

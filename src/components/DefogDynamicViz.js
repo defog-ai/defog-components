@@ -51,7 +51,7 @@ const DefogDynamicViz = ({
   // const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
-
+  
   // if no response, return error
   if (!response || isEmpty(response)) {
     return (
