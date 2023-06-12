@@ -223,8 +223,6 @@ export function getColValues(data = [], columns = []) {
 }
 
 export function processData(data, columns) {
-  console.log(data);
-  console.log(columns);
   // find if there's a date column
   const dateColumns = columns?.filter((d) => d.colType === "date");
   // date comes in as categorical column, but we use that for the x axis, so filter that out also
