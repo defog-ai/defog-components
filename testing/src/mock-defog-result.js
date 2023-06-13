@@ -136,7 +136,7 @@ function createResponseObject(newProps = {}, testVals = null) {
 
 function log(s1 = "", s2 = null) {
   console.log(s1);
-  global.logStr = window.logStr = s2 ? s2 : s1;
+  window.logStr = window.logStr = s2 ? s2 : s1;
 }
 
 function* testResponseProp(newProps, prop, vals = null) {
@@ -146,7 +146,7 @@ function* testResponseProp(newProps, prop, vals = null) {
 
   for (let i = 0; i < vals.length; i++) {
     const res = createResponseObject(newProps);
-    global.logStr = window.logStr =
+    window.logStr = window.logStr =
       `Testing ${prop} prop. Current value:` +
       JSON.stringify(vals[i] === "" ? "empty string" : vals[i]);
 

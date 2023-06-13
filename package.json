@@ -5,22 +5,27 @@
   "author": "defog-ai",
   "license": "MIT",
   "repository": "",
-  "main": "dist/index.js",
-  "module": "dist/index.modern.js",
-  "source": "src/index.js",
+  "main": "dist/index.umd.cjs",
+  "module": "dist/index.js",
+  "source": "src/index.jsx",
+  "type": "module",
   "engines": {
     "node": ">=10"
   },
   "scripts": {
-    "build": "microbundle-crl --no-compress --format modern,cjs",
-    "start": "microbundle-crl watch --no-compress --format modern,cjs",
     "prepare": "run-s build",
     "test:build": "run-s build",
     "test:lint": "eslint .",
     "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
     "test:watch": "react-scripts test --env=jsdom",
     "predeploy": "cd example && npm install && npm run build",
-    "deploy": "gh-pages -d example/build"
+    "deploy": "gh-pages -d example/build",
+    "build": "vite build",
+    "start": "vite build --watch"
+  },
+  "exports": {
+    "import": "./dist/index.js",
+    "require": "./dist/index.umd.cjs"
   },
   "peerDependencies": {
     "react": "^16.4.0"
@@ -48,10 +53,12 @@
     "prettier": "^2.0.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "vite": "^4.3.9",
+    "vite-plugin-externalize-deps": "^0.6.0"
   },
   "files": [
-    "dist"
+    "dist/"
   ],
   "dependencies": {
     "antd": "^5.1.7",

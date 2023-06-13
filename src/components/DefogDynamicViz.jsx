@@ -23,13 +23,14 @@ import {
   transformToCSV,
 } from "./common/utils.js";
 
-import ErrorBoundary from "./common/ErrorBoundary.js";
-import ChartContainer from "./ChartContainer.jsx";
+import ErrorBoundary from "./common/ErrorBoundary";
+import ChartContainer from "./ChartContainer";
 
 import styled from "styled-components";
-import ThumbsUp from "./svg/ThumbsUp.js";
-import ThumbsDown from "./svg/ThumbsDown.js";
-import { ThemeContext } from "../context/ThemeContext.js";
+import ThumbsUp from "./svg/ThumbsUp";
+import ThumbsDown from "./svg/ThumbsDown";
+import { ThemeContext } from "../context/ThemeContext";
+import Agent from "./agent/Agent";
 
 const errorMessages = {
   noReponse:
@@ -51,7 +52,7 @@ const DefogDynamicViz = ({
   // const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
-  
+
   // if no response, return error
   if (!response || isEmpty(response)) {
     return (
@@ -108,6 +109,8 @@ const DefogDynamicViz = ({
     results = null;
   } else if (vizType === "text") {
     results = <pre>{response.results}</pre>;
+  } else if (vizType === "agent") {
+    results = <Agent initialSubQns={response.subQns} />;
   } else {
     // always have a table
     // round decimal cols to 2 decimal places
@@ -172,20 +175,26 @@ const DefogDynamicViz = ({
     );
   }
 
-  const csvDownload = (
+  let csvDownload;
+
+  csvDownload = (
     <div className="exportNarativeBtn">
-      <Button
-        onClick={() =>
-          download_csv(
-            transformToCSV(
-              rawData,
-              response.columns.map((d) => d.title)
+      {vizType === "agent" ? (
+        <></>
+      ) : (
+        <Button
+          onClick={() =>
+            download_csv(
+              transformToCSV(
+                rawData,
+                response.columns.map((d) => d.title)
+              )
             )
-          )
-        }
-      >
-        ⬇️ CSV
-      </Button>
+          }
+        >
+          ⬇️ CSV
+        </Button>
+      )}
 
       {/* <Button
         loading={narrativeLoading}

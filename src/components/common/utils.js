@@ -392,3 +392,34 @@ export function download_csv(csvString) {
   hiddenElement.click();
   hiddenElement.remove();
 }
+
+export const tools = [
+  {
+    name: "SQL Aggregator",
+    description:
+      "Generates SQL queries to get aggregates (with splits on multiple attributes)." +
+      "Good for getting percentiles, summarizing quantities over time, topk rows and outliers " +
+      "based on percentiles, or joining information across tables. Not good at statistical analysis",
+    fn: "sql_aggregator",
+  },
+  {
+    name: "Summary Statistics",
+    description:
+      "Generates SQL + python code to sample and estimate summary statistics from a given column." +
+      "Good for getting mean, std, p25, p50, p75",
+    fn: "py_column_summarizer",
+  },
+  {
+    name: "Correlation Finder",
+    description:
+      "Generates python code to find correlations in the data. " +
+      "Good for finding correlations and associations between values in different columns. " +
+      "Not good when number of rows is large",
+    fn: "py_correlator",
+  },
+  {
+    name: "Time Series Forecaster",
+    description: "Generates python code to forecast values in a time-series.",
+    fn: "py_time_series_forecaster",
+  },
+];

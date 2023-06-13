@@ -2,22 +2,31 @@ import React, { useState, useRef, Fragment, useEffect } from "react";
 import Lottie from "lottie-react";
 import { Input, Collapse, Row, Col, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
-import SearchState from "./components/SearchState.js";
+import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
-import DefogDynamicViz from "./components/DefogDynamicViz.js";
+import DefogDynamicViz from "./components/DefogDynamicViz";
 import {
   inferColumnType,
   sanitiseColumns,
   sanitiseData,
 } from "./components/common/utils.js";
-import QALayout from "./components/common/QALayout.js";
+import QALayout from "./components/common/QALayout";
 import {
   ThemeContext,
   darkThemeColor,
   lightThemeColor,
-} from "./context/ThemeContext.js";
+} from "./context/ThemeContext";
 import styled from "styled-components";
-import ThemeSwitchButton from "./components/common/ThemeSwitchButton.js";
+import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
+
+import { createGlobalStyle } from "styled-components";
+import { UtilsContext } from "./context/UtilsContext";
+const GlobalStyle = createGlobalStyle`
+.ant-popover-arrow, ant-popover-arrow-content {
+  --antd-arrow-background-color: black;
+}
+
+`;
 
 export const AskDefogChat = ({
   apiEndpoint,
@@ -26,7 +35,7 @@ export const AskDefogChat = ({
   buttonText = "Ask Defog",
   debugMode = false,
   personality = "Friendly",
-  apiKey,
+  apiKey = null,
   darkMode,
   additionalParams = {},
   additionalHeaders = {},
@@ -55,13 +64,13 @@ export const AskDefogChat = ({
     type: darkMode === true ? "dark" : "light",
     config: darkMode === true ? darkThemeColor : lightThemeColor,
   });
-  
+
   useEffect(() => {
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
       .matches
       ? "dark"
       : "light";
-    
+
     if (darkMode === null || darkMode === undefined) {
       if (systemTheme === "dark") {
         setTheme({ type: "dark", config: darkThemeColor });
@@ -90,7 +99,7 @@ export const AskDefogChat = ({
 
     let validData = sanitiseData(data);
     let validColumns = sanitiseColumns(columns);
-    
+
     if (validColumns.length && validData.length) {
       const cols = columns;
       const rows = validData;
@@ -157,14 +166,17 @@ export const AskDefogChat = ({
       newRows = [];
     }
 
-    return {newCols, newRows};
+    return { newCols, newRows };
   };
 
   useState(() => {
     // getDashboardCharts();
-    const data = [["name1", 200], ["name2", 300]];
+    const data = [
+      ["name1", 200],
+      ["name2", 300],
+    ];
     const columns = ["col1", "col2"];
-    const {newRows, newCols} = reFormatData(data, columns);
+    const { newRows, newCols } = reFormatData(data, columns);
 
     setDashboardCharts([
       {
@@ -172,8 +184,8 @@ export const AskDefogChat = ({
         columns: newCols,
         vizType: "table",
         rawData: data,
-      }
-    ])
+      },
+    ]);
   }, []);
 
   const toggleTheme = () => {
@@ -207,9 +219,10 @@ export const AskDefogChat = ({
     // we COULD use useCallback here but something for the future perhaps.
     comms.current.onmessage = function (event) {
       const response = JSON.parse(event.data);
+      let agent = false;
 
       if (response.response_type === "model-completion") {
-        handleChatResponse(response, query, false);
+        handleChatResponse(response, query, agent, false);
       } else if (response.response_type === "generated-data") {
         handleDataResponse(response, query);
       }
@@ -221,6 +234,13 @@ export const AskDefogChat = ({
       message.error("Please enter a question to search");
       return;
     }
+
+    let agent = false;
+    // check if query is asking for a report
+    if (query.toLowerCase().indexOf("report") > -1) {
+      agent = true;
+    }
+
     setButtonLoading(true);
     setQuery(query);
     setTimeout(() => {
@@ -238,6 +258,7 @@ export const AskDefogChat = ({
         JSON.stringify({
           question: query,
           previous_context: previousQuestions,
+          agent,
         })
       );
     } else if (mode === "http") {
@@ -253,6 +274,7 @@ export const AskDefogChat = ({
             previous_context: previousQuestions,
             ...additionalParams,
             personality: personality,
+            agent,
           }),
         }).then((d) => d.json());
 
@@ -264,7 +286,7 @@ export const AskDefogChat = ({
           );
         }
 
-        handleChatResponse(queryChatResponse, query);
+        handleChatResponse(queryChatResponse, query, agent, !agent);
       } catch (e) {
         console.log(e);
         message.error(
@@ -275,29 +297,64 @@ export const AskDefogChat = ({
     }
   };
 
-  function handleChatResponse(queryChatResponse, query, executeData = true) {
+  function handleChatResponse(
+    queryChatResponse,
+    query,
+    agent = false,
+    executeData = true
+  ) {
+    console.log(queryChatResponse, agent, executeData);
+    // parse agent sub_qns in case string
+    if (agent && typeof queryChatResponse.sub_qns === "string") {
+      try {
+        queryChatResponse.sub_qns = queryChatResponse.sub_qns
+          ? JSON.parse(queryChatResponse.sub_qns)
+          : [];
+      } catch (e) {
+        console.log(e);
+        message.error(
+          "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP."
+        );
+        setButtonLoading(false);
+      }
+    }
+
     // set response array to have the latest everything except data and columns
     setChatResponseArray([
       ...chatResponseArray,
-      {
-        queryReason: queryChatResponse.reason_for_query,
-        suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
-        question: query,
-        generatedSql:
-          queryChatResponse.query_generated || queryChatResponse.code,
-        previousContext: previousQuestions,
-        results: queryChatResponse.results,
-      },
+      !agent
+        ? {
+            queryReason: queryChatResponse.reason_for_query,
+            suggestedQuestions:
+              queryChatResponse.suggestion_for_further_questions,
+            question: query,
+            generatedSql:
+              queryChatResponse.query_generated || queryChatResponse.code,
+            previousContext: previousQuestions,
+            results: queryChatResponse.results,
+            agent: false,
+          }
+        : {
+            subQns: queryChatResponse.sub_qns,
+            question: query,
+            agent: true,
+          },
     ]);
 
     const contextQuestions = [query, queryChatResponse.query_generated];
     setPreviousQuestions([...previousQuestions, ...contextQuestions]);
+
     if (sqlOnly === false && executeData) {
       handleDataResponse(queryChatResponse, query);
     }
 
-    if (sqlOnly === true) {
+    if (sqlOnly === true || agent) {
       setButtonLoading(false);
+    }
+
+    if (agent) {
+      setVizType("agent");
+      setDataResponseArray([...dataResponseArray, {}]);
     }
   }
 
@@ -332,7 +389,10 @@ export const AskDefogChat = ({
       setVizType("table");
     }
 
-    const { newRows, newCols } = reFormatData(dataResponse?.data, dataResponse?.columns);
+    const { newRows, newCols } = reFormatData(
+      dataResponse?.data,
+      dataResponse?.columns
+    );
 
     // update the last item in response array with the above data and columns
     setDataResponseArray([
@@ -346,7 +406,6 @@ export const AskDefogChat = ({
     setButtonLoading(false);
 
     // scroll to the bottom of the results div
-
     setTimeout(() => {
       const divEl = document.getElementById("answers");
       {
@@ -364,119 +423,116 @@ export const AskDefogChat = ({
   );
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <Wrap theme={theme.config}>
-        <div
-          ref={divRef}
-          id="results"
-          style={{
-            overflow: "hidden",
-            maxHeight: maxHeight,
-          }}
-        >
-          {/* add a button on the top right of this div with an expand arrow */}
-          <Collapse
-            bordered={false}
-            defaultActiveKey={["1"]}
-            expandIconPosition="end"
-            style={{
-              color: theme.config.primaryText,
-              backgroundColor: theme.config.background1,
-              borderRadius: 0,
-            }}
-            expandIcon={() => (
-              <CaretRightOutlined rotate={isActive ? 270 : 90} />
-            )}
-            onChange={(state) =>
-              state.length > 1 ? setIsActive(true) : setIsActive(false)
-            }
-          >
-            <Panel
-              header={buttonText}
-              key="1"
-              style={{ color: theme.config.primaryText }}
-              extra={genExtra()}
+    <>
+      <GlobalStyle />
+      <UtilsContext.Provider
+        value={{ apiKey, additionalHeaders, additionalParams, query }}
+      >
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+          <Wrap theme={theme.config}>
+            <div
+              ref={divRef}
+              id="results"
+              style={{
+                overflow: "hidden",
+                maxHeight: maxHeight,
+              }}
             >
-              <div
-                id="answers"
+              {/* add a button on the top right of this div with an expand arrow */}
+              <Collapse
+                bordered={false}
+                defaultActiveKey={["1"]}
+                expandIconPosition="end"
                 style={{
-                  width: "100%",
-                  maxWidth: maxWidth,
-                  maxHeight:
-                    typeof maxHeight == "number"
-                      ? `calc(${maxHeight}px - 120px)`
-                      : `calc(${maxHeight} - 120px)`,
-                  overflowY: "scroll",
-                  overflowX: "scroll",
-                  paddingTop: 0,
-                  paddingBottom: 0,
+                  color: theme.config.primaryText,
+                  backgroundColor: theme.config.background1,
+                  borderRadius: 0,
                 }}
+                expandIcon={() => (
+                  <CaretRightOutlined rotate={isActive ? 270 : 90} />
+                )}
+                onChange={(state) =>
+                  state.length > 1 ? setIsActive(true) : setIsActive(false)
+                }
               >
-                {chatResponseArray.map((response, index) => {
-                  return (
-                    <ColoredContainer key={index} theme={theme.config}>
-                      <QALayout type={"Question"}>
-                        <p style={{ margin: 0 }}>{response.question}</p>
-                      </QALayout>
-                      <QALayout type={"Answer"}>
-                        <>
-                          <p style={{ marginTop: 0 }}>{response.queryReason}</p>
-                          {sqlOnly === true ? (
-                            <DefogDynamicViz
-                              vizType={vizType}
-                              response={Object.assign(chatResponseArray[index])}
-                              rawData={[]}
-                              query={query}
-                              debugMode={debugMode}
-                              apiKey={apiKey}
-                              sqlOnly={true}
-                              resetChat={() => {
-                                setChatResponseArray([]);
-                                setDataResponseArray([]);
-                                setPreviousQuestions([]);
-                                setRawData([]);
-                                return;
-                              }}
-                            />
-                          ) : !dataResponseArray[index] ? (
-                            <div
-                              className="data-loading-search-state"
-                              style={{ width: "50%", margin: "0 auto" }}
-                            >
-                              <SearchState
-                                message={
-                                  "Query generated! Getting your data..."
-                                }
-                                lottie={
-                                  <Lottie
-                                    animationData={LoadingLottie}
-                                    loop={true}
+                <Panel
+                  header={buttonText}
+                  key="1"
+                  style={{ color: theme.config.primaryText }}
+                  extra={genExtra()}
+                >
+                  <div
+                    id="answers"
+                    style={{
+                      width: "100%",
+                      maxWidth: maxWidth,
+                      maxHeight:
+                        typeof maxHeight == "number"
+                          ? `calc(${maxHeight}px - 120px)`
+                          : `calc(${maxHeight} - 120px)`,
+                      overflowY: "scroll",
+                      overflowX: "scroll",
+                      paddingTop: 0,
+                      paddingBottom: 0,
+                    }}
+                  >
+                    {chatResponseArray.map((response, index) => {
+                      return (
+                        <ColoredContainer key={index} theme={theme.config}>
+                          <QALayout type={"Question"}>
+                            <p style={{ margin: 0 }}>{response.question}</p>
+                          </QALayout>
+                          <QALayout type={"Answer"}>
+                            <>
+                              <p style={{ marginTop: 0 }}>
+                                {response.queryReason}
+                              </p>
+                              {sqlOnly === true ? (
+                                <DefogDynamicViz
+                                  vizType={vizType}
+                                  response={Object.assign(
+                                    chatResponseArray[index]
+                                  )}
+                                  rawData={[]}
+                                  query={query}
+                                  debugMode={debugMode}
+                                  apiKey={apiKey}
+                                  sqlOnly={true}
+                                  resetChat={resetChat}
+                                />
+                              ) : !dataResponseArray[index] ? (
+                                <div
+                                  className="data-loading-search-state"
+                                  style={{ width: "50%", margin: "0 auto" }}
+                                >
+                                  <SearchState
+                                    message={
+                                      "Query generated! Getting your data..."
+                                    }
+                                    lottie={
+                                      <Lottie
+                                        animationData={LoadingLottie}
+                                        loop={true}
+                                      />
+                                    }
                                   />
-                                }
-                              />
-                            </div>
-                          ) : (
-                            <DefogDynamicViz
-                              vizType={vizType}
-                              response={Object.assign(
-                                chatResponseArray[index],
-                                dataResponseArray[index]
+                                </div>
+                              ) : (
+                                <DefogDynamicViz
+                                  vizType={vizType}
+                                  response={Object.assign(
+                                    chatResponseArray[index],
+                                    dataResponseArray[index]
+                                  )}
+                                  rawData={rawData}
+                                  query={query}
+                                  debugMode={debugMode}
+                                  apiKey={apiKey}
+                                  sqlOnly={false}
+                                  resetChat={resetChat}
+                                />
                               )}
-                              rawData={rawData}
-                              query={query}
-                              debugMode={debugMode}
-                              apiKey={apiKey}
-                              sqlOnly={false}
-                              resetChat={() => {
-                                setChatResponseArray([]);
-                                setDataResponseArray([]);
-                                setPreviousQuestions([]);
-                                setRawData([]);
-                                return;
-                              }}
-                            />
-                          )}
-                          {/* {response.suggestedQuestions && (
+                              {/* {response.suggestedQuestions && (
                             <>
                               <h5
                                 style={{
@@ -497,92 +553,99 @@ export const AskDefogChat = ({
                               </SuggestedQuestionWrap>
                             </>
                           )} */}
-                        </>
-                      </QALayout>
-                    </ColoredContainer>
-                  );
-                })}
-              </div>
-              {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
-              {buttonLoading &&
-              chatResponseArray.length === dataResponseArray.length ? (
-                <div
-                  style={{
-                    background: theme.config.background2,
-                    borderRadius: "12px",
-                    padding: "20px",
-                  }}
-                >
-                  <QALayout type={"Question"}>
-                    <p style={{ margin: 0 }}>{query}</p>
-                  </QALayout>
-
-                  <div
-                    className="data-loading-search-state"
-                    style={{ width: "50%", margin: "0 auto" }}
-                  >
-                    <SearchState
-                      message={loadingMessage}
-                      lottie={
-                        <Lottie animationData={LoadingLottie} loop={true} />
-                      }
-                    />
+                            </>
+                          </QALayout>
+                        </ColoredContainer>
+                      );
+                    })}
                   </div>
-                </div>
-              ) : (
-                ""
-              )}
+                  {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
+                  {buttonLoading &&
+                  chatResponseArray.length === dataResponseArray.length ? (
+                    <div
+                      style={{
+                        background: theme.config.background2,
+                        borderRadius: "12px",
+                        padding: "20px",
+                      }}
+                    >
+                      <QALayout type={"Question"}>
+                        <p style={{ margin: 0 }}>{query}</p>
+                      </QALayout>
 
-              <SearchWrap loading={buttonLoading} theme={theme.config}>
-                <AutoComplete
-                  style={{ width: "100%" }}
-                  options = {predefinedQuestions}
-                  filterOption={(inputValue, option) => option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1}
-                >
-                  <Search
-                    placeholder="Ask a question"
-                    enterButton={buttonText}
-                    size="small"
-                    onSearch={handleSubmit}
-                    loading={buttonLoading}
-                    disabled={buttonLoading}
-                  />
-                </AutoComplete>
-              </SearchWrap>
-            </Panel>
-          </Collapse>
-          {dashboard ? <div>
-            <Row style={{paddingLeft: 20}} gutter={8}>
-              {dashboardCharts.map((chart, index) => {
-                return (
-                  <>
-                    <Col xs={{span: 24}} md={{span: 12}} key={index}>
-                      <h3>Heading</h3>
-                      <DefogDynamicViz
-                        vizType={chart.vizType}
-                        response={chart}
-                        rawData={chart.rawData}
-                        query={"this is a title"}
+                      <div
+                        className="data-loading-search-state"
+                        style={{ width: "50%", margin: "0 auto" }}
+                      >
+                        <SearchState
+                          message={loadingMessage}
+                          lottie={
+                            <Lottie animationData={LoadingLottie} loop={true} />
+                          }
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    ""
+                  )}
+
+                  <SearchWrap loading={buttonLoading} theme={theme.config}>
+                    <AutoComplete
+                      style={{ width: "100%" }}
+                      options={predefinedQuestions}
+                      filterOption={(inputValue, option) =>
+                        option?.value
+                          .toUpperCase()
+                          .indexOf(inputValue.toUpperCase()) !== -1
+                      }
+                    >
+                      <Search
+                        placeholder="Ask a question"
+                        enterButton={buttonText}
+                        size="small"
+                        onSearch={handleSubmit}
+                        loading={buttonLoading}
+                        disabled={buttonLoading}
                       />
-                    </Col>
-                    <Col xs={{span: 24}} md={{span: 12}} key={index}>
-                      <h3>Heading</h3>
-                      <DefogDynamicViz
-                        vizType={chart.vizType}
-                        response={chart}
-                        rawData={chart.rawData}
-                        query={"this is a title"}
-                      />
-                    </Col>
-                  </>
-                                      
-                )
-              })}
-            </Row>
-          </div> : null}
-        </div>
-      </Wrap>
-    </ThemeContext.Provider>
+                    </AutoComplete>
+                  </SearchWrap>
+                </Panel>
+              </Collapse>
+              {dashboard ? (
+                <div>
+                  <Row style={{ paddingLeft: 20 }} gutter={8}>
+                    {dashboardCharts.map((chart, index) => {
+                      return (
+                        <>
+                          <Col xs={{ span: 24 }} md={{ span: 12 }} key={index}>
+                            <h3>Heading</h3>
+                            <DefogDynamicViz
+                              vizType={chart.vizType}
+                              response={chart}
+                              rawData={chart.rawData}
+                              query={"this is a title"}
+                            />
+                          </Col>
+                          <Col xs={{ span: 24 }} md={{ span: 12 }} key={index}>
+                            <h3>Heading</h3>
+                            <DefogDynamicViz
+                              vizType={chart.vizType}
+                              response={chart}
+                              rawData={chart.rawData}
+                              query={"this is a title"}
+                            />
+                          </Col>
+                        </>
+                      );
+                    })}
+                  </Row>
+                </div>
+              ) : null}
+            </div>
+          </Wrap>
+        </ThemeContext.Provider>
+      </UtilsContext.Provider>
+    </>
   );
 };
 
