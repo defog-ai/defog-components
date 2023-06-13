@@ -93,7 +93,7 @@ export const AskDefogChat = ({
       if (data.status === "success") {
         setPredefinedQuestions(data.questions);
       } else {
-        message.error("an error occurred while fetching predefined questions");
+        // message.error("an error occurred while fetching predefined questions");
       }
     } catch {
       // pass
