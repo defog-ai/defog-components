@@ -124,7 +124,7 @@ const DefogDynamicViz = ({
           maxHeight: 300,
         }}
         size="small"
-        pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 5, showSizeChanger: false }}
       />,
     ];
 
