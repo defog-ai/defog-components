@@ -1,6 +1,6 @@
 import React, { useState, useRef, Fragment, useEffect } from "react";
 import Lottie from "lottie-react";
-import { Input, Collapse, Row, Col, message } from "antd";
+import { Input, Collapse, Row, Col, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState.js";
 import LoadingLottie from "./components/svg/loader.json";
@@ -32,6 +32,7 @@ export const AskDefogChat = ({
   additionalHeaders = {},
   sqlOnly = false,
   dashboard = false,
+  predefinedQuestions = [],
   mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
 }) => {
@@ -533,18 +534,24 @@ export const AskDefogChat = ({
               )}
 
               <SearchWrap loading={buttonLoading} theme={theme.config}>
-                <Search
-                  placeholder="Ask a question"
-                  enterButton={buttonText}
-                  size="small"
-                  onSearch={handleSubmit}
-                  loading={buttonLoading}
-                  disabled={buttonLoading}
-                />
+                <AutoComplete
+                  style={{ width: "100%" }}
+                  options = {predefinedQuestions}
+                  filterOption={(inputValue, option) => option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1}
+                >
+                  <Search
+                    placeholder="Ask a question"
+                    enterButton={buttonText}
+                    size="small"
+                    onSearch={handleSubmit}
+                    loading={buttonLoading}
+                    disabled={buttonLoading}
+                  />
+                </AutoComplete>
               </SearchWrap>
             </Panel>
           </Collapse>
-          <div>
+          {dashboard ? <div>
             <Row style={{paddingLeft: 20}} gutter={8}>
               {dashboardCharts.map((chart, index) => {
                 return (
@@ -572,7 +579,7 @@ export const AskDefogChat = ({
                 )
               })}
             </Row>
-          </div>
+          </div> : null}
         </div>
       </Wrap>
     </ThemeContext.Provider>
