@@ -32,7 +32,7 @@ export const AskDefogChat = ({
   additionalHeaders = {},
   sqlOnly = false,
   dashboard = false,
-  predefinedQuestions = [],
+  // predefinedQuestions = [],
   mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
 }) => {
@@ -47,6 +47,7 @@ export const AskDefogChat = ({
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
   const [dashboardCharts, setDashboardCharts] = useState([]);
+  const [predefinedQuestions, setPredefinedQuestions] = useState([]);
 
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
@@ -74,6 +75,34 @@ export const AskDefogChat = ({
       setTheme({ type: "light", config: lightThemeColor });
     }
   }, [darkMode]);
+
+  const getPredefinedQuestions = async() => {
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...additionalHeaders,
+        }, body: JSON.stringify({
+          api_key: apiKey,
+          ...additionalParams,
+          mode: "get_questions"
+        }),
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        setPredefinedQuestions(data.questions);
+      } else {
+        message.error("an error occurred while fetching predefined questions");
+      }
+    } catch {
+      // pass
+    }
+  };
+
+  useEffect(() => {
+    getPredefinedQuestions();
+  }, []);
 
   const reFormatData = (data, columns) => {
     let newCols;
