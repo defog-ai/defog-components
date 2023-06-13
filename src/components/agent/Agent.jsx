@@ -20,7 +20,7 @@ export default function Agent({ initialSubQns, api }) {
   const { theme } = useContext(ThemeContext);
   const { apiKey, additionalHeaders, additionalParams, query } =
     useContext(UtilsContext);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("asdf@asdg.com");
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -42,7 +42,7 @@ export default function Agent({ initialSubQns, api }) {
       }),
     }).then((d) => d.json());
 
-    console.log(resp);
+    console.log(resp, new Date().toISOString());
   }
 
   function updateSubQns(val, i, prop) {

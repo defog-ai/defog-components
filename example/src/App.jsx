@@ -3,6 +3,9 @@ import { AskDefogChat } from "defog-react";
 
 window.realFetch = window.fetch;
 
+const key = import.meta.env;
+console.log(key);
+
 window.fetch = function () {
   return Promise.resolve({
     json: () => {
@@ -59,11 +62,11 @@ const App = () => {
         <AskDefogChat
           maxWidth={"100%"}
           maxHeight={500}
-          apiEndpoint="http://127.0.0.1:8000/generate_query_chat"
+          apiEndpoint={import.meta.env.VITE_ENDPOINT}
           buttonText={"Ask Defog"}
           // personality={"sarcastic and aloof"}
           debugMode={true}
-          apiKey={"test"}
+          apiKey={import.meta.env.VITE_API_KEY}
           sqlOnly={false}
           // additionalHeaders={{ "test": "test" }}
         />

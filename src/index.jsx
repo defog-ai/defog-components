@@ -65,6 +65,13 @@ export const AskDefogChat = ({
     config: darkMode === true ? darkThemeColor : lightThemeColor,
   });
 
+  function resetChat() {
+    setChatResponseArray([]);
+    setDataResponseArray([]);
+    setPreviousQuestions([]);
+    setRawData([]);
+  }
+
   useEffect(() => {
     const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
       .matches
@@ -259,6 +266,7 @@ export const AskDefogChat = ({
           question: query,
           previous_context: previousQuestions,
           agent,
+          api_key: apiKey,
         })
       );
     } else if (mode === "http") {
@@ -275,6 +283,7 @@ export const AskDefogChat = ({
             ...additionalParams,
             personality: personality,
             agent,
+            api_key: apiKey,
           }),
         }).then((d) => d.json());
 

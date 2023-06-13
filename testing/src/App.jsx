@@ -84,7 +84,7 @@ const App = () => {
           key={key}
           maxWidth={"100%"}
           maxHeight={500}
-          apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
+          apiEndpoint=""
           buttonText={"Ask Defog"}
           personality={"sarcastic and aloof"}
           debugMode={true}
