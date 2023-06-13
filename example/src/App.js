@@ -12,22 +12,23 @@ const App = () => {
       <div style={{ width: "100%" }}>
         <AskDefogChat
           maxWidth={"100%"}
-          maxHeight={500}
+          maxHeight={"100%"}
           apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
           // apiEndpoint="http://127.0.0.1:8080/generate_query_chat"
           // apiEndpoint="https://defog-gcp-ktcmdcmg4q-uc.a.run.app"
           buttonText={"Ask Defog"}
           personality={"sarcastic and aloof"}
-          debugMode={true}
+          predefinedQuestions={
+            [
+              {value: "What is my total revenue?"},
+              {value: "How many users did we add by month?"},
+            ]
+          }
+          debugMode={false}
           apiKey={"test"}
           sqlOnly={false}
-          additionalParams={
-            {
-              // api_key:
-              //   "",
-              // db_type: "",
-            }
-          }
+          dashboard={false}
+          // additionalParams={{ "test" : "test"}}
           // additionalHeaders={{ "test": "test" }}
         />
       </div>
