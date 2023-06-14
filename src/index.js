@@ -78,6 +78,7 @@ export const AskDefogChat = ({
   }, [darkMode]);
 
   const getPredefinedQuestions = async() => {
+    setDashboardCharts([]);
     try {
       const response = await fetch(apiEndpoint, {
         method: "POST",
@@ -190,21 +191,65 @@ export const AskDefogChat = ({
     return {newCols, newRows};
   };
 
-  useState(() => {
-    // getDashboardCharts();
-    const data = [["name1", 200], ["name2", 300]];
-    const columns = ["col1", "col2"];
-    const {newRows, newCols} = reFormatData(data, columns);
+  const getDashboardCharts = async () => {
+    // go through each question in predefinedQuestions
+    // send the query to the server
+    // get the data
 
-    setDashboardCharts([
-      {
-        data: newRows,
-        columns: newCols,
-        vizType: "table",
-        rawData: data,
+    // for each question, get the data
+    predefinedQuestions.forEach(async (question) => {
+      const resp = await fetch(makeURL(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...additionalHeaders,
+        },
+        body: JSON.stringify({
+          question: question.value,
+          ...additionalParams,
+        }),
+      }).then((d) => d.json());
+
+      if (resp.ran_successfully === false) {
+        throw Error(
+          `query didn't run successfully. Here's the response received: ${JSON.stringify(
+            resp
+          )}`
+        );
+      } else {
+        // get the data
+        const data = resp.data;
+        // get the columns
+        const columns = resp.columns;
+        
+        // reformat the data
+        const {newCols, newRows} = reFormatData(data, columns);
+
+        // create the chart object
+        const chart = {
+          data: newRows,
+          columns: newCols,
+          vizType: "table",
+          rawData: data,
+          title: question.value,
+        };
+
+        // add the chart to the dashboard
+        setDashboardCharts((prev) => {
+          return [
+            ...prev,
+            chart,
+          ];
+        });
       }
-    ])
-  }, []);
+    });
+  }
+
+  useEffect(() => {
+    if (dashboard && predefinedQuestions.length > 0) {
+      getDashboardCharts();
+    }
+  }, [dashboard, predefinedQuestions]);
 
   const toggleTheme = () => {
     setTheme(
@@ -594,27 +639,15 @@ export const AskDefogChat = ({
             <Row style={{paddingLeft: 20}} gutter={8}>
               {dashboardCharts.map((chart, index) => {
                 return (
-                  <>
-                    <Col xs={{span: 24}} md={{span: 12}} key={index}>
-                      <h3>Heading</h3>
-                      <DefogDynamicViz
-                        vizType={chart.vizType}
-                        response={chart}
-                        rawData={chart.rawData}
-                        query={"this is a title"}
-                      />
-                    </Col>
-                    <Col xs={{span: 24}} md={{span: 12}} key={index}>
-                      <h3>Heading</h3>
-                      <DefogDynamicViz
-                        vizType={chart.vizType}
-                        response={chart}
-                        rawData={chart.rawData}
-                        query={"this is a title"}
-                      />
-                    </Col>
-                  </>
-                                      
+                  <Col xs={{span: 24}} md={{span: 12}} key={index}>
+                    <h3>{chart.title}</h3>
+                    <DefogDynamicViz
+                      vizType={chart.vizType}
+                      response={chart}
+                      rawData={chart.rawData}
+                      query={""}
+                    />
+                  </Col>              
                 )
               })}
             </Row>
