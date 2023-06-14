@@ -51,6 +51,7 @@ export const AskDefogChat = ({
 
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
+  const autoCompRef = useRef(null);
 
   const [theme, setTheme] = useState({
     type: darkMode === true ? "dark" : "light",
@@ -247,9 +248,17 @@ export const AskDefogChat = ({
 
   const handleSubmit = async (query) => {
     if (!query.trim()) {
-      message.error("Please enter a question to search");
+      // message.error("Please enter a question to search");
       return;
     }
+
+    setTimeout(() => {
+      if (autoCompRef.current) {
+        autoCompRef.current.focus();
+        autoCompRef.current.blur();
+      }
+    }, 0);
+
     setButtonLoading(true);
     setQuery(query);
     setTimeout(() => {
@@ -567,6 +576,7 @@ export const AskDefogChat = ({
                   style={{ width: "100%" }}
                   options = {predefinedQuestions}
                   filterOption={(inputValue, option) => option?.value.toUpperCase().indexOf(inputValue.toUpperCase()) !== -1}
+                  ref={autoCompRef}
                 >
                   <Search
                     placeholder="Ask a question"
