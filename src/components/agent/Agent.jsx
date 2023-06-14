@@ -66,9 +66,9 @@ export default function Agent({ initialSubQns, api }) {
                   setTool={(e) => updateSubQns(e, index, "tool")}
                 />
                 <AgentSubQnInput
-                  subQn={subQn.sub_qn}
+                  subQn={subQn.subqn}
                   theme={theme.config}
-                  setSubQn={(e) => updateSubQns(e, index, "sub_qn")}
+                  setSubQn={(e) => updateSubQns(e, index, "subqn")}
                 />
               </div>
             );

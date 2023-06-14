@@ -5,11 +5,7 @@ import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
 import DefogDynamicViz from "./components/DefogDynamicViz";
-import {
-  inferColumnType,
-  sanitiseColumns,
-  sanitiseData,
-} from "./components/common/utils.js";
+import { reFormatData, sanitiseData } from "./components/common/utils.js";
 import QALayout from "./components/common/QALayout";
 import {
   ThemeContext,
@@ -41,7 +37,7 @@ export const AskDefogChat = ({
   additionalHeaders = {},
   sqlOnly = false,
   dashboard = false,
-  predefinedQuestions = [],
+  // predefinedQuestions = [],
   mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
 }) => {
@@ -56,9 +52,11 @@ export const AskDefogChat = ({
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
   const [dashboardCharts, setDashboardCharts] = useState([]);
+  const [predefinedQuestions, setPredefinedQuestions] = useState([]);
 
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
+  const autoCompRef = useRef(null);
 
   const [theme, setTheme] = useState({
     type: darkMode === true ? "dark" : "light",
@@ -91,109 +89,178 @@ export const AskDefogChat = ({
     }
   }, [darkMode]);
 
-  const reFormatData = (data, columns) => {
-    let newCols;
-    let newRows;
-
-    // if inferred typeof column is number, decimal, or integer
-    // but simple typeof value is string, means it's a numeric value coming in as string
-    // so coerce them to a number
-    // store the indexes of such columns
-    const numericAsString = [];
-    // deal with columns like "user_id" etc coming in as numbers.
-    // if inferred type is numeric but variable Type is "categorical"
-    const stringAsNumeric = [];
-
-    let validData = sanitiseData(data);
-    let validColumns = sanitiseColumns(columns);
-
-    if (validColumns.length && validData.length) {
-      const cols = columns;
-      const rows = validData;
-      newCols = [];
-      newRows = [];
-      for (let i = 0; i < cols.length; i++) {
-        newCols.push(
-          Object.assign(
-            {
-              title: cols[i],
-              dataIndex: cols[i],
-              key: cols[i],
-              // simple typeof. if a number is coming in as string, this will be string.
-              simpleTypeOf: typeof rows[0][i],
-              sorter:
-                rows.length > 0 && typeof rows[0][i] === "number"
-                  ? (a, b) => a[cols[i]] - b[cols[i]]
-                  : (a, b) =>
-                      String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-            },
-            inferColumnType(rows, i, cols[i])
-          )
-        );
-        if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
-          numericAsString.push(i);
-        }
-        if (
-          newCols[i].numeric &&
-          newCols[i].simpleTypeOf === "number" &&
-          newCols[i].variableType === "categorical"
-        ) {
-          stringAsNumeric.push(i);
-        }
-      }
-
-      for (let i = 0; i < rows.length; i++) {
-        let row = {};
-        row["key"] = i;
-        row["index"] = i;
-
-        for (let j = 0; j < cols.length; j++) {
-          if (numericAsString.indexOf(j) >= 0) {
-            row[cols[j]] = +rows[i][j];
-          } else if (stringAsNumeric.indexOf(j) >= 0) {
-            row[cols[j]] = "" + rows[i][j];
-          } else row[cols[j]] = rows[i][j];
-        }
-        newRows.push(row);
-      }
-
-      // push an index column
-      newCols.push({
-        title: "index",
-        dataIndex: "index",
-        key: "index",
-        sorter: (a, b) => a["index"] - b["index"],
-        colType: "integer",
-        variableType: "integer",
-        numeric: true,
-        simpleTypeOf: "number",
+  const getPredefinedQuestions = async () => {
+    return;
+    setDashboardCharts([]);
+    try {
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...additionalHeaders,
+        },
+        body: JSON.stringify({
+          api_key: apiKey,
+          ...additionalParams,
+          mode: "get_questions",
+        }),
       });
-    } else {
-      newCols = [];
-      newRows = [];
+      const data = await response.json();
+      if (data.status === "success") {
+        setPredefinedQuestions(data.questions);
+      } else {
+        // message.error("an error occurred while fetching predefined questions");
+      }
+    } catch {
+      // pass
     }
-
-    return { newCols, newRows };
   };
 
-  useState(() => {
-    // getDashboardCharts();
-    const data = [
-      ["name1", 200],
-      ["name2", 300],
-    ];
-    const columns = ["col1", "col2"];
-    const { newRows, newCols } = reFormatData(data, columns);
-
-    setDashboardCharts([
-      {
-        data: newRows,
-        columns: newCols,
-        vizType: "table",
-        rawData: data,
-      },
-    ]);
+  useEffect(() => {
+    getPredefinedQuestions();
   }, []);
+
+  // const reFormatData = (data, columns) => {
+  //   let newCols;
+  //   let newRows;
+
+  //   // if inferred typeof column is number, decimal, or integer
+  //   // but simple typeof value is string, means it's a numeric value coming in as string
+  //   // so coerce them to a number
+  //   // store the indexes of such columns
+  //   const numericAsString = [];
+  //   // deal with columns like "user_id" etc coming in as numbers.
+  //   // if inferred type is numeric but variable Type is "categorical"
+  //   const stringAsNumeric = [];
+
+  //   let validData = sanitiseData(data);
+  //   let validColumns = sanitiseColumns(columns);
+
+  //   if (validColumns.length && validData.length) {
+  //     const cols = columns;
+  //     const rows = validData;
+  //     newCols = [];
+  //     newRows = [];
+  //     for (let i = 0; i < cols.length; i++) {
+  //       newCols.push(
+  //         Object.assign(
+  //           {
+  //             title: cols[i],
+  //             dataIndex: cols[i],
+  //             key: cols[i],
+  //             // simple typeof. if a number is coming in as string, this will be string.
+  //             simpleTypeOf: typeof rows[0][i],
+  //             sorter:
+  //               rows.length > 0 && typeof rows[0][i] === "number"
+  //                 ? (a, b) => a[cols[i]] - b[cols[i]]
+  //                 : (a, b) =>
+  //                     String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+  //           },
+  //           inferColumnType(rows, i, cols[i])
+  //         )
+  //       );
+  //       if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
+  //         numericAsString.push(i);
+  //       }
+  //       if (
+  //         newCols[i].numeric &&
+  //         newCols[i].simpleTypeOf === "number" &&
+  //         newCols[i].variableType === "categorical"
+  //       ) {
+  //         stringAsNumeric.push(i);
+  //       }
+  //     }
+
+  //     for (let i = 0; i < rows.length; i++) {
+  //       let row = {};
+  //       row["key"] = i;
+  //       row["index"] = i;
+
+  //       for (let j = 0; j < cols.length; j++) {
+  //         if (numericAsString.indexOf(j) >= 0) {
+  //           row[cols[j]] = +rows[i][j];
+  //         } else if (stringAsNumeric.indexOf(j) >= 0) {
+  //           row[cols[j]] = "" + rows[i][j];
+  //         } else row[cols[j]] = rows[i][j];
+  //       }
+  //       newRows.push(row);
+  //     }
+
+  //     // push an index column
+  //     newCols.push({
+  //       title: "index",
+  //       dataIndex: "index",
+  //       key: "index",
+  //       sorter: (a, b) => a["index"] - b["index"],
+  //       colType: "integer",
+  //       variableType: "integer",
+  //       numeric: true,
+  //       simpleTypeOf: "number",
+  //     });
+  //   } else {
+  //     newCols = [];
+  //     newRows = [];
+  //   }
+
+  //   return { newCols, newRows };
+  // };
+
+  const getDashboardCharts = async () => {
+    // go through each question in predefinedQuestions
+    // send the query to the server
+    // get the data
+
+    // for each question, get the data
+    predefinedQuestions.forEach(async (question) => {
+      const resp = await fetch(makeURL(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...additionalHeaders,
+        },
+        body: JSON.stringify({
+          question: question.value,
+          ...additionalParams,
+        }),
+      }).then((d) => d.json());
+
+      if (resp.ran_successfully === false) {
+        throw Error(
+          `query didn't run successfully. Here's the response received: ${JSON.stringify(
+            resp
+          )}`
+        );
+      } else {
+        // get the data
+        const data = resp.data;
+        // get the columns
+        const columns = resp.columns;
+
+        // reformat the data
+        const { newCols, newRows } = reFormatData(data, columns);
+
+        // create the chart object
+        const chart = {
+          data: newRows,
+          columns: newCols,
+          vizType: "table",
+          rawData: data,
+          title: question.value,
+        };
+
+        // add the chart to the dashboard
+        setDashboardCharts((prev) => {
+          return [...prev, chart];
+        });
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (dashboard && predefinedQuestions.length > 0) {
+      getDashboardCharts();
+    }
+  }, [dashboard, predefinedQuestions]);
 
   const toggleTheme = () => {
     setTheme(
@@ -238,7 +305,7 @@ export const AskDefogChat = ({
 
   const handleSubmit = async (query) => {
     if (!query.trim()) {
-      message.error("Please enter a question to search");
+      // message.error("Please enter a question to search");
       return;
     }
 
@@ -247,6 +314,13 @@ export const AskDefogChat = ({
     if (query.toLowerCase().indexOf("report") > -1) {
       agent = true;
     }
+
+    setTimeout(() => {
+      if (autoCompRef.current) {
+        autoCompRef.current.focus();
+        autoCompRef.current.blur();
+      }
+    }, 0);
 
     setButtonLoading(true);
     setQuery(query);
@@ -568,7 +642,11 @@ export const AskDefogChat = ({
                       );
                     })}
                   </div>
-                  {/* if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet, otherwise we'd have chatResponse and a missing dataResponse.*/}
+                  {/* 
+                  if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet for the most recently asked question, otherwise we'd have chatResponse and a missing dataResponse.
+                  Hence it won't show up in the chat response array map above.
+                  So render an extra layout + lottie loader for the most recently asked question.
+                  */}
                   {buttonLoading &&
                   chatResponseArray.length === dataResponseArray.length ? (
                     <div
@@ -597,7 +675,6 @@ export const AskDefogChat = ({
                   ) : (
                     ""
                   )}
-
                   <SearchWrap loading={buttonLoading} theme={theme.config}>
                     <AutoComplete
                       style={{ width: "100%" }}
@@ -607,6 +684,7 @@ export const AskDefogChat = ({
                           .toUpperCase()
                           .indexOf(inputValue.toUpperCase()) !== -1
                       }
+                      ref={autoCompRef}
                     >
                       <Search
                         placeholder="Ask a question"
@@ -625,26 +703,15 @@ export const AskDefogChat = ({
                   <Row style={{ paddingLeft: 20 }} gutter={8}>
                     {dashboardCharts.map((chart, index) => {
                       return (
-                        <>
-                          <Col xs={{ span: 24 }} md={{ span: 12 }} key={index}>
-                            <h3>Heading</h3>
-                            <DefogDynamicViz
-                              vizType={chart.vizType}
-                              response={chart}
-                              rawData={chart.rawData}
-                              query={"this is a title"}
-                            />
-                          </Col>
-                          <Col xs={{ span: 24 }} md={{ span: 12 }} key={index}>
-                            <h3>Heading</h3>
-                            <DefogDynamicViz
-                              vizType={chart.vizType}
-                              response={chart}
-                              rawData={chart.rawData}
-                              query={"this is a title"}
-                            />
-                          </Col>
-                        </>
+                        <Col xs={{ span: 24 }} md={{ span: 12 }} key={index}>
+                          <h3>{chart.title}</h3>
+                          <DefogDynamicViz
+                            vizType={chart.vizType}
+                            response={chart}
+                            rawData={chart.rawData}
+                            query={""}
+                          />
+                        </Col>
                       );
                     })}
                   </Row>

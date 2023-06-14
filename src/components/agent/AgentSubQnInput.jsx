@@ -32,6 +32,7 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
               }
             }}
             icon={editable ? <CheckOutlined /> : <EditOutlined />}
+            disabled={val === "" || !val}
           >
             {editable ? "Save" : "Edit"}
           </Button>

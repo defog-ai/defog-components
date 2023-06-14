@@ -1,4 +1,6 @@
-import { Table } from "antd";
+import { styled } from "styled-components";
+import { TableChart } from "../TableChart";
+import { reFormatData } from "../common/utils";
 
 export const csvTable = {
   name: "csvTable",
@@ -30,25 +32,23 @@ export const csvTable = {
       key: d,
     }));
 
-    const rows = token.text.split("\n").slice(1);
-    const tableJson = [];
-    rows.forEach((row, i) => {
-      const rowJson = {};
-      row.split(",").forEach((cell, index) => {
-        rowJson[colNames[index]] = cell;
-      });
-      rowJson.key = i;
-      tableJson.push(rowJson);
-    });
+    const rows = token.text
+      .split("\n")
+      .slice(1)
+      .map((d) => d.split(","));
+
+    const r = reFormatData(rows, colNames);
 
     window.renders = window.renders || [];
     window.renders.push({
       id: randomId,
       text: token.text,
-      component: Table,
+      component: TableChart,
       props: {
-        dataSource: tableJson,
-        columns: columns,
+        response: {
+          columns: r.newCols,
+          data: r.newRows,
+        },
       },
     });
 

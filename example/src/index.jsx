@@ -70,6 +70,14 @@ Based on the analysis above, the top actionable insights for the organization ar
 5. Plan for cash flow and budgeting based on the expected revenue for the next month.
 `;
 
+// fetch(import.meta.env.VITE_ENDPOINT_RPT)
+//   .then((d) => d.json())
+//   .then((rpt) => {
+//     ReactDOM.render(
+//       <Report markdown={rpt.report} />,
+//       document.getElementById("root")
+//     );
+//   });
 ReactDOM.render(<Report markdown={md} />, document.getElementById("root"));
 
-// ReactDOM.render(<App />, document.getElementById('root'))
+// ReactDOM.render(<App />, document.getElementById("root"));

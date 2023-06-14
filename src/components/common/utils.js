@@ -52,6 +52,11 @@ function isNumber(input) {
   return regex1.test(input) && regex2.test(input);
 }
 
+function isExpontential(input) {
+  const regex = /^-?(0|[1-9]\d*)?(\.\d+)?([eE][-+]?\d+)?$/;
+  return regex.test(input);
+}
+
 export function inferColumnType(rows, colIdx, colName) {
   // go through rows
   const res = {};
@@ -89,7 +94,8 @@ export function inferColumnType(rows, colIdx, colName) {
         res["variableType"] = "quantitative";
       }
       // if number but no decimal
-      else if (isNumber(val)) {
+      // or is exponential value
+      else if (isNumber(val) || isExpontential(val)) {
         res["colType"] = "integer";
         res["numeric"] = true;
         res["variableType"] = "quantitative";
@@ -141,7 +147,7 @@ export function setChartJSDefaults(
   ChartJSRef.defaults.plugins.tooltip.borderWidth = 1;
   ChartJSRef.defaults.plugins.tooltip.padding = 10;
 
-  ChartJSRef.defaults.plugins.title.color = theme.primaryText;
+  ChartJSRef.defaults.plugins.title.color = theme?.primaryText;
 
   // if x axis is a date, add a d3 formatter
   ChartJSRef.defaults.plugins.tooltip.displayColors = false;
@@ -423,3 +429,88 @@ export const tools = [
     fn: "py_time_series_forecaster",
   },
 ];
+
+export const reFormatData = (data, columns) => {
+  let newCols;
+  let newRows;
+
+  // if inferred typeof column is number, decimal, or integer
+  // but simple typeof value is string, means it's a numeric value coming in as string
+  // so coerce them to a number
+  // store the indexes of such columns
+  const numericAsString = [];
+  // deal with columns like "user_id" etc coming in as numbers.
+  // if inferred type is numeric but variable Type is "categorical"
+  const stringAsNumeric = [];
+
+  let validData = sanitiseData(data);
+  let validColumns = sanitiseColumns(columns);
+
+  if (validColumns.length && validData.length) {
+    const cols = columns;
+    const rows = validData;
+    newCols = [];
+    newRows = [];
+    for (let i = 0; i < cols.length; i++) {
+      newCols.push(
+        Object.assign(
+          {
+            title: cols[i],
+            dataIndex: cols[i],
+            key: cols[i],
+            // simple typeof. if a number is coming in as string, this will be string.
+            simpleTypeOf: typeof rows[0][i],
+            sorter:
+              rows.length > 0 && typeof rows[0][i] === "number"
+                ? (a, b) => a[cols[i]] - b[cols[i]]
+                : (a, b) =>
+                    String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+          },
+          inferColumnType(rows, i, cols[i])
+        )
+      );
+      if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
+        numericAsString.push(i);
+      }
+      if (
+        newCols[i].numeric &&
+        newCols[i].simpleTypeOf === "number" &&
+        newCols[i].variableType === "categorical"
+      ) {
+        stringAsNumeric.push(i);
+      }
+    }
+
+    for (let i = 0; i < rows.length; i++) {
+      let row = {};
+      row["key"] = i;
+      row["index"] = i;
+
+      for (let j = 0; j < cols.length; j++) {
+        if (numericAsString.indexOf(j) >= 0) {
+          row[cols[j]] = +rows[i][j];
+        } else if (stringAsNumeric.indexOf(j) >= 0) {
+          row[cols[j]] = "" + rows[i][j];
+        } else row[cols[j]] = rows[i][j];
+      }
+      newRows.push(row);
+    }
+
+    // push an index column
+    newCols.push({
+      title: "index",
+      dataIndex: "index",
+      key: "index",
+      sorter: (a, b) => a["index"] - b["index"],
+      colType: "integer",
+      variableType: "integer",
+      numeric: true,
+      simpleTypeOf: "number",
+    });
+  } else {
+    newCols = [];
+    newRows = [];
+  }
+
+  return { newCols, newRows };
+};

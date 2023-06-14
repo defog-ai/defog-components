@@ -34,4 +34,8 @@ const ReportWrap = styled.div`
   white-space: pre-wrap;
   max-width: 90%;
   margin: 0 auto;
+  .csv-table {
+    width: 70%;
+    min-width: 500px;
+  }
 `;

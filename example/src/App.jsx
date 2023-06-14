@@ -3,10 +3,7 @@ import { AskDefogChat } from "defog-react";
 
 window.realFetch = window.fetch;
 
-const key = import.meta.env;
-console.log(key);
-
-window.fetch = function () {
+window.mockFetch = function () {
   return Promise.resolve({
     json: () => {
       return Promise.resolve({
@@ -14,33 +11,33 @@ window.fetch = function () {
         sub_qns: `[
           {
             "tool": "sql_aggregator",
-            "sub_qn": "What are the top-selling products by revenue?",
+            "subqn": "What are the top-selling products by revenue?",
             "reason":
               "Identifying top-selling products helps focus on promoting them."
           },
           {
             "tool": "sql_aggregator",
-            "sub_qn":
+            "subqn":
               "Which sales representatives have the highest sales numbers?",
             "reason":
               "Recognizing high-performing sales representatives can help improve overall sales."
           },
           {
             "tool": "sql_aggregator",
-            "sub_qn": "What is the trend of total sales over time?",
+            "subqn": "What is the trend of total sales over time?",
             "reason":
               "Understanding sales trends helps in making informed business decisions."
           },
           {
             "tool": "py_column_summarizer",
-            "sub_qn":
+            "subqn":
               "What are the average and median values of remaining passes for purchased items?",
             "reason":
               "Knowing the usage of remaining passes can help optimize the offerings."
           },
           {
             "tool": "sql_aggregator",
-            "sub_qn": "Which classes have the highest attendance rates?",
+            "subqn": "Which classes have the highest attendance rates?",
             "reason":
               "Focusing on popular classes can help improve customer satisfaction."
           }

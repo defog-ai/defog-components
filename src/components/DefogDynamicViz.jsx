@@ -9,28 +9,16 @@ import {
   ConfigProvider,
 } from "antd";
 
-import {
-  TableOutlined,
-  BarChartOutlined,
-  CloseOutlined,
-} from "@ant-design/icons";
+import { CloseOutlined } from "@ant-design/icons";
 
-import {
-  download_csv,
-  isEmpty,
-  processData,
-  roundColumns,
-  transformToCSV,
-} from "./common/utils.js";
-
-import ErrorBoundary from "./common/ErrorBoundary";
-import ChartContainer from "./ChartContainer";
+import { download_csv, isEmpty, transformToCSV } from "./common/utils.js";
 
 import styled from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp";
 import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
 import Agent from "./agent/Agent";
+import { TableChart } from "./TableChart.jsx";
 
 const errorMessages = {
   noReponse:
@@ -112,66 +100,8 @@ const DefogDynamicViz = ({
   } else if (vizType === "agent") {
     results = <Agent initialSubQns={response.subQns} />;
   } else {
-    // always have a table
-    // round decimal cols to 2 decimal places
-    const roundedData = roundColumns(response.data, response.columns);
-
-    results = [
-      <Table
-        key="0"
-        dataSource={roundedData}
-        // don't show index column in table
-        columns={response.columns.filter((d) => d.title !== "index")}
-        scroll={{ x: "max-content" }}
-        style={{
-          maxHeight: 300,
-        }}
-        size="small"
-        pagination={{ pageSize: 5 }}
-      />,
-    ];
-
-    const {
-      xAxisColumns,
-      categoricalColumns,
-      yAxisColumns,
-      xAxisColumnValues,
-      dateColumns,
-    } = processData(response.data, response.columns);
-
-    results.push(
-      <ErrorBoundary>
-        <ChartContainer
-          xAxisColumns={xAxisColumns}
-          dateColumns={dateColumns}
-          categoricalColumns={categoricalColumns}
-          yAxisColumns={yAxisColumns}
-          xAxisColumnValues={xAxisColumnValues}
-          data={response.data}
-          columns={response.columns}
-          title={query}
-          key="1"
-          vizType={vizType === "table" ? "Bar Chart" : vizType}
-          theme={theme.config}
-        ></ChartContainer>
-      </ErrorBoundary>
-    );
-
-    // convert to antd tabs
     results = (
-      <Tabs
-        defaultActiveKey={vizType === "table" ? "0" : "1"}
-        items={results.map((d, i) => ({
-          key: String(i),
-          label: (
-            <span>
-              {i === 0 ? <TableOutlined /> : <BarChartOutlined />}
-              {i === 0 ? "Table" : "Chart"}
-            </span>
-          ),
-          children: d,
-        }))}
-      ></Tabs>
+      <TableChart response={response} query={query} vizType={vizType} />
     );
   }
 
