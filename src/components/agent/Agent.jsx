@@ -7,7 +7,7 @@ import { UtilsContext } from "../../context/UtilsContext";
 import { ThemeContext } from "../../context/ThemeContext";
 import { Button, Form, Input } from "antd";
 
-export default function Agent({ initialSubQns, api }) {
+export default function Agent({ initialSubQns }) {
   if (!initialSubQns || !Array.isArray(initialSubQns)) {
     return (
       <div className="agent-error">
@@ -25,7 +25,7 @@ export default function Agent({ initialSubQns, api }) {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const resp = await realFetch("http://127.0.0.1:8000/generate_report", {
+    const resp = await fetch("http://127.0.0.1:8000/generate_report", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -42,7 +42,7 @@ export default function Agent({ initialSubQns, api }) {
       }),
     }).then((d) => d.json());
 
-    console.log(resp, new Date().toISOString());
+    console.log(resp);
   }
 
   function updateSubQns(val, i, prop) {
