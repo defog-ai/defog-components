@@ -7,6 +7,16 @@ dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
 
 import { chartColors } from "../../context/ThemeContext";
+
+export const questionModes = [
+  ["Query my data", "What would you like to know?"],
+  ["Create a report", "What would you like a report on?"],
+].map((d) => ({
+  label: d[0],
+  value: d[0],
+  placeholder: d[1],
+}));
+
 const dateFormats = [
   "YYYY-MM-DD HH:mm:ss",
   "YYYY-MM-DDTHH:mm:ss",

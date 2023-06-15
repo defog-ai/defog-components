@@ -5,7 +5,7 @@ import { styled } from "styled-components";
 
 import { UtilsContext } from "../../context/UtilsContext";
 import { ThemeContext } from "../../context/ThemeContext";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, message } from "antd";
 
 export default function Agent({ initialSubQns }) {
   if (!initialSubQns || !Array.isArray(initialSubQns)) {
@@ -18,14 +18,17 @@ export default function Agent({ initialSubQns }) {
 
   const [subQns, setSubQns] = useState(initialSubQns);
   const { theme } = useContext(ThemeContext);
-  const { apiKey, additionalHeaders, additionalParams, query } =
+  const { apiKey, additionalHeaders, additionalParams, query, apiEndpoint } =
     useContext(UtilsContext);
   const [email, setEmail] = useState("asdf@asdg.com");
+
+  const [submitOkay, setSubmitOkay] = useState(false);
+  const [resp, setResp] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const resp = await fetch("http://127.0.0.1:8000/generate_report", {
+    const r = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,10 +42,18 @@ export default function Agent({ initialSubQns }) {
         api_key: apiKey,
         email: email,
         timestamp: new Date().toISOString(),
+        generate_report: true,
       }),
     }).then((d) => d.json());
 
-    console.log(resp);
+    if (r.ran_successfully) {
+      message.success(r.message);
+      setSubmitOkay(true);
+      setResp(r);
+    } else {
+      message.error(r.error);
+      setSubmitOkay(false);
+    }
   }
 
   function updateSubQns(val, i, prop) {
@@ -56,47 +67,59 @@ export default function Agent({ initialSubQns }) {
   return (
     <AgentWrap>
       <div className="agent-container">
-        <div className="agent-subqns-container">
-          {subQns.map((subQn, index) => {
-            return (
-              <div key={index} className="agent-subqn">
-                <AgentTool
-                  initialTool={subQn.tool}
-                  theme={theme.config}
-                  setTool={(e) => updateSubQns(e, index, "tool")}
-                />
-                <AgentSubQnInput
-                  subQn={subQn.subqn}
-                  theme={theme.config}
-                  setSubQn={(e) => updateSubQns(e, index, "subqn")}
-                />
+        {!submitOkay ? (
+          <>
+            <div className="agent-subqns-container">
+              {subQns.map((subQn, index) => {
+                return (
+                  <div key={index} className="agent-subqn">
+                    <AgentTool
+                      initialTool={subQn.tool}
+                      theme={theme.config}
+                      setTool={(e) => updateSubQns(e, index, "tool")}
+                    />
+                    <AgentSubQnInput
+                      subQn={subQn.subqn}
+                      theme={theme.config}
+                      setSubQn={(e) => updateSubQns(e, index, "subqn")}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <AgentSubmitWrap>
+              <div className="agent-submit">
+                <Form>
+                  <Form.Item>
+                    <Input
+                      placeholder="Enter your email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      onClick={handleSubmit}
+                      disabled={!emailValid}
+                    >
+                      Submit
+                    </Button>
+                  </Form.Item>
+                </Form>
               </div>
-            );
-          })}
-        </div>
+            </AgentSubmitWrap>
+          </>
+        ) : (
+          <>
+            {resp && resp.message ? (
+              <div className="agent-submit-done">{resp.message}</div>
+            ) : (
+              <></>
+            )}
+          </>
+        )}
       </div>
-      <AgentSubmitWrap>
-        <div className="agent-submit">
-          <Form>
-            <Form.Item>
-              <Input
-                placeholder="Enter your email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                onClick={handleSubmit}
-                disabled={!emailValid}
-              >
-                Submit
-              </Button>
-            </Form.Item>
-          </Form>
-        </div>
-      </AgentSubmitWrap>
     </AgentWrap>
   );
 }
@@ -108,6 +131,11 @@ const AgentWrap = styled.div`
         margin-bottom: 1rem;
         vertical-align: top;
       }
+    }
+    .agent-submit-done {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 `;

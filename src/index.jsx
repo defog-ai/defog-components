@@ -1,11 +1,15 @@
 import React, { useState, useRef, Fragment, useEffect } from "react";
 import Lottie from "lottie-react";
-import { Input, Collapse, Row, Col, AutoComplete, message } from "antd";
+import { Input, Collapse, Row, Col, AutoComplete, message, Select } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
 import DefogDynamicViz from "./components/DefogDynamicViz";
-import { reFormatData, sanitiseData } from "./components/common/utils.js";
+import {
+  questionModes,
+  reFormatData,
+  sanitiseData,
+} from "./components/common/utils.js";
 import QALayout from "./components/common/QALayout";
 import {
   ThemeContext,
@@ -20,9 +24,7 @@ import { UtilsContext } from "./context/UtilsContext";
 const GlobalStyle = createGlobalStyle`
 .ant-popover-arrow, ant-popover-arrow-content {
   --antd-arrow-background-color: black;
-}
-
-`;
+}`;
 
 export const AskDefogChat = ({
   apiEndpoint,
@@ -53,6 +55,10 @@ export const AskDefogChat = ({
   const [rawData, setRawData] = useState([]);
   const [dashboardCharts, setDashboardCharts] = useState([]);
   const [predefinedQuestions, setPredefinedQuestions] = useState([]);
+
+  const [questionMode, setQuestionMode] = useState(questionModes[0]);
+
+  const agent = questionMode.value !== "Query my data";
 
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
@@ -293,7 +299,6 @@ export const AskDefogChat = ({
     // we COULD use useCallback here but something for the future perhaps.
     comms.current.onmessage = function (event) {
       const response = JSON.parse(event.data);
-      let agent = false;
 
       if (response.response_type === "model-completion") {
         handleChatResponse(response, query, agent, false);
@@ -307,12 +312,6 @@ export const AskDefogChat = ({
     if (!query.trim()) {
       // message.error("Please enter a question to search");
       return;
-    }
-
-    let agent = false;
-    // check if query is asking for a report
-    if (query.toLowerCase().indexOf("report") > -1) {
-      agent = true;
     }
 
     setTimeout(() => {
@@ -509,7 +508,13 @@ export const AskDefogChat = ({
     <>
       <GlobalStyle />
       <UtilsContext.Provider
-        value={{ apiKey, additionalHeaders, additionalParams, query }}
+        value={{
+          apiKey,
+          additionalHeaders,
+          additionalParams,
+          query,
+          apiEndpoint,
+        }}
       >
         <ThemeContext.Provider value={{ theme, toggleTheme }}>
           <Wrap theme={theme.config}>
@@ -676,6 +681,12 @@ export const AskDefogChat = ({
                     ""
                   )}
                   <SearchWrap loading={buttonLoading} theme={theme.config}>
+                    <Select
+                      options={questionModes}
+                      value={questionMode.value}
+                      onSelect={(_, opt) => setQuestionMode(opt)}
+                      className="question-mode-select"
+                    />
                     <AutoComplete
                       style={{ width: "100%" }}
                       options={predefinedQuestions}
@@ -687,7 +698,7 @@ export const AskDefogChat = ({
                       ref={autoCompRef}
                     >
                       <Search
-                        placeholder="Ask a question"
+                        placeholder={questionMode.placeholder}
                         enterButton={buttonText}
                         size="small"
                         onSearch={handleSubmit}
@@ -794,6 +805,9 @@ const SearchWrap = styled.div`
     props.loading ? props.theme.disabledColor : props.theme.brandColor};
   border-radius: 8px;
   padding: 6px;
+  .question-mode-select {
+    top: 2px;
+  }
   .ant-input-group-wrapper {
     width: 100%;
     .ant-input-wrapper {
