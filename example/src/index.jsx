@@ -71,17 +71,17 @@ Based on the analysis above, the top actionable insights for the organization ar
 `;
 
 // to test Report endpoint
-fetch(import.meta.env.VITE_ENDPOINT_RPT)
-  .then((d) => d.json())
-  .then((rpt) => {
-    ReactDOM.render(
-      <Report markdown={rpt.report} />,
-      document.getElementById("root")
-    );
-  });
+// fetch(import.meta.env.VITE_ENDPOINT_RPT)
+//   .then((d) => d.json())
+//   .then((rpt) => {
+//     ReactDOM.render(
+//       <Report markdown={rpt.report} />,
+//       document.getElementById("root")
+//     );
+//   });
 
 // to just test with above md variable
 // ReactDOM.render(<Report markdown={md} />, document.getElementById("root"));
 
 // to test the full app
-// ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(<App />, document.getElementById("root"));
