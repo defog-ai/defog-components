@@ -51,7 +51,7 @@ export default function Agent({ initialSubQns }) {
       setSubmitOkay(true);
       setResp(r);
     } else {
-      message.error(r.error);
+      message.error(r.error_message);
       setSubmitOkay(false);
     }
   }

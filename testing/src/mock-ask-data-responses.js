@@ -3,6 +3,12 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import advancedFormat from "dayjs/plugin/advancedFormat";
+import {
+  randomiseArray,
+  randomSlice,
+  log,
+  testResponseProp,
+} from "./mock-data-utils";
 dayjs.extend(advancedFormat);
 dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
@@ -28,17 +34,6 @@ const timeFormats = [
   "YYYY-MM-DD",
   "YYYY-MM",
 ];
-
-function randomiseArray(arr) {
-  const newArr = arr.slice();
-  for (let i = 0; i < newArr.length; i++) {
-    const randIndex = Math.floor(Math.random() * newArr.length);
-    const temp = newArr[i];
-    newArr[i] = newArr[randIndex];
-    newArr[randIndex] = temp;
-  }
-  return newArr;
-}
 
 function createData(columns, decimalColumns = [], onlyDates = false) {
   const nrows = Math.random() * 100;
@@ -106,14 +101,7 @@ function createData(columns, decimalColumns = [], onlyDates = false) {
   return data;
 }
 
-// random slice of an array
-function randomSlice(arr) {
-  const start = Math.floor(Math.random() * arr.length);
-  const end = Math.floor(Math.random() * (arr.length - start)) + start;
-  return arr.slice(start, end);
-}
-
-function createResponseObject(newProps = {}, testVals = null) {
+function createAskDataResponseObject(newProps = {}, testVals = null) {
   let selectedCols = randomSlice(mockColumns);
 
   const base = {
@@ -134,49 +122,17 @@ function createResponseObject(newProps = {}, testVals = null) {
   return Object.assign(base, newProps);
 }
 
-function log(s1 = "", s2 = null) {
-  console.log(s1);
-  window.logStr = window.logStr = s2 ? s2 : s1;
-}
-
-function* testResponseProp(newProps, prop, vals = null) {
-  if (!vals) {
-    vals = commonVals.slice();
-  }
-
-  for (let i = 0; i < vals.length; i++) {
-    const res = createResponseObject(newProps);
-    window.logStr = window.logStr =
-      `Testing ${prop} prop. Current value:` +
-      JSON.stringify(vals[i] === "" ? "empty string" : vals[i]);
-
-    console.log(
-      `Testing %c${prop}\x1b[0m prop. Current value:`,
-      "color: #ff0000",
-      vals[i] === "" ? "empty string" : vals[i]
-    );
-
-    if (vals[i] === "delete") {
-      delete res[prop];
-    } else {
-      res[prop] = vals[i];
-    }
-
-    yield res;
-  }
-}
-
-function* validData() {
+function* validResponse() {
   log("Testing with valid response.");
 
-  yield createResponseObject();
+  yield createAskDataResponseObject();
 }
 
 function* onlyQuantitativeColumns() {
   let selectedCols = mockColumns.filter((col) => col.startsWith("value"));
   log("Testing with only quantitative columns.");
 
-  yield createResponseObject({
+  yield createAskDataResponseObject({
     columns: selectedCols,
     data: createData(selectedCols, ["value_c"]),
   });
@@ -186,22 +142,32 @@ function* noData() {
   const testVals = commonVals.slice().filter((d) => d !== "");
   testVals.push([null]);
 
-  yield* testResponseProp({}, "data", testVals);
+  yield* testResponseProp({}, "data", createAskDataResponseObject, testVals);
 }
 
 function* noColumns() {
-  yield* testResponseProp({}, "columns");
+  yield* testResponseProp(
+    {},
+    "columns",
+    createAskDataResponseObject,
+    commonVals.slice()
+  );
 }
 
 function* noSQL() {
-  yield* testResponseProp({}, "query_generated");
+  yield* testResponseProp(
+    {},
+    "query_generated",
+    createAskDataResponseObject,
+    commonVals.slice()
+  );
 }
 
 function* onlyDates() {
   let selectedCols = mockColumns.slice(0, 6);
   log("Testing with only date columns.");
 
-  yield createResponseObject({
+  yield createAskDataResponseObject({
     columns: selectedCols,
     data: createData(selectedCols, [], true),
   });
@@ -225,7 +191,7 @@ function* charts() {
     // always have data for charts
 
     log(`Testing with "${chartTypes[i]}" in the query.`);
-    const res = createResponseObject({
+    const res = createAskDataResponseObject({
       columns: mockColumns.slice(),
       data: createData(mockColumns.slice(), [], true),
     });
@@ -236,7 +202,7 @@ function* charts() {
 
 function* queryRunFailure() {
   log("Testing ran_successfully = false.");
-  const res = createResponseObject();
+  const res = createAskDataResponseObject();
   res.ran_successfully = false;
 
   yield res;
@@ -246,7 +212,7 @@ export function* testCases() {
   const tests = [
     onlyDates,
     onlyQuantitativeColumns,
-    validData,
+    validResponse,
     queryRunFailure,
     noData,
     noColumns,
@@ -262,7 +228,7 @@ export function* testCases() {
   }
 }
 
-export function autoTest() {
+export function nextTestBtnClick() {
   if (window && !window.testsFinished && window.autoTesting) {
     const nextTestBtn = document.querySelector(
       "#test-controller .next-test-btn"
