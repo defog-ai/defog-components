@@ -7,8 +7,9 @@ import { styled } from "styled-components";
 
 export default function AgentSubQnInput({ subQn, setSubQn }) {
   const [val, setVal] = useState(subQn);
-  const [editable, setEditable] = useState(false);
-
+  const [editable, setEditable] = useState(
+    subQn === "" || !subQn ? true : false
+  );
   return (
     <AgentSubQnInputWrap>
       <div className="agent-subqn-text">
@@ -20,6 +21,7 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
             setVal(e.target.value);
           }}
           readOnly={!editable}
+          status={val === "" || !val ? "error" : "success"}
         />
         <div className="agent-subqn-text-edit">
           <Button

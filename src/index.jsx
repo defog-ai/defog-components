@@ -9,7 +9,7 @@ import {
   questionModes,
   reFormatData,
   sanitiseData,
-} from "./components/common/utils.js";
+} from "./components/common/utils";
 import QALayout from "./components/common/QALayout";
 import {
   ThemeContext,
@@ -21,10 +21,17 @@ import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
+
 const GlobalStyle = createGlobalStyle`
-.ant-popover-arrow, ant-popover-arrow-content {
-  --antd-arrow-background-color: black;
-}`;
+  .ant-popover-arrow, ant-popover-arrow-content {
+    --antd-arrow-background-color: black;
+  }
+  // show popovers only in the dropdown menu.
+  // don't show popovers on hover on the selected dropdown item itself.
+  .ant-select-selection-item {
+    pointer-events: none;
+  }
+`;
 
 export const AskDefogChat = ({
   apiEndpoint,

@@ -1,10 +1,13 @@
 import React, { useContext, useState } from "react";
+
 import AgentSubQnInput from "./AgentSubQnInput";
 import AgentTool from "./AgentTool";
 import { styled } from "styled-components";
 
 import { UtilsContext } from "../../context/UtilsContext";
 import { Button, Form, Input, message } from "antd";
+
+import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 
 export default function Agent({ initialSubQns, theme }) {
   console.log(theme);
@@ -61,6 +64,21 @@ export default function Agent({ initialSubQns, theme }) {
     setSubQns(newSubQns);
   }
 
+  function addSubQn(index) {
+    const newSubQns = [...subQns];
+    newSubQns.splice(index + 1, 0, {
+      tool: null,
+      subqn: "",
+    });
+    setSubQns(newSubQns);
+  }
+
+  function deleteSubQn(index) {
+    const newSubQns = [...subQns];
+    newSubQns.splice(index, 1);
+    setSubQns(newSubQns);
+  }
+
   const emailValid = email && email.indexOf("@") !== -1;
 
   return (
@@ -68,12 +86,21 @@ export default function Agent({ initialSubQns, theme }) {
       <div className="agent-container">
         {!submitOkay ? (
           <>
-            <div className="agent-subqns-container">
+            <div className="agent-subqns-container" key={subQns.length}>
               {subQns.map((subQn, index) => {
                 return (
                   <div key={index} className="agent-subqn">
+                    <div className="agent-subqn-gutter">
+                      <div className="delete-subqn">
+                        <DeleteOutlined onClick={() => deleteSubQn(index)} />
+                      </div>
+                      <div className="gutter-line"></div>
+                      <div className="add-subqn">
+                        <PlusOutlined onClick={() => addSubQn(index)} />
+                      </div>
+                    </div>
                     <AgentTool
-                      initialTool={subQn.tool}
+                      tool={subQn.tool}
                       theme={theme.config}
                       setTool={(e) => updateSubQns(e, index, "tool")}
                     />
@@ -100,7 +127,16 @@ export default function Agent({ initialSubQns, theme }) {
                     <Button
                       type="primary"
                       onClick={handleSubmit}
-                      disabled={!emailValid}
+                      disabled={
+                        !emailValid ||
+                        subQns.length === 0 ||
+                        subQns.some(
+                          (subQn) =>
+                            !subQn.subqn ||
+                            !subQn.tool ||
+                            subQn.subqn.length === 0
+                        )
+                      }
                     >
                       Submit
                     </Button>
@@ -129,17 +165,83 @@ const AgentWrap = styled.div`
       width: 80%;
       padding: 1rem;
       border-radius: 5px;
-      margin-bottom: 2rem;
+      margin-bottom: 3rem;
       border: 1px solid
         ${(props) => {
           return props.theme ? props.theme.config.questionBorder : "#eee";
         }};
 
       .agent-subqn {
-        margin-bottom: 1rem;
+        position: relative;
+        padding-bottom: 1rem;
+        padding-top: 1rem;
+        padding-left: 30px;
         > div {
           display: inline-block;
           vertical-align: top;
+        }
+        * {
+          transition: opacity 0.2s ease-in-out;
+        }
+
+        &:hover {
+          .agent-subqn-gutter {
+            opacity: 1;
+          }
+        }
+
+        .agent-subqn-gutter {
+          position: absolute;
+          top: 0;
+          left: 2px;
+          z-index: 2;
+          opacity: 0;
+          height: 100%;
+
+          .gutter-line {
+            opacity: 0;
+            width: 1px;
+            background-color: ${(props) => {
+              return props.theme
+                ? props.theme.config.type === "light"
+                  ? "#eee"
+                  : "#eee"
+                : "#eee";
+            }};
+            height: calc(100% - 60px);
+            position: absolute;
+            top: 25px;
+            left: 6px;
+          }
+
+          .add-subqn,
+          .delete-subqn {
+            background: none;
+            color: ${(props) => {
+              return props.theme
+                ? props.theme.config.type === "light"
+                  ? "#ddd"
+                  : "#ddd"
+                : "#eee";
+            }};
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+          }
+          .add-subqn {
+            position: absolute;
+            bottom: 10px;
+            &:hover {
+              color: ${(props) => {
+                return props.theme ? props.theme.config.primaryText : "#ddd";
+              }};
+            }
+          }
+          .delete-subqn {
+            &:hover {
+              color: #d52d68;
+            }
+          }
         }
       }
     }
