@@ -1,32 +1,26 @@
-import React, { useState, Fragment, useEffect, useCallback } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { AskDefogChat } from "defog-react";
 import { Button } from "antd";
-import { autoTest, chartTypes } from "./mock-defog-result";
-
-function* yieldChartTypes() {
-  yield* chartTypes.slice();
-}
-
-const cT = yieldChartTypes();
 
 const App = () => {
   const [key, setKey] = useState(0);
   const [dummy, setDummy] = useState(0);
 
-  const handleClick = () => {
+  const toggleAutoTesting = () => {
     window.autoTesting = !window.autoTesting;
-    if (window.autoTesting) {
-      setTimeout(autoTest, 1000);
+    if (!window.autoTesting) {
+      window.testingInterval.stop();
+    } else {
+      window.testingInterval.start();
     }
+    // to trigger re render to show the "next test" button
+    // but NOT re click the ask defog button (that is driven by the key prop as in the useEffect below)
     setDummy(dummy + 1);
   };
 
   useEffect(() => {
-    // unfortunately.. we always test charts first because of the way the tests are set up
-    const c = cT.next();
-
     const defogQuery = document.getElementsByClassName("ant-input")[0];
-    defogQuery.value = "test " + (c.value ? c.value : "");
+    defogQuery.value = window.logStr;
 
     const defogSubmit = document.querySelector("#results .ant-btn");
     defogSubmit.click();
@@ -55,7 +49,10 @@ const App = () => {
           <Button
             key={key}
             className="next-test-btn"
-            onClick={() => setKey(key + 1)}
+            onClick={() => {
+              if (!window.autoTesting) window.nextRes = window.testCases.next();
+              setKey(key + 1);
+            }}
             disabled={window.testsFinished}
             style={{
               opacity: window.autoTesting ? 0 : 1,
@@ -70,7 +67,7 @@ const App = () => {
 
           <Button
             className="pause-auto-test-btn"
-            onClick={handleClick}
+            onClick={toggleAutoTesting}
             disabled={window.testsFinished}
           >
             {window.autoTesting ? "Pause auto testing" : "Resume auto testing"}

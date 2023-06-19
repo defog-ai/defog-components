@@ -1,17 +1,9 @@
 import React, { useState, useContext, Fragment } from "react";
-import {
-  Button,
-  Table,
-  message,
-  Tabs,
-  Modal,
-  Input,
-  ConfigProvider,
-} from "antd";
+import { Button, message, Modal, Input, ConfigProvider } from "antd";
 
 import { CloseOutlined } from "@ant-design/icons";
 
-import { download_csv, isEmpty, transformToCSV } from "./common/utils.js";
+import { download_csv, isEmpty, transformToCSV } from "./common/utils";
 
 import styled from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp";
@@ -98,7 +90,7 @@ const DefogDynamicViz = ({
   } else if (vizType === "text") {
     results = <pre>{response.results}</pre>;
   } else if (vizType === "agent") {
-    results = <Agent initialSubQns={response.subQns} />;
+    results = <Agent initialSubQns={response.subQns} theme={theme} />;
   } else {
     results = (
       <TableChart response={response} query={query} vizType={vizType} />

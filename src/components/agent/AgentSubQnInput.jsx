@@ -7,8 +7,9 @@ import { styled } from "styled-components";
 
 export default function AgentSubQnInput({ subQn, setSubQn }) {
   const [val, setVal] = useState(subQn);
-  const [editable, setEditable] = useState(false);
-
+  const [editable, setEditable] = useState(
+    subQn === "" || !subQn ? true : false
+  );
   return (
     <AgentSubQnInputWrap>
       <div className="agent-subqn-text">
@@ -20,6 +21,7 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
             setVal(e.target.value);
           }}
           readOnly={!editable}
+          status={val === "" || !val ? "error" : "success"}
         />
         <div className="agent-subqn-text-edit">
           <Button
@@ -43,12 +45,11 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
 }
 
 const AgentSubQnInputWrap = styled.div`
-  width: 70%;
-  display: inline-block;
+  width: calc(100% - 200px);
+  min-width: 400px;
+  margin-top: 5px;
   .agent-subqn-text {
-    display: inline-block;
     position: relative;
-    width: 100%;
     textarea {
       padding-bottom: 30px;
       &:read-only {

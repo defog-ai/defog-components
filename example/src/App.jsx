@@ -1,8 +1,6 @@
 import React from "react";
 import { AskDefogChat } from "defog-react";
 
-window.realFetch = window.fetch;
-
 window.mockFetch = function () {
   return Promise.resolve({
     json: () => {
@@ -46,6 +44,8 @@ window.mockFetch = function () {
     },
   });
 };
+
+window.fetch = window.mockFetch;
 
 const App = () => {
   return (

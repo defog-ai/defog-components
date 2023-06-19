@@ -8,7 +8,7 @@ export const csvTable = {
   start(src) {
     return src.match(/^(<csv>)/)?.index;
   },
-  tokenizer(src, tokens) {
+  tokenizer(src) {
     const rule = /^(?:<csv>)([\s\S]*?)(?:<\/csv>)(?:\n|$)/;
     const match = rule.exec(src);
     if (match) {

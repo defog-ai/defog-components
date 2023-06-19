@@ -1,3 +1,4 @@
+import React from "react";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -7,6 +8,37 @@ dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
 
 import { chartColors } from "../../context/ThemeContext";
+import { Popover } from "antd";
+
+export const questionModes = [
+  [
+    "Create a report",
+    "What would you like a report on?",
+    "Useful for asking broad questions from your data.",
+  ],
+  [
+    "Query my data",
+    "What would you like to know?",
+    "Useful for asking specific, query-able questions from your data.",
+  ],
+].map((d) => ({
+  value: d[0],
+  label: (
+    <Popover
+      overlayClassName="agent-popover"
+      overlayInnerStyle={{
+        backgroundColor: "black",
+      }}
+      align={{ offset: [15, 0] }}
+      content={<div style={{ width: "200px", color: "white" }}>{d[2]}</div>}
+      placement="right"
+    >
+      <div className="agent-tool-option">{d[0]}</div>
+    </Popover>
+  ),
+  placeholder: d[1],
+}));
+
 const dateFormats = [
   "YYYY-MM-DD HH:mm:ss",
   "YYYY-MM-DDTHH:mm:ss",

@@ -2,18 +2,31 @@ import "./index.css";
 
 import React from "react";
 import ReactDOM from "react-dom";
-import { autoTest, testCases } from "./mock-defog-result";
 import App from "./App";
-
-const tests = testCases();
+import { nextTestBtnClick, testCases } from "./mock-ask-data-responses";
 
 window.autoTesting = true;
 window.testsFinished = false;
 
-window.fetch = (url, options) => {
+window.testCases = testCases();
+
+window.nextRes = window.testCases.next();
+
+window.testingInterval = {
+  start: () =>
+    (window.intervalId = setInterval(() => {
+      if (window.autoTesting) {
+        window.nextRes = window.testCases.next();
+        nextTestBtnClick();
+      }
+    }, 1000)),
+  stop: () => clearInterval(window.intervalId),
+};
+
+window.fetch = () => {
   return Promise.resolve({
     json: () => {
-      const res = tests.next();
+      const res = window.nextRes;
 
       const log = document.getElementById("log");
       log.innerHTML = window.logStr;
@@ -26,11 +39,13 @@ window.fetch = (url, options) => {
         return Promise.resolve({ ran_successfully: true });
       }
 
-      setTimeout(autoTest, 1000);
-
       return Promise.resolve(res.value);
     },
   });
 };
 
-ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(
+  <App />,
+  document.getElementById("root"),
+  window.testingInterval.start
+);
