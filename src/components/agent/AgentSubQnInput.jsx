@@ -43,12 +43,11 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
 }
 
 const AgentSubQnInputWrap = styled.div`
-  width: 70%;
-  display: inline-block;
+  width: calc(100% - 200px);
+  min-width: 400px;
+  margin-top: 5px;
   .agent-subqn-text {
-    display: inline-block;
     position: relative;
-    width: 100%;
     textarea {
       padding-bottom: 30px;
       &:read-only {

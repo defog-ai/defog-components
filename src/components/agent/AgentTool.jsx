@@ -37,10 +37,6 @@ export default function AgentTool({ initialTool, setTool }) {
 }
 
 const ToolWrap = styled.div`
-  display: inline-block;
-  vertical-align: top;
-  margin-right: 1rem;
-  .agent-subqn-tool {
-    display: inline-block;
-  }
+  width: 200px;
+  margin-top: 5px;
 `;

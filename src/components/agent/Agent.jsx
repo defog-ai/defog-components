@@ -4,10 +4,10 @@ import AgentTool from "./AgentTool";
 import { styled } from "styled-components";
 
 import { UtilsContext } from "../../context/UtilsContext";
-import { ThemeContext } from "../../context/ThemeContext";
 import { Button, Form, Input, message } from "antd";
 
-export default function Agent({ initialSubQns }) {
+export default function Agent({ initialSubQns, theme }) {
+  console.log(theme);
   if (!initialSubQns || !Array.isArray(initialSubQns)) {
     return (
       <div className="agent-error">
@@ -17,7 +17,6 @@ export default function Agent({ initialSubQns }) {
   }
 
   const [subQns, setSubQns] = useState(initialSubQns);
-  const { theme } = useContext(ThemeContext);
   const { apiKey, additionalHeaders, additionalParams, query, apiEndpoint } =
     useContext(UtilsContext);
   const [email, setEmail] = useState("asdf@asdg.com");
@@ -65,7 +64,7 @@ export default function Agent({ initialSubQns }) {
   const emailValid = email && email.indexOf("@") !== -1;
 
   return (
-    <AgentWrap>
+    <AgentWrap theme={theme}>
       <div className="agent-container">
         {!submitOkay ? (
           <>
@@ -127,9 +126,21 @@ export default function Agent({ initialSubQns }) {
 const AgentWrap = styled.div`
   .agent-container {
     .agent-subqns-container {
+      width: 80%;
+      padding: 1rem;
+      border-radius: 5px;
+      margin-bottom: 2rem;
+      border: 1px solid
+        ${(props) => {
+          return props.theme ? props.theme.config.questionBorder : "#eee";
+        }};
+
       .agent-subqn {
         margin-bottom: 1rem;
-        vertical-align: top;
+        > div {
+          display: inline-block;
+          vertical-align: top;
+        }
       }
     }
     .agent-submit-done {

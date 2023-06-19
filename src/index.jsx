@@ -343,8 +343,9 @@ export const AskDefogChat = ({
         })
       );
     } else if (mode === "http") {
+      let queryChatResponse;
       try {
-        const queryChatResponse = await fetch(makeURL(), {
+        queryChatResponse = await fetch(makeURL(), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -371,9 +372,14 @@ export const AskDefogChat = ({
         handleChatResponse(queryChatResponse, query, agent, !agent);
       } catch (e) {
         console.log(e);
-        message.error(
-          "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP."
-        );
+        // from agents
+        if (queryChatResponse?.error_message) {
+          message.error(queryChatResponse.error_message);
+        } else {
+          message.error(
+            "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP."
+          );
+        }
         setButtonLoading(false);
       }
     }

@@ -45,6 +45,8 @@ window.mockFetch = function () {
   });
 };
 
+window.fetch = window.mockFetch;
+
 const App = () => {
   return (
     <div

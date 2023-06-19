@@ -98,7 +98,7 @@ const DefogDynamicViz = ({
   } else if (vizType === "text") {
     results = <pre>{response.results}</pre>;
   } else if (vizType === "agent") {
-    results = <Agent initialSubQns={response.subQns} />;
+    results = <Agent initialSubQns={response.subQns} theme={theme} />;
   } else {
     results = (
       <TableChart response={response} query={query} vizType={vizType} />
