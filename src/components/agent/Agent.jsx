@@ -10,7 +10,6 @@ import { Button, Form, Input, message } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 
 export default function Agent({ initialSubQns, theme }) {
-  console.log(theme);
   if (!initialSubQns || !Array.isArray(initialSubQns)) {
     return (
       <div className="agent-error">
@@ -22,7 +21,8 @@ export default function Agent({ initialSubQns, theme }) {
   const [subQns, setSubQns] = useState(initialSubQns);
   const { apiKey, additionalHeaders, additionalParams, query, apiEndpoint } =
     useContext(UtilsContext);
-  const [email, setEmail] = useState("asdf@asdg.com");
+
+  const [email, setEmail] = useState("test@test.com");
 
   const [submitOkay, setSubmitOkay] = useState(false);
   const [resp, setResp] = useState(null);
@@ -87,31 +87,39 @@ export default function Agent({ initialSubQns, theme }) {
         {!submitOkay ? (
           <>
             <div className="agent-subqns-container" key={subQns.length}>
-              {subQns.map((subQn, index) => {
-                return (
-                  <div key={index} className="agent-subqn">
-                    <div className="agent-subqn-gutter">
-                      <div className="delete-subqn">
-                        <DeleteOutlined onClick={() => deleteSubQn(index)} />
+              {subQns.length !== 0 ? (
+                subQns.map((subQn, index) => {
+                  return (
+                    <div key={index} className="agent-subqn">
+                      <div className="agent-subqn-gutter">
+                        <div className="delete-subqn">
+                          <DeleteOutlined onClick={() => deleteSubQn(index)} />
+                        </div>
+                        <div className="gutter-line"></div>
+                        <div className="add-subqn">
+                          <PlusOutlined onClick={() => addSubQn(index)} />
+                        </div>
                       </div>
-                      <div className="gutter-line"></div>
-                      <div className="add-subqn">
-                        <PlusOutlined onClick={() => addSubQn(index)} />
-                      </div>
+                      <AgentTool
+                        tool={subQn?.tool}
+                        theme={theme?.config}
+                        setTool={(e) => updateSubQns(e, index, "tool")}
+                      />
+                      <AgentSubQnInput
+                        subQn={subQn?.subqn}
+                        theme={theme?.config}
+                        setSubQn={(e) => updateSubQns(e, index, "subqn")}
+                      />
                     </div>
-                    <AgentTool
-                      tool={subQn.tool}
-                      theme={theme.config}
-                      setTool={(e) => updateSubQns(e, index, "tool")}
-                    />
-                    <AgentSubQnInput
-                      subQn={subQn.subqn}
-                      theme={theme.config}
-                      setSubQn={(e) => updateSubQns(e, index, "subqn")}
-                    />
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="no-subqn-button">
+                  <Button type="primary" onClick={() => addSubQn(0)}>
+                    Add a sub question
+                  </Button>
+                </div>
+              )}
             </div>
             <AgentSubmitWrap>
               <div className="agent-submit">
@@ -132,9 +140,10 @@ export default function Agent({ initialSubQns, theme }) {
                         subQns.length === 0 ||
                         subQns.some(
                           (subQn) =>
-                            !subQn.subqn ||
-                            !subQn.tool ||
-                            subQn.subqn.length === 0
+                            !subQn ||
+                            !subQn?.subqn ||
+                            !subQn?.tool ||
+                            subQn?.subqn?.length === 0
                         )
                       }
                     >
@@ -243,6 +252,16 @@ const AgentWrap = styled.div`
             }
           }
         }
+      }
+      .no-subqn-button > button {
+        min-height: 36px;
+        min-width: 120px;
+        border-radius: 6px !important;
+        border-color: transparent;
+        color: #fff;
+        box-shadow: none !important;
+        background: ${(props) =>
+          props.theme ? props.theme.config.brandColor : "#2B59FF"};
       }
     }
     .agent-submit-done {
