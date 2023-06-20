@@ -1,0 +1,14 @@
+# pipeline
+VITE_API_KEY="179cf16d6e49702fd7bed51eb789ee2b6b8c451b8c7039973320c2fd81f2afe7"
+# VITE_API_KEY="test"
+# localhost
+VITE_ENDPOINT="http://127.0.0.1:8000/generate_query_chat"
+VITE_AGENT_ENDPOINT="http://127.0.0.1:8000/agent"
+# pipeline
+VITE_ENDPOINT_PP="https://test-defog-fit-ikcpfh5tva-uc.a.run.app"
+# tickit
+VITE_ENDPOINT_TCK="https://test-defog-ikcpfh5tva-uc.a.run.app"
+# turns
+VTE_ENDPOINT_TRNS="https://test-defog-turns-ikcpfh5tva-el.a.run.app"
+# sample report
+VITE_ENDPOINT_RPT="http://localhost:8000/reports/c122df34-0377-4d32-b1f3-48fc756e4341"
