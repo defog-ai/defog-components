@@ -45,7 +45,7 @@ window.mockFetch = function () {
   });
 };
 
-window.fetch = window.mockFetch;
+// window.fetch = window.mockFetch;
 
 const App = () => {
   return (
@@ -59,7 +59,7 @@ const App = () => {
         <AskDefogChat
           maxWidth={"100%"}
           maxHeight={500}
-          apiEndpoint={import.meta.env.VITE_ENDPOINT}
+          apiEndpoint={import.meta.env.VITE_AGENT_ENDPOINT}
           buttonText={"Ask Defog"}
           // personality={"sarcastic and aloof"}
           debugMode={true}
