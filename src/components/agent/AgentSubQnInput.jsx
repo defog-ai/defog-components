@@ -19,6 +19,8 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
           onChange={(e) => {
             e.preventDefault();
             setVal(e.target.value);
+            // need to call set sub qn here too otherwise loses state if another sub qn is deleted before clicking save here
+            setSubQn(e.target.value);
           }}
           readOnly={!editable}
           status={val === "" || !val ? "error" : "success"}
