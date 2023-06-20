@@ -340,14 +340,10 @@ export const AskDefogChat = ({
         }).then((d) => d.json());
 
         if (queryChatResponse.ran_successfully === false) {
-          throw Error(
-            `query didn't run successfully. Here's the response received: ${JSON.stringify(
-              queryChatResponse
-            )}`
-          );
+          message.error(queryChatResponse.error_message || queryChatResponse.message);
         }
-
         handleChatResponse(queryChatResponse, query);
+        
       } catch (e) {
         console.log(e);
         message.error(
@@ -360,26 +356,30 @@ export const AskDefogChat = ({
 
   function handleChatResponse(queryChatResponse, query, executeData = true) {
     // set response array to have the latest everything except data and columns
-    setChatResponseArray([
-      ...chatResponseArray,
-      {
-        queryReason: queryChatResponse.reason_for_query,
-        suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
-        question: query,
-        generatedSql:
-          queryChatResponse.query_generated || queryChatResponse.code,
-        previousContext: previousQuestions,
-        results: queryChatResponse.results,
-      },
-    ]);
-
-    const contextQuestions = [query, queryChatResponse.query_generated];
-    setPreviousQuestions([...previousQuestions, ...contextQuestions]);
-    if (sqlOnly === false && executeData) {
-      handleDataResponse(queryChatResponse, query);
-    }
-
-    if (sqlOnly === true) {
+    if (queryChatResponse.ran_successfully !== false) {
+      setChatResponseArray([
+        ...chatResponseArray,
+        {
+          queryReason: queryChatResponse.reason_for_query,
+          suggestedQuestions: queryChatResponse.suggestion_for_further_questions,
+          question: query,
+          generatedSql:
+            queryChatResponse.query_generated || queryChatResponse.code,
+          previousContext: previousQuestions,
+          results: queryChatResponse.results,
+        },
+      ]);
+  
+      const contextQuestions = [query, queryChatResponse.query_generated];
+      setPreviousQuestions([...previousQuestions, ...contextQuestions]);
+      if (sqlOnly === false && executeData) {
+        handleDataResponse(queryChatResponse, query);
+      }
+  
+      if (sqlOnly === true) {
+        setButtonLoading(false);
+      }
+    } else {
       setButtonLoading(false);
     }
   }
