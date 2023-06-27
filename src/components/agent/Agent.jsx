@@ -105,9 +105,8 @@ export default function Agent({ initialSubQns, theme }) {
                 help us answer an aspect of your broader question.
               </p>
               <p>
-                You can edit <EditOutlined />
-                or delete <DeleteOutlined /> existing sub questions, or add{" "}
-                <PlusOutlined /> your own!
+                You can edit <EditOutlined /> or delete <DeleteOutlined />{" "}
+                existing sub questions, or add <PlusOutlined /> your own!
               </p>
               <p>
                 Behind the scenes, each sub question is answered using a tool{" "}
