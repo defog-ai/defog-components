@@ -45,10 +45,11 @@ const DefogDynamicViz = ({
   apiKey,
   resetChat,
   sqlOnly,
+  hasNarrative,
 }) => {
   const { theme } = useContext(ThemeContext);
-  // const [narrative, setNarrative] = useState(null);
-  // const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const [narrative, setNarrative] = useState(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
   
@@ -187,7 +188,7 @@ const DefogDynamicViz = ({
         ⬇️ CSV
       </Button>
 
-      {/* <Button
+      {hasNarrative ? <Button
         loading={narrativeLoading}
         onClick={async () => {
           setNarrativeLoading(true);
@@ -202,7 +203,7 @@ const DefogDynamicViz = ({
                 apiKey: apiKey,
                 data: {
                   data: rawData.slice(0, 100),
-                  columns: response.columns,
+                  columns: response.columns.map((el) => el.title).filter((el) => el !== "index"),
                 },
               }),
             }
@@ -213,7 +214,7 @@ const DefogDynamicViz = ({
         }}
       >
         💭 Narrative
-      </Button> */}
+      </Button> : null}
 
       <Button onClick={() => resetChat()}>Reset Chat</Button>
     </div>
@@ -270,12 +271,12 @@ const DefogDynamicViz = ({
                 </>
               )}
 
-              {/* {narrative && (
+              {narrative && (
               <div className="generatedNarrative">
                 <p>Narrative</p>
                 {narrative}
               </div>
-            )} */}
+            )}
             </RateQualityContainer>
 
             <FeedbackWrap theme={theme.config}>

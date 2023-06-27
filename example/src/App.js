@@ -21,6 +21,7 @@ const App = () => {
           apiKey={"test"}
           sqlOnly={false}
           dashboard={false}
+          enableNarrative={false}
           // additionalParams={{ "test" : "test"}}
           // additionalHeaders={{ "test": "test" }}
         />

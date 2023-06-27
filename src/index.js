@@ -35,6 +35,7 @@ export const AskDefogChat = ({
   // predefinedQuestions = [],
   mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
+  enableNarrative = false,
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -557,6 +558,7 @@ export const AskDefogChat = ({
                                 setRawData([]);
                                 return;
                               }}
+                              hasNarrative={enableNarrative}
                             />
                           )}
                           {/* {response.suggestedQuestions && (
