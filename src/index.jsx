@@ -71,7 +71,7 @@ export const AskDefogChat = ({
   // show popovers only in the dropdown menu.
   // don't show popovers on hover on the selected dropdown item itself.
   .ant-select-selection-item {
-    pointer-events: none;
+    // pointer-events: none;
   }
   .italic {
     font-style: italic;
