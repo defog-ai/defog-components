@@ -13,12 +13,12 @@ import { Popover } from "antd";
 export const questionModes = [
   [
     "Create a report",
-    "What would you like a report on?",
+    "What would you like a report on? Best for big picture, future-oriented questions from your data.",
     "Useful for asking broad questions from your data.",
   ],
   [
     "Query my data",
-    "What would you like to know?",
+    "Ask a question to gather insights from your data",
     "Useful for asking specific, query-able questions from your data.",
   ],
 ].map((d) => ({
@@ -433,31 +433,33 @@ export function download_csv(csvString) {
 
 export const tools = [
   {
-    name: "SQL Aggregator",
+    // name: "SQL Aggregator",
+    name: "Fetch data",
     description:
-      "Generates SQL queries to get aggregates (with splits on multiple attributes)." +
-      "Good for getting percentiles, summarizing quantities over time, topk rows and outliers " +
-      "based on percentiles, or joining information across tables. Not good at statistical analysis",
+      // "Generates SQL queries to get aggregates (with splits on multiple attributes).Good for getting percentiles, summarizing quantities over time, topk rows and outliers based on percentiles, or joining information across tables. Not good at statistical analysis",
+      "Fetch data from your database. Good for viewing outliers and subsets of your data. For analysis, try any of the other tools.",
     fn: "sql_aggregator",
   },
   {
-    name: "Summary Statistics",
+    // name: "Summary Statistics",
+    name: "Summarize data",
     description:
-      "Generates SQL + python code to sample and estimate summary statistics from a given column." +
-      "Good for getting mean, std, p25, p50, p75",
+      // "Generates SQL + python code to sample and estimate summary statistics from a given column. Good for getting mean, std, p25, p50, p75",
+      "Good for getting a brief overview of the data using simple statistics like averages, standard deviation, etc.",
     fn: "py_column_summarizer",
   },
   {
-    name: "Correlation Finder",
+    // name: "Correlation Finder",
+    name: "Find patterns",
     description:
-      "Generates python code to find correlations in the data. " +
-      "Good for finding correlations and associations between values in different columns. " +
-      "Not good when number of rows is large",
+      // "Generates python code to find correlations in the data. Good for finding correlations and associations between values in different columns. Not good when number of rows is large",
+      "Finds patterns and relationships in your data. Note that performance is worse with large datasets.",
     fn: "py_correlator",
   },
   {
-    name: "Time Series Forecaster",
-    description: "Generates python code to forecast values in a time-series.",
+    // name: "Time Series Forecaster",
+    name: "Predict trends",
+    description: "Forecasts future trends in time series data.",
     fn: "py_time_series_forecaster",
   },
 ];

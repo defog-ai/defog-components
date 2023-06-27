@@ -65,6 +65,7 @@ const App = () => {
           debugMode={true}
           apiKey={import.meta.env.VITE_API_KEY}
           sqlOnly={false}
+          agent={true}
           // additionalHeaders={{ "test": "test" }}
         />
       </div>
