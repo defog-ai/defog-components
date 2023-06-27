@@ -71,7 +71,17 @@ Based on the analysis above, the top actionable insights for the organization ar
 `;
 
 // to test Report endpoint
-// fetch(import.meta.env.VITE_ENDPOINT_RPT)
+// fetch(import.meta.env.VITE_AGENT_ENDPOINT, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify({
+//       uuid: "e8a1fe22-4524-4d3d-9219-e62ef01556ce",
+//       agent: true,
+//       get_report: true,
+//     }),
+//   })
 //   .then((d) => d.json())
 //   .then((rpt) => {
 //     ReactDOM.render(
