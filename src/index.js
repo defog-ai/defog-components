@@ -47,6 +47,7 @@ export const AskDefogChat = ({
   const [dataResponseArray, setDataResponseArray] = useState([]);
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
+  const [rawCols, setRawCols] = useState([]);
   const [dashboardCharts, setDashboardCharts] = useState([]);
   const [predefinedQuestions, setPredefinedQuestions] = useState([]);
 
@@ -388,6 +389,7 @@ export const AskDefogChat = ({
   const handleDataResponse = (dataResponse, query) => {
     // remove rows for which every value is null
     setRawData(sanitiseData(dataResponse?.data));
+    setRawCols(dataResponse?.columns);
 
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
@@ -547,6 +549,7 @@ export const AskDefogChat = ({
                                 dataResponseArray[index]
                               )}
                               rawData={rawData}
+                              rawCols={rawCols}
                               query={query}
                               debugMode={debugMode}
                               apiKey={apiKey}

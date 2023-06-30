@@ -40,6 +40,7 @@ const DefogDynamicViz = ({
   vizType = null,
   response,
   rawData,
+  rawCols,
   query,
   debugMode,
   apiKey,
@@ -113,13 +114,29 @@ const DefogDynamicViz = ({
     // always have a table
     // round decimal cols to 2 decimal places
     const roundedData = roundColumns(response.data, response.columns);
-
+    const emptyData = {key: 0, index: 0}
+    if (roundedData.length == 0) {
+      rawCols.forEach((col) => {
+        emptyData[col] = "no data";
+      });
+    }
+    
     results = [
       <Table
         key="0"
-        dataSource={roundedData}
+        dataSource={roundedData.length > 0 ? roundedData : [emptyData]}
         // don't show index column in table
-        columns={response.columns.filter((d) => d.title !== "index")}
+        columns={
+          response.columns.length > 0 ?
+          response.columns.filter((d) => d.title !== "index") :
+          rawCols.map((col) => {
+            return {
+              title: col,
+              dataIndex: col,
+              key: col,
+            };
+          })
+        }
         scroll={{ x: "max-content" }}
         style={{
           maxHeight: 300,
