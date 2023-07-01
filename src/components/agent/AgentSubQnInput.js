@@ -1,8 +1,7 @@
-import { Button } from "antd";
+import { Button, Input } from "antd";
 import React, { useState } from "react";
 
 import { EditOutlined, CheckOutlined } from "@ant-design/icons";
-import TextArea from "antd/es/input/TextArea";
 import { styled } from "styled-components";
 
 export default function AgentSubQnInput({ subQn, setSubQn }) {
@@ -10,6 +9,7 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
   const [editable, setEditable] = useState(
     subQn === "" || !subQn ? true : false
   );
+  const { TextArea } = Input;
   return (
     <AgentSubQnInputWrap>
       <div className="agent-subqn-text">
