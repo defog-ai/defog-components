@@ -21,17 +21,15 @@ const DefogDynamicViz = ({
   vizType = null,
   response,
   rawData,
-  rawCols,
   query,
   debugMode,
   apiKey,
   resetChat,
   sqlOnly,
-  hasNarrative,
 }) => {
   const { theme } = useContext(ThemeContext);
-  const [narrative, setNarrative] = useState(null);
-  const [narrativeLoading, setNarrativeLoading] = useState(false);
+  // const [narrative, setNarrative] = useState(null);
+  // const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
 
@@ -94,71 +92,9 @@ const DefogDynamicViz = ({
   } else if (vizType === "agent") {
     results = <Agent initialSubQns={response.subQns} theme={theme} />;
   } else {
-    // always have a table
-    // round decimal cols to 2 decimal places
-    const roundedData = roundColumns(response.data, response.columns);
-    const emptyData = {key: 0, index: 0}
-    if (roundedData.length == 0) {
-      rawCols.forEach((col) => {
-        emptyData[col] = "no data";
-      });
-    }
-    
-    results = [
-      <Table
-        key="0"
-        dataSource={roundedData.length > 0 ? roundedData : [emptyData]}
-        // don't show index column in table
-        columns={
-          response.columns.length > 0 ?
-          response.columns.filter((d) => d.title !== "index") :
-          rawCols.map((col) => {
-            return {
-              title: col,
-              dataIndex: col,
-              key: col,
-            };
-          })
-        }
-        scroll={{ x: "max-content" }}
-        style={{
-          maxHeight: 300,
-        }}
-        size="small"
-        pagination={{ pageSize: 5, showSizeChanger: false }}
-      />,
-    ];
-
-    const {
-      xAxisColumns,
-      categoricalColumns,
-      yAxisColumns,
-      xAxisColumnValues,
-      dateColumns,
-    } = processData(response.data, response.columns);
-
-    results.push(
-      <ErrorBoundary>
-        <ChartContainer
-          xAxisColumns={xAxisColumns}
-          dateColumns={dateColumns}
-          categoricalColumns={categoricalColumns}
-          yAxisColumns={yAxisColumns}
-          xAxisColumnValues={xAxisColumnValues}
-          data={response.data}
-          columns={response.columns}
-          title={query}
-          key="1"
-          vizType={vizType === "table" ? "Bar Chart" : vizType}
-          theme={theme.config}
-        ></ChartContainer>
-      </ErrorBoundary>
+    results = (
+      <TableChart response={response} query={query} vizType={vizType} />
     );
-
-    // convert to antd tabs
-    // results = (
-    //   <TableChart response={response} query={query} vizType={vizType} />
-    // );
   }
 
   let csvDownload;
@@ -182,7 +118,7 @@ const DefogDynamicViz = ({
         </Button>
       )}
 
-      {hasNarrative ? <Button
+      {/* <Button
         loading={narrativeLoading}
         onClick={async () => {
           setNarrativeLoading(true);
@@ -197,7 +133,7 @@ const DefogDynamicViz = ({
                 apiKey: apiKey,
                 data: {
                   data: rawData.slice(0, 100),
-                  columns: response.columns.map((el) => el.title).filter((el) => el !== "index"),
+                  columns: response.columns,
                 },
               }),
             }
@@ -208,7 +144,7 @@ const DefogDynamicViz = ({
         }}
       >
         💭 Narrative
-      </Button> : null}
+      </Button> */}
 
       <Button onClick={() => resetChat()}>Reset Chat</Button>
     </div>
@@ -265,12 +201,12 @@ const DefogDynamicViz = ({
                 </>
               )}
 
-              {narrative && (
+              {/* {narrative && (
               <div className="generatedNarrative">
                 <p>Narrative</p>
                 {narrative}
               </div>
-            )}
+            )} */}
             </RateQualityContainer>
 
             <FeedbackWrap theme={theme.config}>
