@@ -64,6 +64,7 @@
     "postcss-normalize": "^10.0.1",
     "postcss-preset-env": "^8.3.2",
     "react-chartjs-2": "^5.2.0",
+    "react-icons": "^4.10.1",
     "styled-components": "^6.0.0-rc.3"
   }
 }
