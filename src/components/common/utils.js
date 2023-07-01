@@ -1,3 +1,4 @@
+import React from "react";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -7,6 +8,37 @@ dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
 
 import { chartColors } from "../../context/ThemeContext";
+import { Popover } from "antd";
+
+export const questionModes = [
+  [
+    "Create a report",
+    "What would you like a report on? Best for big picture, future-oriented questions from your data.",
+    "Useful for asking broad questions from your data.",
+  ],
+  [
+    "Query my data",
+    "Ask a question to gather insights from your data",
+    "Useful for asking specific, query-able questions from your data.",
+  ],
+].map((d) => ({
+  value: d[0],
+  label: (
+    <Popover
+      overlayClassName="agent-popover"
+      overlayInnerStyle={{
+        backgroundColor: "black",
+      }}
+      align={{ offset: [15, 0] }}
+      content={<div style={{ width: "200px", color: "white" }}>{d[2]}</div>}
+      placement="right"
+    >
+      <div className="agent-tool-option">{d[0]}</div>
+    </Popover>
+  ),
+  placeholder: d[1],
+}));
+
 const dateFormats = [
   "YYYY-MM-DD HH:mm:ss",
   "YYYY-MM-DDTHH:mm:ss",
@@ -36,7 +68,7 @@ export function roundColumns(data, columns) {
 
     decimalCols?.forEach((colName) => {
       // round to two decimals
-      roundedData[i][colName] = roundedData[i][colName]?.toFixed(2);
+      roundedData[i][colName] = roundedData[i][colName].toFixed(2);
     });
   });
 
@@ -50,6 +82,11 @@ function isNumber(input) {
   const regex1 = /^-?(0|[1-9]\d*)?(\.\d+)?$/;
   const regex2 = /\d$/;
   return regex1.test(input) && regex2.test(input);
+}
+
+function isExpontential(input) {
+  const regex = /^-?(0|[1-9]\d*)?(\.\d+)?([eE][-+]?\d+)?$/;
+  return regex.test(input);
 }
 
 export function inferColumnType(rows, colIdx, colName) {
@@ -89,7 +126,8 @@ export function inferColumnType(rows, colIdx, colName) {
         res["variableType"] = "quantitative";
       }
       // if number but no decimal
-      else if (isNumber(val)) {
+      // or is exponential value
+      else if (isNumber(val) || isExpontential(val)) {
         res["colType"] = "integer";
         res["numeric"] = true;
         res["variableType"] = "quantitative";
@@ -141,7 +179,7 @@ export function setChartJSDefaults(
   ChartJSRef.defaults.plugins.tooltip.borderWidth = 1;
   ChartJSRef.defaults.plugins.tooltip.padding = 10;
 
-  ChartJSRef.defaults.plugins.title.color = theme.primaryText;
+  ChartJSRef.defaults.plugins.title.color = theme?.primaryText;
 
   // if x axis is a date, add a d3 formatter
   ChartJSRef.defaults.plugins.tooltip.displayColors = false;
@@ -392,3 +430,121 @@ export function download_csv(csvString) {
   hiddenElement.click();
   hiddenElement.remove();
 }
+
+export const tools = [
+  {
+    // name: "SQL Aggregator",
+    name: "Fetch data",
+    description:
+      // "Generates SQL queries to get aggregates (with splits on multiple attributes).Good for getting percentiles, summarizing quantities over time, topk rows and outliers based on percentiles, or joining information across tables. Not good at statistical analysis",
+      "Fetch data from your database. Good for viewing outliers and subsets of your data. For analysis, try any of the other tools.",
+    fn: "sql_aggregator",
+  },
+  {
+    // name: "Summary Statistics",
+    name: "Summarize data",
+    description:
+      // "Generates SQL + python code to sample and estimate summary statistics from a given column. Good for getting mean, std, p25, p50, p75",
+      "Good for getting a brief overview of the data using simple statistics like averages, standard deviation, etc.",
+    fn: "py_column_summarizer",
+  },
+  {
+    // name: "Correlation Finder",
+    name: "Find patterns",
+    description:
+      // "Generates python code to find correlations in the data. Good for finding correlations and associations between values in different columns. Not good when number of rows is large",
+      "Finds patterns and relationships in your data. Note that performance is worse with large datasets.",
+    fn: "py_correlator",
+  },
+  {
+    // name: "Time Series Forecaster",
+    name: "Predict trends",
+    description: "Forecasts future trends in time series data.",
+    fn: "py_time_series_forecaster",
+  },
+];
+
+export const reFormatData = (data, columns) => {
+  let newCols;
+  let newRows;
+
+  // if inferred typeof column is number, decimal, or integer
+  // but simple typeof value is string, means it's a numeric value coming in as string
+  // so coerce them to a number
+  // store the indexes of such columns
+  const numericAsString = [];
+  // deal with columns like "user_id" etc coming in as numbers.
+  // if inferred type is numeric but variable Type is "categorical"
+  const stringAsNumeric = [];
+
+  let validData = sanitiseData(data);
+  let validColumns = sanitiseColumns(columns);
+
+  if (validColumns.length && validData.length) {
+    const cols = columns;
+    const rows = validData;
+    newCols = [];
+    newRows = [];
+    for (let i = 0; i < cols.length; i++) {
+      newCols.push(
+        Object.assign(
+          {
+            title: cols[i],
+            dataIndex: cols[i],
+            key: cols[i],
+            // simple typeof. if a number is coming in as string, this will be string.
+            simpleTypeOf: typeof rows[0][i],
+            sorter:
+              rows.length > 0 && typeof rows[0][i] === "number"
+                ? (a, b) => a[cols[i]] - b[cols[i]]
+                : (a, b) =>
+                    String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+          },
+          inferColumnType(rows, i, cols[i])
+        )
+      );
+      if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
+        numericAsString.push(i);
+      }
+      if (
+        newCols[i].numeric &&
+        newCols[i].simpleTypeOf === "number" &&
+        newCols[i].variableType === "categorical"
+      ) {
+        stringAsNumeric.push(i);
+      }
+    }
+
+    for (let i = 0; i < rows.length; i++) {
+      let row = {};
+      row["key"] = i;
+      row["index"] = i;
+
+      for (let j = 0; j < cols.length; j++) {
+        if (numericAsString.indexOf(j) >= 0) {
+          row[cols[j]] = +rows[i][j];
+        } else if (stringAsNumeric.indexOf(j) >= 0) {
+          row[cols[j]] = "" + rows[i][j];
+        } else row[cols[j]] = rows[i][j];
+      }
+      newRows.push(row);
+    }
+
+    // push an index column
+    newCols.push({
+      title: "index",
+      dataIndex: "index",
+      key: "index",
+      sorter: (a, b) => a["index"] - b["index"],
+      colType: "integer",
+      variableType: "integer",
+      numeric: true,
+      simpleTypeOf: "number",
+    });
+  } else {
+    newCols = [];
+    newRows = [];
+  }
+
+  return { newCols, newRows };
+};

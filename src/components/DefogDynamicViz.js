@@ -1,35 +1,16 @@
 import React, { useState, useContext, Fragment } from "react";
-import {
-  Button,
-  Table,
-  message,
-  Tabs,
-  Modal,
-  Input,
-  ConfigProvider,
-} from "antd";
+import { Button, message, Modal, Input, ConfigProvider } from "antd";
 
-import {
-  TableOutlined,
-  BarChartOutlined,
-  CloseOutlined,
-} from "@ant-design/icons";
+import { CloseOutlined } from "@ant-design/icons";
 
-import {
-  download_csv,
-  isEmpty,
-  processData,
-  roundColumns,
-  transformToCSV,
-} from "./common/utils.js";
-
-import ErrorBoundary from "./common/ErrorBoundary.js";
-import ChartContainer from "./ChartContainer.jsx";
+import { download_csv, isEmpty, transformToCSV } from "./common/utils";
 
 import styled from "styled-components";
-import ThumbsUp from "./svg/ThumbsUp.js";
-import ThumbsDown from "./svg/ThumbsDown.js";
-import { ThemeContext } from "../context/ThemeContext.js";
+import ThumbsUp from "./svg/ThumbsUp";
+import ThumbsDown from "./svg/ThumbsDown";
+import { ThemeContext } from "../context/ThemeContext";
+import Agent from "./agent/Agent";
+import { TableChart } from "./TableChart.js";
 
 const errorMessages = {
   noReponse:
@@ -40,20 +21,19 @@ const DefogDynamicViz = ({
   vizType = null,
   response,
   rawData,
-  rawCols,
   query,
   debugMode,
   apiKey,
   resetChat,
   sqlOnly,
-  hasNarrative,
+  narrativeEnabled,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [narrative, setNarrative] = useState(null);
   const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
-  
+
   // if no response, return error
   if (!response || isEmpty(response)) {
     return (
@@ -110,102 +90,36 @@ const DefogDynamicViz = ({
     results = null;
   } else if (vizType === "text") {
     results = <pre>{response.results}</pre>;
+  } else if (vizType === "agent") {
+    results = <Agent initialSubQns={response.subQns} theme={theme} />;
   } else {
-    // always have a table
-    // round decimal cols to 2 decimal places
-    const roundedData = roundColumns(response.data, response.columns);
-    const emptyData = {key: 0, index: 0}
-    if (roundedData.length == 0) {
-      rawCols.forEach((col) => {
-        emptyData[col] = "no data";
-      });
-    }
-    
-    results = [
-      <Table
-        key="0"
-        dataSource={roundedData.length > 0 ? roundedData : [emptyData]}
-        // don't show index column in table
-        columns={
-          response.columns.length > 0 ?
-          response.columns.filter((d) => d.title !== "index") :
-          rawCols.map((col) => {
-            return {
-              title: col,
-              dataIndex: col,
-              key: col,
-            };
-          })
-        }
-        scroll={{ x: "max-content" }}
-        style={{
-          maxHeight: 300,
-        }}
-        size="small"
-        pagination={{ pageSize: 5, showSizeChanger: false }}
-      />,
-    ];
-
-    const {
-      xAxisColumns,
-      categoricalColumns,
-      yAxisColumns,
-      xAxisColumnValues,
-      dateColumns,
-    } = processData(response.data, response.columns);
-
-    results.push(
-      <ErrorBoundary>
-        <ChartContainer
-          xAxisColumns={xAxisColumns}
-          dateColumns={dateColumns}
-          categoricalColumns={categoricalColumns}
-          yAxisColumns={yAxisColumns}
-          xAxisColumnValues={xAxisColumnValues}
-          data={response.data}
-          columns={response.columns}
-          title={query}
-          key="1"
-          vizType={vizType === "table" ? "Bar Chart" : vizType}
-          theme={theme.config}
-        ></ChartContainer>
-      </ErrorBoundary>
-    );
-
-    // convert to antd tabs
     results = (
-      <Tabs
-        defaultActiveKey={vizType === "table" ? "0" : "1"}
-        items={results.map((d, i) => ({
-          key: String(i),
-          label: (
-            <span>
-              {i === 0 ? <TableOutlined /> : <BarChartOutlined />}
-              {i === 0 ? "Table" : "Chart"}
-            </span>
-          ),
-          children: d,
-        }))}
-      ></Tabs>
+      <TableChart response={response} query={query} vizType={vizType} />
     );
   }
 
-  const csvDownload = (
-    <div className="exportNarativeBtn">
-      <Button
-        onClick={() =>
-          download_csv(
-            transformToCSV(
-              rawData,
-              response.columns.map((d) => d.title)
-            )
-          )
-        }
-      >
-        ⬇️ CSV
-      </Button>
+  let csvDownload;
 
-      {hasNarrative ? <Button
+  csvDownload = (
+    <div className="exportNarativeBtn">
+      {vizType === "agent" ? (
+        <></>
+      ) : (
+        <Button
+          onClick={() =>
+            download_csv(
+              transformToCSV(
+                rawData,
+                response.columns.map((d) => d.title)
+              )
+            )
+          }
+        >
+          ⬇️ CSV
+        </Button>
+      )}
+
+      {narrativeEnabled && <Button
         loading={narrativeLoading}
         onClick={async () => {
           setNarrativeLoading(true);
@@ -220,7 +134,7 @@ const DefogDynamicViz = ({
                 apiKey: apiKey,
                 data: {
                   data: rawData.slice(0, 100),
-                  columns: response.columns.map((el) => el.title).filter((el) => el !== "index"),
+                  columns: response.columns,
                 },
               }),
             }
@@ -231,7 +145,7 @@ const DefogDynamicViz = ({
         }}
       >
         💭 Narrative
-      </Button> : null}
+      </Button>}
 
       <Button onClick={() => resetChat()}>Reset Chat</Button>
     </div>
@@ -288,7 +202,7 @@ const DefogDynamicViz = ({
                 </>
               )}
 
-              {narrative && (
+              {narrativeEnabled && (
               <div className="generatedNarrative">
                 <p>Narrative</p>
                 {narrative}
