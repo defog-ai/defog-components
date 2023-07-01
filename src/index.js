@@ -18,6 +18,7 @@ import {
 } from "./context/ThemeContext";
 import styled from "styled-components";
 import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
+import { Report } from "./components/Report";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
@@ -151,91 +152,6 @@ export const AskDefogChat = ({
     }
   }, []);
 
-  // const reFormatData = (data, columns) => {
-  //   let newCols;
-  //   let newRows;
-
-  //   // if inferred typeof column is number, decimal, or integer
-  //   // but simple typeof value is string, means it's a numeric value coming in as string
-  //   // so coerce them to a number
-  //   // store the indexes of such columns
-  //   const numericAsString = [];
-  //   // deal with columns like "user_id" etc coming in as numbers.
-  //   // if inferred type is numeric but variable Type is "categorical"
-  //   const stringAsNumeric = [];
-
-  //   let validData = sanitiseData(data);
-  //   let validColumns = sanitiseColumns(columns);
-
-  //   if (validColumns.length && validData.length) {
-  //     const cols = columns;
-  //     const rows = validData;
-  //     newCols = [];
-  //     newRows = [];
-  //     for (let i = 0; i < cols.length; i++) {
-  //       newCols.push(
-  //         Object.assign(
-  //           {
-  //             title: cols[i],
-  //             dataIndex: cols[i],
-  //             key: cols[i],
-  //             // simple typeof. if a number is coming in as string, this will be string.
-  //             simpleTypeOf: typeof rows[0][i],
-  //             sorter:
-  //               rows.length > 0 && typeof rows[0][i] === "number"
-  //                 ? (a, b) => a[cols[i]] - b[cols[i]]
-  //                 : (a, b) =>
-  //                     String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-  //           },
-  //           inferColumnType(rows, i, cols[i])
-  //         )
-  //       );
-  //       if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
-  //         numericAsString.push(i);
-  //       }
-  //       if (
-  //         newCols[i].numeric &&
-  //         newCols[i].simpleTypeOf === "number" &&
-  //         newCols[i].variableType === "categorical"
-  //       ) {
-  //         stringAsNumeric.push(i);
-  //       }
-  //     }
-
-  //     for (let i = 0; i < rows.length; i++) {
-  //       let row = {};
-  //       row["key"] = i;
-  //       row["index"] = i;
-
-  //       for (let j = 0; j < cols.length; j++) {
-  //         if (numericAsString.indexOf(j) >= 0) {
-  //           row[cols[j]] = +rows[i][j];
-  //         } else if (stringAsNumeric.indexOf(j) >= 0) {
-  //           row[cols[j]] = "" + rows[i][j];
-  //         } else row[cols[j]] = rows[i][j];
-  //       }
-  //       newRows.push(row);
-  //     }
-
-  //     // push an index column
-  //     newCols.push({
-  //       title: "index",
-  //       dataIndex: "index",
-  //       key: "index",
-  //       sorter: (a, b) => a["index"] - b["index"],
-  //       colType: "integer",
-  //       variableType: "integer",
-  //       numeric: true,
-  //       simpleTypeOf: "number",
-  //     });
-  //   } else {
-  //     newCols = [];
-  //     newRows = [];
-  //   }
-
-  //   return { newCols, newRows };
-  // };
-
   const getDashboardCharts = async () => {
     // go through each question in predefinedQuestions
     // send the query to the server
@@ -300,9 +216,6 @@ export const AskDefogChat = ({
         : { type: "light", config: lightThemeColor }
     );
   };
-
-  // const generateChatPath = "generate_query_chat";
-  // const generateDataPath = "generate_data";
 
   function makeURL(urlPath = "") {
     return apiEndpoint + urlPath;
@@ -652,27 +565,6 @@ export const AskDefogChat = ({
                                   resetChat={resetChat}
                                 />
                               )}
-                              {/* {response.suggestedQuestions && (
-                            <>
-                              <h5
-                                style={{
-                                  margin: "12px 0 0 8px",
-                                  color: theme.config.primaryText,
-                                  opacity: 0.6,
-                                }}
-                              >
-                                Suggested Question(s)
-                              </h5>
-                              <SuggestedQuestionWrap
-                                theme={theme.config}
-                                onClick={() =>
-                                  handleSubmit(response.suggestedQuestions)
-                                }
-                              >
-                                {response.suggestedQuestions}
-                              </SuggestedQuestionWrap>
-                            </>
-                          )} */}
                             </>
                           </QALayout>
                         </ColoredContainer>
@@ -761,6 +653,14 @@ export const AskDefogChat = ({
     </>
   );
 };
+
+export const DefogReport = ({md}) => {
+  return (
+    <div className="report">
+      <Report markdown={md} />
+    </div>
+  );
+}
 
 const Wrap = styled.div`
   position: relative;
