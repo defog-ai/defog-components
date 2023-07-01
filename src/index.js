@@ -18,7 +18,7 @@ import {
 } from "./context/ThemeContext";
 import styled from "styled-components";
 import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
-import { Report } from "./components/Report";
+import { Report } from "./components/report/Report";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
