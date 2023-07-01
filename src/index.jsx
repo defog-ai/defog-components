@@ -22,17 +22,6 @@ import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 
-const GlobalStyle = createGlobalStyle`
-  .ant-popover-arrow, ant-popover-arrow-content {
-    --antd-arrow-background-color: black;
-  }
-  // show popovers only in the dropdown menu.
-  // don't show popovers on hover on the selected dropdown item itself.
-  .ant-select-selection-item {
-    pointer-events: none;
-  }
-`;
-
 export const AskDefogChat = ({
   apiEndpoint,
   maxHeight = "100%",
@@ -49,6 +38,7 @@ export const AskDefogChat = ({
   // predefinedQuestions = [],
   mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
+  agent = false,
 }) => {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -63,9 +53,7 @@ export const AskDefogChat = ({
   const [dashboardCharts, setDashboardCharts] = useState([]);
   const [predefinedQuestions, setPredefinedQuestions] = useState([]);
 
-  const [questionMode, setQuestionMode] = useState(questionModes[0]);
-
-  const agent = questionMode.value !== "Query my data";
+  const questionMode = questionModes[agent ? 0 : 1];
 
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
@@ -75,6 +63,34 @@ export const AskDefogChat = ({
     type: darkMode === true ? "dark" : "light",
     config: darkMode === true ? darkThemeColor : lightThemeColor,
   });
+
+  const GlobalStyle = createGlobalStyle`
+  .ant-popover-arrow, ant-popover-arrow-content {
+    --antd-arrow-background-color: black;
+  }
+  // show popovers only in the dropdown menu.
+  // don't show popovers on hover on the selected dropdown item itself.
+  .ant-select-selection-item {
+    // pointer-events: none;
+  }
+  .italic {
+    font-style: italic;
+  }
+  .underline {
+    text-decoration: underline;
+  }
+
+  .tool-icon {
+    display: inline-block;
+    position: relative;
+    margin-right: 5px;
+    top: 2px;
+
+    svg {
+      stroke: ${theme.config.primaryText};
+    }
+  }
+`;
 
   function resetChat() {
     setChatResponseArray([]);
@@ -694,12 +710,6 @@ export const AskDefogChat = ({
                     ""
                   )}
                   <SearchWrap loading={buttonLoading} theme={theme.config}>
-                    <Select
-                      options={questionModes}
-                      value={questionMode.value}
-                      onSelect={(_, opt) => setQuestionMode(opt)}
-                      className="question-mode-select"
-                    />
                     <AutoComplete
                       style={{ width: "100%" }}
                       options={predefinedQuestions}
