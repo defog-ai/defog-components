@@ -1,5 +1,5 @@
 import { Select } from "antd";
-import React, { useEffect, useState, Fragment, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   cleanString,
   createChartConfig,

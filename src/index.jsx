@@ -1,4 +1,4 @@
-import React, { useState, useRef, Fragment, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Lottie from "lottie-react";
 import { Input, Collapse, Row, Col, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
@@ -23,7 +23,7 @@ import { Report } from "./components/report/Report";
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 
-export const AskDefogChat = ({
+export function AskDefogChat({
   apiEndpoint,
   maxHeight = "100%",
   maxWidth = "100%",
@@ -41,7 +41,7 @@ export const AskDefogChat = ({
   loadingMessage = "Generating a query for your question...",
   agent = false,
   narrativeEnabled = false,
-}) => {
+}) {
   const { Search } = Input;
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
@@ -174,8 +174,8 @@ export const AskDefogChat = ({
       if (resp.ran_successfully === false) {
         throw Error(
           `query didn't run successfully. Here's the response received: ${JSON.stringify(
-            resp
-          )}`
+            resp,
+          )}`,
         );
       } else {
         // get the data
@@ -213,7 +213,7 @@ export const AskDefogChat = ({
     setTheme(
       theme.type === "light"
         ? { type: "dark", config: darkThemeColor }
-        : { type: "light", config: lightThemeColor }
+        : { type: "light", config: lightThemeColor },
     );
   };
 
@@ -278,7 +278,7 @@ export const AskDefogChat = ({
           previous_context: previousQuestions,
           agent,
           api_key: apiKey,
-        })
+        }),
       );
     } else if (mode === "http") {
       let queryChatResponse;
@@ -302,8 +302,8 @@ export const AskDefogChat = ({
         if (queryChatResponse.ran_successfully === false) {
           throw Error(
             `query didn't run successfully. Here's the response received: ${JSON.stringify(
-              queryChatResponse
-            )}`
+              queryChatResponse,
+            )}`,
           );
         }
 
@@ -315,7 +315,7 @@ export const AskDefogChat = ({
           message.error(queryChatResponse.error_message);
         } else {
           message.error(
-            "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP."
+            "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
           );
         }
         setButtonLoading(false);
@@ -327,7 +327,7 @@ export const AskDefogChat = ({
     queryChatResponse,
     query,
     agent = false,
-    executeData = true
+    executeData = true,
   ) {
     console.log(queryChatResponse, agent, executeData);
     // parse agent sub_qns in case string
@@ -339,7 +339,7 @@ export const AskDefogChat = ({
       } catch (e) {
         console.log(e);
         message.error(
-          "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP."
+          "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
         );
         setButtonLoading(false);
       }
@@ -417,7 +417,7 @@ export const AskDefogChat = ({
 
     const { newRows, newCols } = reFormatData(
       dataResponse?.data,
-      dataResponse?.columns
+      dataResponse?.columns,
     );
 
     // update the last item in response array with the above data and columns
@@ -523,7 +523,7 @@ export const AskDefogChat = ({
                                 <DefogDynamicViz
                                   vizType={vizType}
                                   response={Object.assign(
-                                    chatResponseArray[index]
+                                    chatResponseArray[index],
                                   )}
                                   rawData={[]}
                                   query={query}
@@ -555,7 +555,7 @@ export const AskDefogChat = ({
                                   vizType={vizType}
                                   response={Object.assign(
                                     chatResponseArray[index],
-                                    dataResponseArray[index]
+                                    dataResponseArray[index],
                                   )}
                                   rawData={rawData}
                                   query={query}
@@ -652,15 +652,15 @@ export const AskDefogChat = ({
       </UtilsContext.Provider>
     </>
   );
-};
+}
 
-export const DefogReport = ({md}) => {
+export const DefogReport = ({ md }) => {
   return (
     <div className="report">
       <Report markdown={md} />
     </div>
   );
-}
+};
 
 const Wrap = styled.div`
   position: relative;
