@@ -58,7 +58,7 @@ export default function ChartContainer({
       const colName = col.key;
       obj[colName] = createColumnValueOpts(col);
       return obj;
-    }, {})
+    }, {}),
   );
 
   // Dropdowns:
@@ -67,7 +67,7 @@ export default function ChartContainer({
   // Other dropdowns based on the X axis selection. Using categorical columns xAxisOpts above.
 
   const [xAxis, setXAxis] = useState(
-    arrToAntD([dateColumns.length > 0 ? dateColumns[0] : xAxisColumns[0]])
+    arrToAntD([dateColumns.length > 0 ? dateColumns[0] : xAxisColumns[0]]),
   );
 
   const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
@@ -88,7 +88,7 @@ export default function ChartContainer({
               : xAxisOpts.current[xAxisLabel].length === 0
               ? []
               : [{ label: "All", value: "all-selected" }],
-        }
+        },
   );
 
   // chart data
@@ -114,7 +114,7 @@ export default function ChartContainer({
           if (!xAxisColumnValues[selLabel]) {
             xAxisColumnValues[selLabel] = getColValues(
               data,
-              sel.map((d) => d.label)
+              sel.map((d) => d.label),
             );
             // create column options
             // if this doesn't exist, it's probably a multi column selection
@@ -155,7 +155,6 @@ export default function ChartContainer({
       <h4>Y Axis</h4>
       <Select
         mode="multiple"
-        width
         options={arrToAntD(yAxisColumns)}
         defaultValue={yAxis}
         onChange={(_, sel) => {
@@ -209,7 +208,7 @@ export default function ChartContainer({
               // The temporary "all" option created above shows up as an empty object in the selected values
               // so we filter it out
               newVals[xAxisLabel] = sel.filter(
-                (d) => !isEmpty(d) && d.value !== "all-selected"
+                (d) => !isEmpty(d) && d.value !== "all-selected",
               );
             }
 
@@ -222,7 +221,7 @@ export default function ChartContainer({
   const chartTypes = arrToAntD(
     ["Bar Chart", "Pie Chart", "Line Chart"],
     null,
-    null
+    null,
   );
 
   const [chartType, setChartType] = useState({
@@ -293,12 +292,12 @@ export default function ChartContainer({
         xAxis,
         yAxis,
         selectedXValues[xAxisLabel].findIndex(
-          (d) => d.value === "all-selected"
+          (d) => d.value === "all-selected",
         ) > -1
           ? xAxisOptValues?.slice(1)
           : selectedXValues[xAxisLabel],
-        xAxisIsDate
-      )
+        xAxisIsDate,
+      ),
     );
   }, [selectedXValues, xAxis, yAxis]);
 

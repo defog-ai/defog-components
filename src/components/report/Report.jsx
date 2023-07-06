@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { marked } from "marked";
 import { csvTable } from "./marked-extensions";
 import { styled } from "styled-components";
@@ -12,10 +12,8 @@ export function Report({ markdown }) {
 
     window.renders.forEach((item) => {
       const Component = item.component;
-      ReactDOM.render(
-        <Component {...item.props} />,
-        document.getElementById(item.id)
-      );
+      const root = createRoot(document.getElementById(item.id));
+      root.render(<Component {...item.props} />);
     });
   });
 

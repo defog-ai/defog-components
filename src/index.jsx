@@ -604,7 +604,7 @@ export function AskDefogChat({
                   ) : (
                     ""
                   )}
-                  <SearchWrap loading={buttonLoading} theme={theme.config}>
+                  <SearchWrap $loading={buttonLoading} theme={theme.config}>
                     <AutoComplete
                       style={{ width: "100%" }}
                       options={predefinedQuestions}
