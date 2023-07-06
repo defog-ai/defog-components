@@ -8,7 +8,7 @@ import { DefogReport } from "defog-components";
 const container = document.getElementById("root");
 const root = createRoot(container);
 
-root.render(<App />);
+// root.render(<App />);
 
 fetch(import.meta.env.VITE_ENDPOINT_RPT, {
   method: "POST",
