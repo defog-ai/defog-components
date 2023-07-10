@@ -1,5 +1,5 @@
 import React from "react";
-import { AskDefogChat } from "defog-react";
+import { AskDefogChat } from "defog-components";
 
 const App = () => {
   return (

@@ -1,4 +1,4 @@
-import React, { useState, useContext, Fragment } from "react";
+import React, { useState, useContext } from "react";
 import { Button, message, Modal, Input, ConfigProvider } from "antd";
 
 import { CloseOutlined } from "@ant-design/icons";
@@ -10,7 +10,7 @@ import ThumbsUp from "./svg/ThumbsUp";
 import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
 import Agent from "./agent/Agent";
-import { TableChart } from "./TableChart.js";
+import { TableChart } from "./TableChart";
 
 const errorMessages = {
   noReponse:
@@ -119,33 +119,35 @@ const DefogDynamicViz = ({
         </Button>
       )}
 
-      {narrativeEnabled && <Button
-        loading={narrativeLoading}
-        onClick={async () => {
-          setNarrativeLoading(true);
-          const resp = await fetch(
-            `https://api.defog.ai/generate_data_insights`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                apiKey: apiKey,
-                data: {
-                  data: rawData.slice(0, 100),
-                  columns: response.columns,
+      {narrativeEnabled && (
+        <Button
+          loading={narrativeLoading}
+          onClick={async () => {
+            setNarrativeLoading(true);
+            const resp = await fetch(
+              `https://api.defog.ai/generate_data_insights`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
                 },
-              }),
-            }
-          );
-          const data = await resp.json();
-          setNarrative(data.response);
-          setNarrativeLoading(false);
-        }}
-      >
-        💭 Narrative
-      </Button>}
+                body: JSON.stringify({
+                  apiKey: apiKey,
+                  data: {
+                    data: rawData.slice(0, 100),
+                    columns: response.columns,
+                  },
+                }),
+              }
+            );
+            const data = await resp.json();
+            setNarrative(data.response);
+            setNarrativeLoading(false);
+          }}
+        >
+          💭 Narrative
+        </Button>
+      )}
 
       <Button onClick={() => resetChat()}>Reset Chat</Button>
     </div>
@@ -203,11 +205,11 @@ const DefogDynamicViz = ({
               )}
 
               {narrativeEnabled && (
-              <div className="generatedNarrative">
-                <p>Narrative</p>
-                {narrative}
-              </div>
-            )}
+                <div className="generatedNarrative">
+                  <p>Narrative</p>
+                  {narrative}
+                </div>
+              )}
             </RateQualityContainer>
 
             <FeedbackWrap theme={theme.config}>
