@@ -1,20 +1,16 @@
 {
-  "name": "defog-react-example",
+  "name": "defog-components-example",
   "homepage": ".",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "node ../node_modules/react-scripts/bin/react-scripts.js start",
-    "build": "node ../node_modules/react-scripts/bin/react-scripts.js build",
-    "test": "node ../node_modules/react-scripts/bin/react-scripts.js test",
-    "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
+    "start": "../node_modules/.bin/vite --port 3000"
   },
   "dependencies": {
-    "dayjs": "^1.11.8",
-    "defog-react": "file:..",
+    "dayjs": "file:../node_modules/dayjs",
+    "defog-components": "file:..",
     "react": "file:../node_modules/react",
-    "react-dom": "file:../node_modules/react-dom",
-    "react-scripts": "file:../node_modules/react-scripts"
+    "react-dom": "file:../node_modules/react-dom"
   },
   "devDependencies": {
     "@babel/plugin-syntax-object-rest-spread": "^7.8.3"
