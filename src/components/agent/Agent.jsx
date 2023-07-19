@@ -9,7 +9,7 @@ import { Button, Form, Input, message } from "antd";
 
 import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 
-import { FiTool } from "react-icons/fi";
+import { FiTool } from "react-icons/fi.js";
 import ErrorBoundary from "../common/ErrorBoundary";
 
 export default function Agent({ initialSubQns, theme }) {
