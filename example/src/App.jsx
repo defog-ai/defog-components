@@ -14,6 +14,7 @@ const App = () => {
           maxWidth={"100%"}
           maxHeight={"100%"}
           apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
+          // apiEndpoint="https://us-central1-defog-backend.cloudfunctions.net/agents-gcp"
           buttonText={"Ask Defog"}
           debugMode={true}
           apiKey={"test"}
@@ -21,8 +22,8 @@ const App = () => {
           dashboard={false}
           enableNarrative={false}
           darkMode={false}
-          agent={false}
-          narrativeEnabled={false}
+          // agent={true}
+          // narrativeEnabled={false}
           // additionalParams={{ "test" : "test"}}
           // additionalHeaders={{ "test": "test" }}
         />

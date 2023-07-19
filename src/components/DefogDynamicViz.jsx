@@ -175,12 +175,12 @@ const DefogDynamicViz = ({
           }
         >
           <FeedbackModalWrap theme={theme.config}>
-            <TextArea rows={4} id="feedback-text" placeholder="Optional" />
+            <TextArea rows={4} className="feedback-text" placeholder="Optional" />
             <Button
               onClick={() => {
                 uploadFeedback(
                   "Bad",
-                  document.getElementById("feedback-text").value
+                  Array.from(document.querySelectorAll('.feedback-text')).pop().value
                 );
               }}
             >
