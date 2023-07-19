@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Fragment } from "react";
 import Lottie from "lottie-react";
 import { Input, Collapse, Row, Col, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
@@ -263,8 +263,8 @@ export function AskDefogChat({
     setQuery(query);
     setTimeout(() => {
       const divEl = document.getElementById("results");
-      if (divEl.current) {
-        divEl.scrollTo({
+      {
+        divEl && divEl.scrollTo({
           top: divRef.current.scrollHeight,
           behavior: "smooth",
         });

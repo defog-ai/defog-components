@@ -2,7 +2,7 @@ import { Popover, Select } from "antd";
 import React from "react";
 import { styled } from "styled-components";
 import { tools } from "../common/utils";
-// import { FiTool } from "react-icons/fi";
+import { FiTool } from "react-icons/fi";
 
 const toolOpts = tools.map((d) => ({
   label: (
@@ -18,7 +18,7 @@ const toolOpts = tools.map((d) => ({
       placement="right"
     >
       <div className="agent-tool-option">
-        <div className="tool-icon">{/* <FiTool /> */}</div>
+        <div className="tool-icon"><FiTool /></div>
         {d.name}
       </div>
     </Popover>

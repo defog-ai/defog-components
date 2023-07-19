@@ -4,13 +4,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "../node_modules/.bin/vite --port 3000"
   },
   "dependencies": {
     "dayjs": "file:../node_modules/dayjs",
-    "defog-components": "file:..",
+    "defog-components": "file:../",
     "react": "file:../node_modules/react",
-    "react-dom": "file:../node_modules/react-dom"
+    "react-dom": "file:../node_modules/react-dom",
+    "vite": "^4.4.4"
   },
   "devDependencies": {
     "@babel/plugin-syntax-object-rest-spread": "^7.8.3"

@@ -13,4 +13,7 @@ export default defineConfig({
       fileName: "index",
     },
   },
+  optimizeDeps: {
+    include: ['esm-dep > cjs-dep']
+    }
 });
