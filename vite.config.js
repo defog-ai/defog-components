@@ -10,7 +10,6 @@ export default defineConfig({
       // Could also be a dictionary or array of multiple entry points
       entry: resolve(__dirname, "src/index.jsx"),
       name: "defog-components",
-      // the proper extensions will be added
       fileName: "index",
     },
   },

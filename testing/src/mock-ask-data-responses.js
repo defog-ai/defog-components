@@ -1,8 +1,8 @@
 // mock various kinds of results with a similar (but broken) structure to the defog servers return value
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import weekOfYear from "dayjs/plugin/weekOfYear";
-import advancedFormat from "dayjs/plugin/advancedFormat";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
+import weekOfYear from "dayjs/plugin/weekOfYear.js";
+import advancedFormat from "dayjs/plugin/advancedFormat.js";
 import {
   randomiseArray,
   randomSlice,
@@ -150,7 +150,7 @@ function* noColumns() {
     {},
     "columns",
     createAskDataResponseObject,
-    commonVals.slice()
+    commonVals.slice(),
   );
 }
 
@@ -159,7 +159,7 @@ function* noSQL() {
     {},
     "query_generated",
     createAskDataResponseObject,
-    commonVals.slice()
+    commonVals.slice(),
   );
 }
 
@@ -231,7 +231,7 @@ export function* testCases() {
 export function nextTestBtnClick() {
   if (window && !window.testsFinished && window.autoTesting) {
     const nextTestBtn = document.querySelector(
-      "#test-controller .next-test-btn"
+      "#test-controller .next-test-btn",
     );
     nextTestBtn.click();
   }

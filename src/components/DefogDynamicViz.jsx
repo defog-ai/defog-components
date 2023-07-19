@@ -5,7 +5,7 @@ import { CloseOutlined } from "@ant-design/icons";
 
 import { download_csv, isEmpty, transformToCSV } from "./common/utils";
 
-import styled from "styled-components";
+import { styled } from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp";
 import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
@@ -77,10 +77,10 @@ const DefogDynamicViz = ({
 
     feedback === "Good"
       ? message.success(
-          "We are glad that this was a good result. Thank you for the feedback!"
+          "We are glad that this was a good result. Thank you for the feedback!",
         )
       : message.info(
-          "Thank you for the feedback, we will use your feedback to make the results better!"
+          "Thank you for the feedback, we will use your feedback to make the results better!",
         );
   };
 
@@ -110,8 +110,8 @@ const DefogDynamicViz = ({
             download_csv(
               transformToCSV(
                 rawData,
-                response.columns.map((d) => d.title)
-              )
+                response.columns.map((d) => d.title),
+              ),
             )
           }
         >
@@ -138,7 +138,7 @@ const DefogDynamicViz = ({
                     columns: response.columns,
                   },
                 }),
-              }
+              },
             );
             const data = await resp.json();
             setNarrative(data.response);
@@ -175,12 +175,17 @@ const DefogDynamicViz = ({
           }
         >
           <FeedbackModalWrap theme={theme.config}>
-            <TextArea rows={4} className="feedback-text" placeholder="Optional" />
+            <TextArea
+              rows={4}
+              className="feedback-text"
+              placeholder="Optional"
+            />
             <Button
               onClick={() => {
                 uploadFeedback(
                   "Bad",
-                  Array.from(document.querySelectorAll('.feedback-text')).pop().value
+                  Array.from(document.querySelectorAll(".feedback-text")).pop()
+                    .value,
                 );
               }}
             >

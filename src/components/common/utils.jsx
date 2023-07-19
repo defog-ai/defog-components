@@ -156,7 +156,7 @@ export function setChartJSDefaults(
   title = "",
   xAxisIsDate = false,
   theme,
-  pieChart = false
+  pieChart = false,
 ) {
   ChartJSRef.defaults.scale.grid.drawOnChartArea = false;
   ChartJSRef.defaults.interaction.axis = "x";
@@ -185,10 +185,10 @@ export function setChartJSDefaults(
   ChartJSRef.defaults.plugins.tooltip.displayColors = false;
 
   ChartJSRef.defaults.plugins.tooltip.callbacks.title = function (
-    tooltipItems
+    tooltipItems,
   ) {
     return tooltipItems.map((item) =>
-      xAxisIsDate ? formatTime(item.label) : item.label
+      xAxisIsDate ? formatTime(item.label) : item.label,
     );
   };
 
@@ -209,7 +209,7 @@ export function setChartJSDefaults(
     // pie/doughnuts charts are weird in chartjs
     // brilliant hack to edit some props of legendItems without having to remake them from here: https://stackoverflow.com/questions/39454586/pie-chart-legend-chart-js
     ChartJSRef.overrides.pie.plugins.legend.labels.filter = function (
-      legendItem
+      legendItem,
     ) {
       legendItem.text = xAxisIsDate
         ? formatTime(legendItem.text)
@@ -224,7 +224,7 @@ export const mapToObject = (
   parentNestLocation = [],
   processValue = (d) => d,
   // hook will allow you to do extra computation on every recursive call to this function
-  hook = () => {}
+  hook = () => {},
 ) =>
   Object.fromEntries(
     Array.from(map.entries(), ([key, value]) => {
@@ -236,7 +236,7 @@ export const mapToObject = (
       return value instanceof Map
         ? [key, mapToObject(value, value.nestLocation, processValue)]
         : [key, processValue(value)];
-    })
+    }),
   );
 
 export function getColValues(data = [], columns = []) {
@@ -265,12 +265,12 @@ export function processData(data, columns) {
   const dateColumns = columns?.filter((d) => d.colType === "date");
   // date comes in as categorical column, but we use that for the x axis, so filter that out also
   const categoricalColumns = columns?.filter(
-    (d) => d.variableType[0] === "c" && d.colType !== "date"
+    (d) => d.variableType[0] === "c" && d.colType !== "date",
   );
 
   // y axis columns are only numeric non date columns
   const yAxisColumns = columns?.filter(
-    (d) => d.variableType[0] !== "c" && d.colType !== "date"
+    (d) => d.variableType[0] !== "c" && d.colType !== "date",
   );
 
   const xAxisColumns = columns?.slice();
@@ -329,7 +329,7 @@ export function createChartConfig(
   xAxisColumns,
   yAxisColumns,
   selectedXValues,
-  xAxisIsDate
+  xAxisIsDate,
 ) {
   if (
     !xAxisColumns.length ||
@@ -351,7 +351,7 @@ export function createChartConfig(
   let filteredData = data.filter((d) => {
     const xLab = getColValues(
       [d],
-      xAxisColumns.map((d) => d.label)
+      xAxisColumns.map((d) => d.label),
     )[0];
 
     d.__xLab__ = xLab;
@@ -384,7 +384,7 @@ export function createChartConfig(
     chartLabels?.sort(
       (a, b) =>
         filteredData[b][yAxisColumns[0].label] -
-        filteredData[a][yAxisColumns[0].label]
+        filteredData[a][yAxisColumns[0].label],
     );
   }
 
@@ -500,8 +500,8 @@ export const reFormatData = (data, columns) => {
                 : (a, b) =>
                     String(a[cols[i]]).localeCompare(String(b[cols[i]])),
           },
-          inferColumnType(rows, i, cols[i])
-        )
+          inferColumnType(rows, i, cols[i]),
+        ),
       );
       if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
         numericAsString.push(i);
