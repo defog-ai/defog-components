@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import styled from "styled-components";
+import { styled } from "styled-components";
 import { ThemeContext } from "../context/ThemeContext";
 
 const SearchState = ({ type, message, svg, lottie, children }) => {

@@ -1,6 +1,6 @@
 {
   "name": "defog-components",
-  "version": "0.43.8",
+  "version": "0.43.9",
   "description": "Front-end components for Defog",
   "author": "defog-ai",
   "license": "MIT",
@@ -9,9 +9,10 @@
     "node": ">=10"
   },
   "exports": {
-    "import": "./dist/index.mjs",
+    "import": "./dist/index.js",
     "require": "./dist/index.umd.cjs"
   },
+  "type": "module",
   "scripts": {
     "build": "vite build",
     "start": "vite build --watch"

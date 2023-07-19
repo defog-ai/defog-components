@@ -16,7 +16,7 @@ import {
   darkThemeColor,
   lightThemeColor,
 } from "./context/ThemeContext";
-import styled from "styled-components";
+import { styled } from "styled-components";
 import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
 import { Report } from "./components/report/Report";
 

@@ -9,7 +9,7 @@ import {
 import PieChart from "./Charts/PieChart";
 import ColumnChart from "./Charts/ColumnChart";
 import TrendChart from "./Charts/TrendChart";
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 function arrToAntD(arr, labelProp = "key", valueProp = "key") {
   return arr.map((d) => ({

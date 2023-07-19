@@ -1,8 +1,8 @@
 // mock various kinds of results with a similar (but broken) structure to the defog servers return value
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import weekOfYear from "dayjs/plugin/weekOfYear";
-import advancedFormat from "dayjs/plugin/advancedFormat";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
+import weekOfYear from "dayjs/plugin/weekOfYear.js";
+import advancedFormat from "dayjs/plugin/advancedFormat.js";
 dayjs.extend(advancedFormat);
 dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
@@ -153,7 +153,7 @@ function* testResponseProp(newProps, prop, vals = null) {
     console.log(
       `Testing %c${prop}\x1b[0m prop. Current value:`,
       "color: #ff0000",
-      vals[i] === "" ? "empty string" : vals[i]
+      vals[i] === "" ? "empty string" : vals[i],
     );
 
     if (vals[i] === "delete") {
@@ -265,7 +265,7 @@ export function* testCases() {
 export function autoTest() {
   if (window && !window.testsFinished && window.autoTesting) {
     const nextTestBtn = document.querySelector(
-      "#test-controller .next-test-btn"
+      "#test-controller .next-test-btn",
     );
     nextTestBtn.click();
   }
