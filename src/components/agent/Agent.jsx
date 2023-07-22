@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, Fragment } from "react";
 
 import AgentSubQnInput from "./AgentSubQnInput";
 import AgentTool from "./AgentTool";
@@ -9,7 +9,7 @@ import { Button, Form, Input, message } from "antd";
 
 import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 
-// import { FiTool } from "react-icons/fi";
+import { FiTool } from "react-icons/fi";
 import ErrorBoundary from "../common/ErrorBoundary";
 
 export default function Agent({ initialSubQns, theme }) {
@@ -112,7 +112,7 @@ export default function Agent({ initialSubQns, theme }) {
                 </p>
                 <p>
                   Behind the scenes, each sub question is answered using a tool{" "}
-                  <div className="tool-icon">{/* <FiTool /> */}</div>. Every
+                  <div className="tool-icon"><FiTool /></div>. Every
                   tool is designed to answer a specific type of question.
                 </p>
                 <p>

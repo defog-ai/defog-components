@@ -1,6 +1,7 @@
 import "./index.css";
 
 import React from "react";
+// import * as ReactDOM from "react-dom";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { nextTestBtnClick, testCases } from "./mock-ask-data-responses";
@@ -47,4 +48,5 @@ window.fetch = () => {
 const container = document.getElementById("root");
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 root.render(<App />);
+// ReactDOM.render(<App />, container)
 window.testingInterval.start();
