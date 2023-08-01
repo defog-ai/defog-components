@@ -41,7 +41,7 @@ export function AskDefogChat({
   loadingMessage = "Generating a query for your question...",
   agent = false,
   narrativeEnabled = false,
-  defaultText=""
+  placeholderText=""
 }) {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -617,7 +617,7 @@ export function AskDefogChat({
                       ref={autoCompRef}
                     >
                       <Search
-                        placeholder={defaultText || questionMode.placeholder}
+                        placeholder={placeholderText || questionMode.placeholder}
                         enterButton={buttonText}
                         size="small"
                         onSearch={handleSubmit}
