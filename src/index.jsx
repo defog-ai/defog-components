@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
 import Lottie from "lottie-react";
-import { Input, Collapse, Row, Col, AutoComplete, message } from "antd";
+import { Input, Collapse, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
@@ -35,12 +35,13 @@ export function AskDefogChat({
   additionalParams = {},
   additionalHeaders = {},
   sqlOnly = false,
-  dashboard = false,
-  // predefinedQuestions = [],
+  // dashboard = false,
+  predefinedQuestions = [],
   mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
   agent = false,
   narrativeEnabled = false,
+  placeholderText=""
 }) {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -52,8 +53,8 @@ export function AskDefogChat({
   const [dataResponseArray, setDataResponseArray] = useState([]);
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
-  const [dashboardCharts, setDashboardCharts] = useState([]);
-  const [predefinedQuestions, setPredefinedQuestions] = useState([]);
+  // const [dashboardCharts, setDashboardCharts] = useState([]);
+  // const [predefinedQuestions, setPredefinedQuestions] = useState([]);
 
   const questionMode = questionModes[agent ? 0 : 1];
 
@@ -120,94 +121,94 @@ export function AskDefogChat({
     }
   }, [darkMode]);
 
-  const getPredefinedQuestions = async () => {
-    setDashboardCharts([]);
-    try {
-      const response = await fetch(apiEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...additionalHeaders,
-        },
-        body: JSON.stringify({
-          api_key: apiKey,
-          ...additionalParams,
-          mode: "get_questions",
-        }),
-      });
-      const data = await response.json();
-      if (data.status === "success") {
-        setPredefinedQuestions(data.questions);
-      } else {
-        // message.error("an error occurred while fetching predefined questions");
-      }
-    } catch {
-      // pass
-    }
-  };
+  // const getPredefinedQuestions = async () => {
+  //   setDashboardCharts([]);
+  //   try {
+  //     const response = await fetch(apiEndpoint, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         ...additionalHeaders,
+  //       },
+  //       body: JSON.stringify({
+  //         api_key: apiKey,
+  //         ...additionalParams,
+  //         mode: "get_questions",
+  //       }),
+  //     });
+  //     const data = await response.json();
+  //     if (data.status === "success") {
+  //       setPredefinedQuestions(data.questions);
+  //     } else {
+  //       // message.error("an error occurred while fetching predefined questions");
+  //     }
+  //   } catch {
+  //     // pass
+  //   }
+  // };
 
-  useEffect(() => {
-    if (!agent) {
-      getPredefinedQuestions();
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (!agent) {
+  //     getPredefinedQuestions();
+  //   }
+  // }, []);
 
-  const getDashboardCharts = async () => {
-    // go through each question in predefinedQuestions
-    // send the query to the server
-    // get the data
+  // const getDashboardCharts = async () => {
+  //   // go through each question in predefinedQuestions
+  //   // send the query to the server
+  //   // get the data
 
-    // for each question, get the data
-    predefinedQuestions.forEach(async (question) => {
-      const resp = await fetch(makeURL(), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...additionalHeaders,
-        },
-        body: JSON.stringify({
-          question: question.value,
-          ...additionalParams,
-        }),
-      }).then((d) => d.json());
+  //   // for each question, get the data
+  //   predefinedQuestions.forEach(async (question) => {
+  //     const resp = await fetch(makeURL(), {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         ...additionalHeaders,
+  //       },
+  //       body: JSON.stringify({
+  //         question: question.value,
+  //         ...additionalParams,
+  //       }),
+  //     }).then((d) => d.json());
 
-      if (resp.ran_successfully === false) {
-        throw Error(
-          `query didn't run successfully. Here's the response received: ${JSON.stringify(
-            resp,
-          )}`,
-        );
-      } else {
-        // get the data
-        const data = resp.data;
-        // get the columns
-        const columns = resp.columns;
+  //     if (resp.ran_successfully === false) {
+  //       throw Error(
+  //         `query didn't run successfully. Here's the response received: ${JSON.stringify(
+  //           resp,
+  //         )}`,
+  //       );
+  //     } else {
+  //       // get the data
+  //       const data = resp.data;
+  //       // get the columns
+  //       const columns = resp.columns;
 
-        // reformat the data
-        const { newCols, newRows } = reFormatData(data, columns);
+  //       // reformat the data
+  //       const { newCols, newRows } = reFormatData(data, columns);
 
-        // create the chart object
-        const chart = {
-          data: newRows,
-          columns: newCols,
-          vizType: "table",
-          rawData: data,
-          title: question.value,
-        };
+  //       // create the chart object
+  //       const chart = {
+  //         data: newRows,
+  //         columns: newCols,
+  //         vizType: "table",
+  //         rawData: data,
+  //         title: question.value,
+  //       };
 
-        // add the chart to the dashboard
-        setDashboardCharts((prev) => {
-          return [...prev, chart];
-        });
-      }
-    });
-  };
+  //       // add the chart to the dashboard
+  //       setDashboardCharts((prev) => {
+  //         return [...prev, chart];
+  //       });
+  //     }
+  //   });
+  // };
 
-  useEffect(() => {
-    if (dashboard && predefinedQuestions.length > 0) {
-      getDashboardCharts();
-    }
-  }, [dashboard, predefinedQuestions]);
+  // useEffect(() => {
+  //   if (dashboard && predefinedQuestions.length > 0) {
+  //     getDashboardCharts();
+  //   }
+  // }, [dashboard, predefinedQuestions]);
 
   const toggleTheme = () => {
     setTheme(
@@ -616,7 +617,7 @@ export function AskDefogChat({
                       ref={autoCompRef}
                     >
                       <Search
-                        placeholder={questionMode.placeholder}
+                        placeholder={placeholderText || questionMode.placeholder}
                         enterButton={buttonText}
                         size="small"
                         onSearch={handleSubmit}
@@ -627,7 +628,7 @@ export function AskDefogChat({
                   </SearchWrap>
                 </Panel>
               </Collapse>
-              {dashboard ? (
+              {/* {dashboard ? (
                 <div>
                   <Row style={{ paddingLeft: 20 }} gutter={8}>
                     {dashboardCharts.map((chart, index) => {
@@ -645,7 +646,7 @@ export function AskDefogChat({
                     })}
                   </Row>
                 </div>
-              ) : null}
+              ) : null} */}
             </div>
           </Wrap>
         </ThemeContext.Provider>
