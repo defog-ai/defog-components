@@ -53,9 +53,7 @@ export function AskDefogChat({
   const [dataResponseArray, setDataResponseArray] = useState([]);
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
-  // const [dashboardCharts, setDashboardCharts] = useState([]);
-  // const [predefinedQuestions, setPredefinedQuestions] = useState([]);
-
+  
   const questionMode = questionModes[agent ? 0 : 1];
 
   const [query, setQuery] = useState("");
@@ -120,96 +118,7 @@ export function AskDefogChat({
       setTheme({ type: "light", config: lightThemeColor });
     }
   }, [darkMode]);
-
-  // const getPredefinedQuestions = async () => {
-  //   setDashboardCharts([]);
-  //   try {
-  //     const response = await fetch(apiEndpoint, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         ...additionalHeaders,
-  //       },
-  //       body: JSON.stringify({
-  //         api_key: apiKey,
-  //         ...additionalParams,
-  //         mode: "get_questions",
-  //       }),
-  //     });
-  //     const data = await response.json();
-  //     if (data.status === "success") {
-  //       setPredefinedQuestions(data.questions);
-  //     } else {
-  //       // message.error("an error occurred while fetching predefined questions");
-  //     }
-  //   } catch {
-  //     // pass
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   if (!agent) {
-  //     getPredefinedQuestions();
-  //   }
-  // }, []);
-
-  // const getDashboardCharts = async () => {
-  //   // go through each question in predefinedQuestions
-  //   // send the query to the server
-  //   // get the data
-
-  //   // for each question, get the data
-  //   predefinedQuestions.forEach(async (question) => {
-  //     const resp = await fetch(makeURL(), {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         ...additionalHeaders,
-  //       },
-  //       body: JSON.stringify({
-  //         question: question.value,
-  //         ...additionalParams,
-  //       }),
-  //     }).then((d) => d.json());
-
-  //     if (resp.ran_successfully === false) {
-  //       throw Error(
-  //         `query didn't run successfully. Here's the response received: ${JSON.stringify(
-  //           resp,
-  //         )}`,
-  //       );
-  //     } else {
-  //       // get the data
-  //       const data = resp.data;
-  //       // get the columns
-  //       const columns = resp.columns;
-
-  //       // reformat the data
-  //       const { newCols, newRows } = reFormatData(data, columns);
-
-  //       // create the chart object
-  //       const chart = {
-  //         data: newRows,
-  //         columns: newCols,
-  //         vizType: "table",
-  //         rawData: data,
-  //         title: question.value,
-  //       };
-
-  //       // add the chart to the dashboard
-  //       setDashboardCharts((prev) => {
-  //         return [...prev, chart];
-  //       });
-  //     }
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   if (dashboard && predefinedQuestions.length > 0) {
-  //     getDashboardCharts();
-  //   }
-  // }, [dashboard, predefinedQuestions]);
-
+  
   const toggleTheme = () => {
     setTheme(
       theme.type === "light"
