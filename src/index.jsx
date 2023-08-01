@@ -517,7 +517,7 @@ export function AskDefogChat({
                   <SearchWrap $loading={buttonLoading} theme={theme.config}>
                     <AutoComplete
                       style={{ width: "100%" }}
-                      options={predefinedQuestions}
+                      options={predefinedQuestions.map(x => ({label: x, value: x}))}
                       filterOption={(inputValue, option) =>
                         option?.value
                           .toUpperCase()
