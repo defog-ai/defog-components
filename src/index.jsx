@@ -570,11 +570,18 @@ export function AskDefogChat({
   );
 }
 
-export const DefogReport = ({ md }) => {
+export const DefogReport = ({ md, apiKey = "", apiEndpoint = "" }) => {
   return (
-    <div className="report">
-      <Report markdown={md} />
-    </div>
+    <UtilsContext.Provider
+      value={{
+        apiKey: apiKey,
+        apiEndpoint: apiEndpoint,
+      }}
+    >
+      <div className="report">
+        <Report markdown={md} apiKey apiEndpoint />
+      </div>
+    </UtilsContext.Provider>
   );
 };
 

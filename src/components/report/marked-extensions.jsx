@@ -1,6 +1,40 @@
 import { TableChart } from "../TableChart";
 import { reFormatData } from "../common/utils";
 
+import React, { useContext } from "react";
+// Add ask defog chat to table chart
+import { AskDefogChat } from "../../index";
+import { Logo } from "../svg/Logo";
+import { styled } from "styled-components";
+import { UtilsContext } from "../../context/UtilsContext";
+
+const AskDefogWrap = styled.div`
+  .results-panel .ant-collapse-extra {
+    display: none;
+  }
+`;
+
+function ReportTableChart({ response }) {
+  const { apiKey, apiEndpoint } = useContext(UtilsContext);
+
+  return (
+    <TableChart
+      response={response}
+      extraTabs={[
+        {
+          component: (
+            <AskDefogWrap>
+              <AskDefogChat apiEndpoint={apiEndpoint} apiKey={apiKey} />
+            </AskDefogWrap>
+          ),
+          tabLabel: "Explore more",
+          icon: <Logo />,
+        },
+      ]}
+    />
+  );
+}
+
 export const csvTable = {
   name: "csvTable",
   level: "block",
@@ -36,7 +70,7 @@ export const csvTable = {
     window.renders.push({
       id: randomId,
       text: token.text,
-      component: TableChart,
+      component: ReportTableChart,
       props: {
         response: {
           columns: r.newCols,

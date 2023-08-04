@@ -30,7 +30,7 @@ export function Report({ markdown }) {
 
 const ReportWrap = styled.div`
   white-space: pre-wrap;
-  max-width: 90%;
+  max-width: 800px;
   margin: 0 auto;
   .csv-table {
     width: 70%;
