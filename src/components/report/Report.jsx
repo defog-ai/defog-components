@@ -6,14 +6,16 @@ import { styled } from "styled-components";
 
 marked.use({ extensions: [csvTable] });
 
-export function Report({ markdown }) {
+export function Report({ markdown, apiKey, apiEndpoint }) {
   useEffect(() => {
     if (!window.renders || !window.renders.length) return;
 
     window.renders.forEach((item) => {
       const Component = item.component;
       const root = createRoot(document.getElementById(item.id));
-      root.render(<Component {...item.props} />);
+      root.render(
+        <Component {...item.props} apiKey={apiKey} apiEndpoint={apiEndpoint} />,
+      );
     });
   });
 

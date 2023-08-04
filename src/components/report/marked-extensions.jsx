@@ -1,12 +1,11 @@
 import { TableChart } from "../TableChart";
 import { reFormatData } from "../common/utils";
 
-import React, { useContext } from "react";
+import React from "react";
 // Add ask defog chat to table chart
 import { AskDefogChat } from "../../index";
 import { Logo } from "../svg/Logo";
 import { styled } from "styled-components";
-import { UtilsContext } from "../../context/UtilsContext";
 
 const AskDefogWrap = styled.div`
   .results-panel .ant-collapse-extra {
@@ -14,9 +13,7 @@ const AskDefogWrap = styled.div`
   }
 `;
 
-function ReportTableChart({ response }) {
-  const { apiKey, apiEndpoint } = useContext(UtilsContext);
-
+function ReportTableChart({ response, apiKey, apiEndpoint }) {
   return (
     <TableChart
       response={response}
