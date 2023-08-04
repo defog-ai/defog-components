@@ -6,13 +6,14 @@
   "license": "MIT",
   "repository": "",
   "main": "dist/index.js",
-  "module": "dist/index.js",
+  "module": "dist/index.modern.mjs",
   "source": "src/index.jsx",
   "engines": {
     "node": ">=10"
   },
   "scripts": {
-    "build": "microbundle --no-compress --format modern,cjs --jsx React.createElement"
+    "build": "microbundle --no-compress --format modern,cjs --jsx React.createElement",
+    "start": "microbundle watch --no-compress --format modern,cjs --jsx React.createElement"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.7",
