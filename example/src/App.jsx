@@ -1,5 +1,5 @@
 import React from "react";
-import { AskDefogChat } from "defog-components";
+import { AskDefogChat } from "../../src/index";
 import Agent from "../../src/components/agent/Agent";
 import { UtilsContext } from "../../src/context/UtilsContext";
 import {

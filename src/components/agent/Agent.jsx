@@ -1,6 +1,6 @@
 import React, { useContext, useState, Fragment } from "react";
 
-import AgentSubQnInput from "./AgentSubQnInput";
+// import AgentSubQnInput from "./AgentSubQnInput";
 // import AgentTool from "./AgentTool";
 import { styled } from "styled-components";
 
@@ -121,12 +121,7 @@ export default function Agent({ initialSubQns, theme }) {
                 subQns.map((subQn, index) => {
                   return (
                     <div key={index} className="agent-subqn">
-                      <div className="subqn-heading">
-                        <AgentSubQnInput
-                          subQn={subQn.title}
-                          setSubQn={(e) => updateSubQns(e, index, "title")}
-                        ></AgentSubQnInput>
-                      </div>
+                      <div className="subqn-heading">{subQn.title}</div>
                       <div className="subqn-steps">
                         {subQn.steps.length ? (
                           subQn.steps.map((step, i) => (
@@ -203,9 +198,9 @@ const AgentWrap = styled.div`
     }
     .agent-subqns-container {
       width: 80%;
-      padding: 1rem;
+      padding: 1em;
       border-radius: 5px;
-      margin-bottom: 3rem;
+      margin-bottom: 3em;
       border: 1px solid
         ${(props) => {
           return props.theme ? props.theme.config.questionBorder : "#eee";
@@ -213,26 +208,39 @@ const AgentWrap = styled.div`
 
       .agent-subqn {
         position: relative;
-        margin-bottom: 3rem;
-        margin-top: 3rem;
+        margin-bottom: 3em;
+        margin-top: 3em;
         padding-left: 30px;
         border-bottom: 1px solid transparent;
+        padding-bottom: 1.5em;
+        border-bottom: 1px solid #efefef;
+        font-size: 14px;
 
         * {
           transition: opacity 0.2s ease-in-out;
+        }
+
+        .subqn-heading {
+          font-size: 1.5em;
+          text-align: center;
+          margin-top: 1.5em;
         }
 
         .subqn-steps {
           display: flex;
           justify-content: space-between;
           margin: 0 auto;
-          margin-top: 2rem;
+
           align-items: start;
-          max-width: 800px;
+          max-width: 900px;
+          flex-wrap: wrap;
+          justify-content: center;
+
           .subqn-step {
             display: flex;
             flex-direction: column;
-
+            margin: 0 10px;
+            margin-top: 2em;
             .subqn-step-num {
               span {
                 margin: 0 auto;
@@ -248,10 +256,10 @@ const AgentWrap = styled.div`
               text-align: center;
             }
             .subqn-step-desc {
-              max-width: 250px;
+              width: 250px;
               text-align: center;
               margin: 0 auto;
-              margin-top: 1.2rem;
+              margin-top: 1.2em;
             }
           }
         }
@@ -332,7 +340,7 @@ const AgentWrap = styled.div`
           }
           .add-subqn {
             position: absolute;
-            bottom: -1.5rem;
+            bottom: -1.5em;
             &:hover {
               color: ${(props) => {
                 return props.theme ? props.theme.config.primaryText : "#ddd";
@@ -370,7 +378,7 @@ const AgentSubmitWrap = styled.div`
     display: flex;
     justify-content: start;
     button {
-      margin-left: 1rem;
+      margin-left: 1em;
     }
     .ant-input {
       min-width: 200px;
