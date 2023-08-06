@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { marked } from "marked";
 import { csvTable } from "./marked-extensions";
-import { styled } from "styled-components";
 
 marked.use({ extensions: [csvTable] });
 
@@ -33,7 +32,7 @@ export function Report({ markdown, apiKey, apiEndpoint }) {
 const ReportWrap = styled.div`
   white-space: pre-wrap;
   max-width: 800px;
-  margin: 0 auto;
+  margin: 4em auto;
   .csv-table {
     width: 100%;
     min-width: 400px;
