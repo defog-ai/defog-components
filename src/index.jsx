@@ -570,10 +570,20 @@ export function AskDefogChat({
   );
 }
 
-export const DefogReport = ({ md, apiKey = "", apiEndpoint = "" }) => {
+export const DefogReport = ({
+  md,
+  apiKey = "",
+  apiEndpoint = "",
+  theme = { type: "light", config: lightThemeColor },
+}) => {
   return (
     <div className="report">
-      <Report markdown={md} apiKey={apiKey} apiEndpoint={apiEndpoint} />
+      <Report
+        markdown={md}
+        apiKey={apiKey}
+        apiEndpoint={apiEndpoint}
+        theme={theme}
+      />
     </div>
   );
 };
