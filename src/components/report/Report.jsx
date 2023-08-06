@@ -138,6 +138,10 @@ const ReportWrap = styled.div`
     border-end-start-radius: 2px;
   }
 
+  .chart-container-select h4 {
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#F8FAFB")};
+  }
+
   .ant-table-wrapper
     .ant-table:not(.ant-table-bordered)
     .ant-table-tbody
