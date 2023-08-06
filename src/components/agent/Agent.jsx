@@ -244,7 +244,9 @@ const AgentWrap = styled.div`
             .subqn-step-num {
               span {
                 margin: 0 auto;
-                display: block;
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 height: 20px;
                 width: 20px;
                 background-color: #ffb53690;
