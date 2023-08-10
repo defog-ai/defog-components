@@ -1,28 +1,51 @@
-import React from "react";
+import React, { isValidElement } from "react";
 import { Tabs, Table } from "antd";
 import ChartContainer from "./ChartContainer";
 import { processData, roundColumns } from "./common/utils";
 import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
 import ErrorBoundary from "./common/ErrorBoundary";
 
-export function TableChart({ response, query = "", vizType = "table" }) {
+export function TableChart({
+  response,
+  query = "",
+  vizType = "table",
+  // 2d array of {component: ReactComponent, tabLabel: string]
+  // both component and tabLabel are mandatory fields
+  extraTabs = [],
+}) {
   // always have a table
   // round decimal cols to 2 decimal places
   const roundedData = roundColumns(response.data, response.columns);
 
+  // extra tabs should be an array and all elements should be jsx components
+  if (
+    !extraTabs ||
+    !Array.isArray(extraTabs) ||
+    !extraTabs.every((d) => d.component && d.tabLabel) ||
+    !extraTabs.every((d) => isValidElement(d.component))
+  ) {
+    extraTabs = [];
+  }
+
   let results = [
-    <Table
-      key="0"
-      dataSource={roundedData}
-      // don't show index column in table
-      columns={response.columns.filter((d) => d.title !== "index")}
-      scroll={{ x: "max-content" }}
-      style={{
-        maxHeight: 300,
-      }}
-      size="small"
-      pagination={{ pageSize: 5, showSizeChanger: false }}
-    />,
+    {
+      component: (
+        <Table
+          key="0"
+          dataSource={roundedData}
+          // don't show index column in table
+          columns={response.columns.filter((d) => d.title !== "index")}
+          scroll={{ x: "max-content" }}
+          style={{
+            maxHeight: 300,
+          }}
+          size="small"
+          pagination={{ pageSize: 5, showSizeChanger: false }}
+        />
+      ),
+      tabLabel: "Table",
+      icon: <TableOutlined />,
+    },
   ];
 
   const {
@@ -33,22 +56,29 @@ export function TableChart({ response, query = "", vizType = "table" }) {
     dateColumns,
   } = processData(response.data, response.columns);
 
-  results.push(
-    <ErrorBoundary>
-      <ChartContainer
-        xAxisColumns={xAxisColumns}
-        dateColumns={dateColumns}
-        categoricalColumns={categoricalColumns}
-        yAxisColumns={yAxisColumns}
-        xAxisColumnValues={xAxisColumnValues}
-        data={response.data}
-        columns={response.columns}
-        title={query}
-        key="1"
-        vizType={vizType === "table" ? "Bar Chart" : vizType}
-      ></ChartContainer>
-    </ErrorBoundary>
-  );
+  results.push({
+    component: (
+      <ErrorBoundary>
+        <ChartContainer
+          xAxisColumns={xAxisColumns}
+          dateColumns={dateColumns}
+          categoricalColumns={categoricalColumns}
+          yAxisColumns={yAxisColumns}
+          xAxisColumnValues={xAxisColumnValues}
+          data={response.data}
+          columns={response.columns}
+          title={query}
+          key="1"
+          vizType={vizType === "table" ? "Bar Chart" : vizType}
+        ></ChartContainer>
+      </ErrorBoundary>
+    ),
+    tabLabel: "Chart",
+    icon: <BarChartOutlined />,
+  });
+
+  // push extra tabs
+  results = results.concat(extraTabs);
 
   // convert to antd tabs
   results = (
@@ -58,11 +88,11 @@ export function TableChart({ response, query = "", vizType = "table" }) {
         key: String(i),
         label: (
           <span>
-            {i === 0 ? <TableOutlined /> : <BarChartOutlined />}
-            {i === 0 ? "Table" : "Chart"}
+            {d.icon ? d.icon : null}
+            {d.tabLabel ? d.tabLabel : `Tab-${i}`}
           </span>
         ),
-        children: d,
+        children: d.component,
       }))}
     ></Tabs>
   );
