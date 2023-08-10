@@ -1,11 +1,12 @@
 import React from "react";
 import { AskDefogChat } from "../../src/index";
-import Agent from "../../src/components/agent/Agent";
+// import Agent from "../../src/components/agent/Agent";
 import { UtilsContext } from "../../src/context/UtilsContext";
 import {
   darkThemeColor,
   lightThemeColor,
 } from "../../src/context/ThemeContext";
+import AgentMain from "../../src/components/agent/AgentMain";
 
 const sub_qns = [
   {
@@ -76,12 +77,12 @@ const App = () => {
       }}
     >
       <div style={{ width: "100%" }}>
-        <AskDefogChat
+        {/* <AskDefogChat
           maxWidth={"100%"}
           maxHeight={"100%"}
           // apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
           // apiEndpoint="https://us-central1-defog-backend.cloudfunctions.net/agents-gcp"
-          apiEndpoint="http://localhost:8080/"
+          apiEndpoint="ws://localhost:8000/ws"
           buttonText={"Ask Defog"}
           debugMode={true}
           apiKey={"test"}
@@ -90,11 +91,12 @@ const App = () => {
           enableNarrative={false}
           darkMode={false}
           agent={true}
+          mode={"websocket"}
           // narrativeEnabled={false}
           // additionalParams={{ "test" : "test"}}
           // additionalHeaders={{ "test": "test" }}
-        />
-        {/* <UtilsContext.Provider
+        /> */}
+        <UtilsContext.Provider
           value={{
             apiKey: "test",
             additionalHeaders: {},
@@ -103,8 +105,8 @@ const App = () => {
             apiEndpoint: "http://localhost:8080/",
           }}
         >
-          <Agent initialSubQns={sub_qns} theme={theme}></Agent>
-        </UtilsContext.Provider> */}
+          <AgentMain agentsEndpoint={"ws://localhost:8000/ws"}></AgentMain>
+        </UtilsContext.Provider>
       </div>
     </div>
   );
