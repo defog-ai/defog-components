@@ -1,12 +1,11 @@
 import React from "react";
-import { AskDefogChat } from "../../src/index";
+import { AskDefogChat, DefogAgent } from "../../src/index";
 // import Agent from "../../src/components/agent/Agent";
 import { UtilsContext } from "../../src/context/UtilsContext";
 import {
   darkThemeColor,
   lightThemeColor,
 } from "../../src/context/ThemeContext";
-import AgentMain from "../../src/components/agent/AgentMain";
 
 const sub_qns = [
   {
@@ -105,7 +104,7 @@ const App = () => {
             apiEndpoint: "http://localhost:8080/",
           }}
         >
-          <AgentMain agentsEndpoint={"ws://localhost:8000/ws"}></AgentMain>
+          <DefogAgent agentsEndpoint={"ws://localhost:8000/ws"}></DefogAgent>
         </UtilsContext.Provider>
       </div>
     </div>

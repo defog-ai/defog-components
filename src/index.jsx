@@ -22,6 +22,7 @@ import { Report } from "./components/report/Report";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
+import AgentMain from "./components/agent/AgentMain";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -585,6 +586,24 @@ export const DefogReport = ({
         theme={theme}
       />
     </div>
+  );
+};
+
+export const DefogAgent = ({
+  continueFromStage = null,
+  continueData = null,
+  agentsEndpoint = null,
+}) => {
+  return (
+    <ThemeContext.Provider
+      value={{ theme: { type: "light", config: lightThemeColor } }}
+    >
+      <AgentMain
+        continueFromStage={continueFromStage}
+        continueData={continueData}
+        agentsEndpoint={agentsEndpoint}
+      />
+    </ThemeContext.Provider>
   );
 };
 
