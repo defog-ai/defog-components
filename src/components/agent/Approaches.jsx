@@ -1,7 +1,5 @@
 import React, { useContext, useState, Fragment } from "react";
 
-// import AgentSubQnInput from "./AgentSubQnInput";
-// import AgentTool from "./AgentTool";
 import { styled } from "styled-components";
 
 import { UtilsContext } from "../../context/UtilsContext";
@@ -12,8 +10,12 @@ import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 // import { FiTool } from "react-icons/fi";
 import ErrorBoundary from "../common/ErrorBoundary";
 
-export default function Agent({ initialSubQns, theme }) {
-  if (!initialSubQns || !Array.isArray(initialSubQns)) {
+export default function Approaches({ data, theme, handleSubmit }) {
+  const initialApproaches = data["approaches"];
+
+  console.log(initialApproaches);
+
+  if (!initialApproaches || !Array.isArray(initialApproaches)) {
     return (
       <div className="agent-error">
         Something went wrong, please retry or contact us if it fails again.
@@ -21,7 +23,7 @@ export default function Agent({ initialSubQns, theme }) {
     );
   }
 
-  const [subQns, setSubQns] = useState(initialSubQns);
+  const [approaches, setApproaches] = useState(initialApproaches);
   const { additionalHeaders, additionalParams, query, apiEndpoint } =
     useContext(UtilsContext);
 
@@ -31,74 +33,64 @@ export default function Agent({ initialSubQns, theme }) {
   const [loading, setLoading] = useState(false);
   const [resp, setResp] = useState(null);
 
-  async function handleSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
 
     setLoading(true);
 
-    try {
-      const r = await fetch(apiEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...additionalHeaders,
-        },
-        body: JSON.stringify({
-          question: query,
-          ...additionalParams,
-          agent: true,
-          sub_qns: subQns,
-          // api_key: apiKey,
-          email: email,
-          timestamp: new Date().toISOString(),
-          generate_report: true,
-        }),
-      }).then((d) => d.json());
+    handleSubmit(null, { approaches: approaches });
 
-      if (r.ran_successfully) {
-        message.success(r.message);
-        setSubmitOkay(true);
-        setResp(r);
-        // message.success(r.message);
-      } else {
-        message.error(r.error_message);
-        setSubmitOkay(false);
-      }
-    } catch (e) {
-      message.error("Could not reach servers. ");
-      setSubmitOkay(false);
-    }
+    // try {
+    //   const r = await fetch(apiEndpoint, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       ...additionalHeaders,
+    //     },
+    //     body: JSON.stringify({
+    //       question: query,
+    //       ...additionalParams,
+    //       agent: true,
+    //       approaches: approaches,
+    //       // api_key: apiKey,
+    //       email: email,
+    //       timestamp: new Date().toISOString(),
+    //       generate_report: true,
+    //     }),
+    //   }).then((d) => d.json());
+
+    //   if (r.ran_successfully) {
+    //     message.success(r.message);
+    //     setSubmitOkay(true);
+    //     setResp(r);
+    //     // message.success(r.message);
+    //   } else {
+    //     message.error(r.error_message);
+    //     setSubmitOkay(false);
+    //   }
+    // } catch (e) {
+    //   message.error("Could not reach servers. ");
+    //   setSubmitOkay(false);
+    // }
 
     setLoading(false);
   }
 
-  function updateSubQns(val, i, prop) {
-    const newSubQns = [...subQns];
-    newSubQns[i][prop] = val;
-    setSubQns(newSubQns);
-  }
-
-  function addSubQn(index) {
-    const newSubQns = [...subQns];
-    newSubQns.splice(index + 1, 0, {
+  function addApproach(index) {
+    const newApproaches = [...approaches];
+    newApproaches.splice(index + 1, 0, {
       title: "",
       reason: "",
       steps: [],
     });
-    setSubQns(newSubQns);
-  }
-
-  function deleteSubQn(index) {
-    const newSubQns = [...subQns];
-    newSubQns.splice(index, 1);
-    setSubQns(newSubQns);
+    setApproaches(newApproaches);
   }
 
   const emailValid = email && email.indexOf("@") !== -1;
 
   return (
     <ErrorBoundary>
-      <AgentWrap theme={theme}>
+      <ApproachesWrap theme={theme}>
         <div className="agent-container">
           <>
             <div className="agent-header">
@@ -116,23 +108,23 @@ export default function Agent({ initialSubQns, theme }) {
                 steps needed for it.
               </p>
             </div>
-            <div className="agent-subqns-container" key={subQns.length}>
-              {subQns.length !== 0 ? (
-                subQns.map((subQn, index) => {
+            <div className="agent-approaches-container" key={approaches.length}>
+              {approaches.length !== 0 ? (
+                approaches.map((approach, index) => {
                   return (
-                    <div key={index} className="agent-subqn">
-                      <div className="subqn-heading">{subQn.title}</div>
-                      <div className="subqn-steps">
-                        {subQn.steps.length ? (
-                          subQn.steps.map((step, i) => (
+                    <div key={index} className="agent-approach">
+                      <div className="approach-heading">{approach.title}</div>
+                      <div className="approach-steps">
+                        {approach.steps.length ? (
+                          approach.steps.map((step, i) => (
                             <div
                               key={i}
-                              className={`subqn-step subqn-step-${i}`}
+                              className={`approach-step approach-step-${i}`}
                             >
-                              <div className="subqn-step-num">
+                              <div className="approach-step-num">
                                 <span>{i + 1}</span>
                               </div>
-                              <div className="subqn-step-desc">
+                              <div className="approach-step-desc">
                                 {step.description}
                               </div>
                             </div>
@@ -145,9 +137,9 @@ export default function Agent({ initialSubQns, theme }) {
                   );
                 })
               ) : (
-                <div className="no-subqn-button">
-                  <Button type="primary" onClick={() => addSubQn(0)}>
-                    Add a sub question
+                <div className="no-approach-button">
+                  <Button type="primary" onClick={() => addApproach(0)}>
+                    Add a approach
                   </Button>
                 </div>
               )}
@@ -166,12 +158,12 @@ export default function Agent({ initialSubQns, theme }) {
                   <Form.Item>
                     <Button
                       type="primary"
-                      onClick={handleSubmit}
+                      onClick={onSubmit}
                       disabled={
                         loading ||
                         !emailValid ||
-                        subQns.length === 0 ||
-                        subQns.some((subQn) => !subQn)
+                        approaches.length === 0 ||
+                        approaches.some((approach) => !approach)
                       }
                     >
                       Submit
@@ -182,12 +174,12 @@ export default function Agent({ initialSubQns, theme }) {
             </AgentSubmitWrap>
           </>
         </div>
-      </AgentWrap>
+      </ApproachesWrap>
     </ErrorBoundary>
   );
 }
 
-const AgentWrap = styled.div`
+const ApproachesWrap = styled.div`
   .agent-container {
     .agent-header {
       margin-bottom: 30px;
@@ -196,7 +188,7 @@ const AgentWrap = styled.div`
         return props.theme ? props.theme.config.primaryText : "#3a3a3a";
       }};
     }
-    .agent-subqns-container {
+    .agent-approaches-container {
       width: 80%;
       padding: 1em;
       border-radius: 5px;
@@ -206,7 +198,7 @@ const AgentWrap = styled.div`
           return props.theme ? props.theme.config.questionBorder : "#eee";
         }};
 
-      .agent-subqn {
+      .agent-approach {
         position: relative;
         margin-bottom: 3em;
         margin-top: 3em;
@@ -220,13 +212,13 @@ const AgentWrap = styled.div`
           transition: opacity 0.2s ease-in-out;
         }
 
-        .subqn-heading {
+        .approach-heading {
           font-size: 1.5em;
           text-align: center;
           margin-top: 1.5em;
         }
 
-        .subqn-steps {
+        .approach-steps {
           display: flex;
           justify-content: space-between;
           margin: 0 auto;
@@ -236,12 +228,12 @@ const AgentWrap = styled.div`
           flex-wrap: wrap;
           justify-content: center;
 
-          .subqn-step {
+          .approach-step {
             display: flex;
             flex-direction: column;
             margin: 0 10px;
             margin-top: 2em;
-            .subqn-step-num {
+            .approach-step-num {
               span {
                 margin: 0 auto;
                 display: flex;
@@ -257,7 +249,7 @@ const AgentWrap = styled.div`
               font-weight: bold;
               text-align: center;
             }
-            .subqn-step-desc {
+            .approach-step-desc {
               width: 250px;
               text-align: center;
               margin: 0 auto;
@@ -267,7 +259,7 @@ const AgentWrap = styled.div`
         }
 
         &:hover {
-          .agent-subqn-gutter {
+          .agent-approach-gutter {
             opacity: 1;
             background-color: ${(props) => {
               return props.theme
@@ -277,8 +269,8 @@ const AgentWrap = styled.div`
                 : "#eee";
             }};
 
-            .add-subqn,
-            .delete-subqn {
+            .add-approach,
+            .delete-approach {
               color: ${(props) => {
                 return props.theme
                   ? props.theme.type === "light"
@@ -300,7 +292,7 @@ const AgentWrap = styled.div`
           }};
         }
 
-        .agent-subqn-gutter {
+        .agent-approach-gutter {
           position: absolute;
           top: 0;
           left: 2px;
@@ -326,8 +318,8 @@ const AgentWrap = styled.div`
             left: 6px;
           }
 
-          .add-subqn,
-          .delete-subqn {
+          .add-approach,
+          .delete-approach {
             background: none;
             color: ${(props) => {
               return props.theme
@@ -340,7 +332,7 @@ const AgentWrap = styled.div`
             text-align: center;
             cursor: pointer;
           }
-          .add-subqn {
+          .add-approach {
             position: absolute;
             bottom: -1.5em;
             &:hover {
@@ -349,14 +341,14 @@ const AgentWrap = styled.div`
               }};
             }
           }
-          .delete-subqn {
+          .delete-approach {
             &:hover {
               color: #d52d68;
             }
           }
         }
       }
-      .no-subqn-button > button {
+      .no-approach-button > button {
         min-height: 36px;
         min-width: 120px;
         border-radius: 6px !important;
@@ -388,36 +380,36 @@ const AgentSubmitWrap = styled.div`
   }
 `;
 
-// <div key={index} className="agent-subqn">
-//   <div className="agent-subqn-gutter">
-//     <div className="delete-subqn">
+// <div key={index} className="agent-approach">
+//   <div className="agent-approach-gutter">
+//     <div className="delete-approach">
 //       <DeleteOutlined
 //         onClick={() => deleteSubQn(index)}
 //       />
 //     </div>
 //     <div className="gutter-line"></div>
-//     <div className="add-subqn">
-//       <PlusOutlined onClick={() => addSubQn(index)} />
+//     <div className="add-approach">
+//       <PlusOutlined onClick={() => addApproach(index)} />
 //     </div>
 //   </div>
 //   <AgentTool
-//     tool={subQn?.tool}
+//     tool={approach?.tool}
 //     theme={theme?.config}
 //     setTool={(e) => updateSubQns(e, index, "tool")}
 //   />
 //   <AgentSubQnInput
-//     subQn={subQn?.subqn}
+//     approach={approach?.approach}
 //     theme={theme?.config}
-//     setSubQn={(e) => updateSubQns(e, index, "subqn")}
+//     setSubQn={(e) => updateSubQns(e, index, "approach")}
 //   />
 // </div>
 
 /* <p>
     You can edit <EditOutlined /> or delete <DeleteOutlined />{" "}
-    existing sub questions, or add <PlusOutlined /> your own!
+    existing approaches, or add <PlusOutlined /> your own!
   </p>
   <p>
-    Behind the scenes, each sub question is answered using a tool{" "}
+    Behind the scenes, each approach is answered using a tool{" "}
     <span className="tool-icon">
       <FiTool />
     </span>
@@ -430,5 +422,5 @@ const AgentSubmitWrap = styled.div`
   </p>
   <p>
     In order to get accurate results, make sure the tools fit the
-    corresponding sub question as closely as possible.
+    corresponding approach as closely as possible.
   </p> */

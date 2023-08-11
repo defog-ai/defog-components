@@ -9,14 +9,15 @@
 // eventually there should be a way to cache "where" the user was in a report generation process. And just have them continue.
 // perhaps have a "save as draft" option for reports
 
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef, useState } from "react";
 import { Input } from "antd";
 import Understand from "./Understand";
-import GenApproaches from "./GenApproaches";
 import Clarify from "./Clarify";
 import Lottie from "lottie-react";
 import SearchState from "../SearchState";
 import LoadingLottie from "../../components/svg/loader.json";
+import Approaches from "./Approaches";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const agentRequestTypes = [
   "clarify",
@@ -33,36 +34,50 @@ export default function AgentMain({
   continueFromStage = null,
   continueData = {},
 }) {
-  const socket = useRef(new WebSocket(agentsEndpoint));
+  const socket = useRef(null);
   const el = useRef(null);
   const [currentStage, setCurrentStage] = useState(continueFromStage);
   const [loading, setLoading] = useState(false);
   const stageData = useRef({ [currentStage]: continueData });
 
-  socket.current.onmessage = function (event) {
-    const response = JSON.parse(event.data);
-    stageData.current[response.request_type] = response.output;
-    console.log(response.output);
-    setLoading(false);
-  };
+  const { theme } = useContext(ThemeContext);
 
   const components = {
     clarify: Clarify,
     understand: Understand,
-    gen_approaches: GenApproaches,
+    gen_approaches: Approaches,
   };
 
-  function handleSubmit() {
+  function reInitSocket() {
+    if (!socket.current || socket.current.readyState === WebSocket.CLOSED) {
+      socket.current = new WebSocket(agentsEndpoint);
+      socket.current.onmessage = function (event) {
+        const response = JSON.parse(event.data);
+        stageData.current[response.request_type] = response.output;
+        console.log(response.output);
+        setLoading(false);
+      };
+    }
+  }
+
+  reInitSocket();
+
+  function handleSubmit(ev, stageInput = {}) {
+    console.log(stageInput);
     const query = el.current.input.value;
 
     // the front end starts with a "null" stage. so think of the "request_type" here as "what we're asking the agent to do"
     // so if our current stage is null, we're sending the agent the question, but with a "ask clarifying questions" request
     const nextStage =
       agentRequestTypes[agentRequestTypes.indexOf(currentStage) + 1];
+
+    reInitSocket();
+
     socket.current.send(
       JSON.stringify({
         question: query,
         request_type: nextStage,
+        ...stageInput,
       }),
     );
 
@@ -75,15 +90,19 @@ export default function AgentMain({
     <>
       <>
         <Input
-          onPressEnter={handleSubmit}
+          onPressEnter={(ev) => handleSubmit(ev)}
           ref={el}
           disabled={currentStage !== null}
         ></Input>
-        <button onClick={handleSubmit}>Submit</button>
+        {currentStage !== null ? null : (
+          <button onClick={(ev) => handleSubmit(ev)}>Submit</button>
+        )}
       </>
       {components[currentStage] && !loading
         ? React.createElement(components[currentStage], {
             data: stageData.current[currentStage],
+            handleSubmit,
+            theme: theme,
           })
         : null}
       {loading ? (
