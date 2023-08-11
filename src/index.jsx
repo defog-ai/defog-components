@@ -41,7 +41,7 @@ export function AskDefogChat({
   loadingMessage = "Generating a query for your question...",
   agent = false,
   narrativeEnabled = false,
-  placeholderText=""
+  placeholderText = "",
 }) {
   const { Search } = Input;
   const { Panel } = Collapse;
@@ -53,7 +53,7 @@ export function AskDefogChat({
   const [dataResponseArray, setDataResponseArray] = useState([]);
   const [vizType, setVizType] = useState("table");
   const [rawData, setRawData] = useState([]);
-  
+
   const questionMode = questionModes[agent ? 0 : 1];
 
   const [query, setQuery] = useState("");
@@ -118,7 +118,7 @@ export function AskDefogChat({
       setTheme({ type: "light", config: lightThemeColor });
     }
   }, [darkMode]);
-  
+
   const toggleTheme = () => {
     setTheme(
       theme.type === "light"
@@ -174,10 +174,11 @@ export function AskDefogChat({
     setTimeout(() => {
       const divEl = document.getElementById("results");
       {
-        divEl && divEl.scrollTo({
-          top: divRef.current.scrollHeight,
-          behavior: "smooth",
-        });
+        divEl &&
+          divEl.scrollTo({
+            top: divRef.current.scrollHeight,
+            behavior: "smooth",
+          });
       }
     }, 100);
 
@@ -517,7 +518,10 @@ export function AskDefogChat({
                   <SearchWrap $loading={buttonLoading} theme={theme.config}>
                     <AutoComplete
                       style={{ width: "100%" }}
-                      options={predefinedQuestions.map(x => ({label: x, value: x}))}
+                      options={predefinedQuestions.map((x) => ({
+                        label: x,
+                        value: x,
+                      }))}
                       filterOption={(inputValue, option) =>
                         option?.value
                           .toUpperCase()
@@ -526,7 +530,9 @@ export function AskDefogChat({
                       ref={autoCompRef}
                     >
                       <Search
-                        placeholder={placeholderText || questionMode.placeholder}
+                        placeholder={
+                          placeholderText || questionMode.placeholder
+                        }
                         enterButton={buttonText}
                         size="small"
                         onSearch={handleSubmit}
@@ -564,10 +570,20 @@ export function AskDefogChat({
   );
 }
 
-export const DefogReport = ({ md }) => {
+export const DefogReport = ({
+  md,
+  apiKey = "",
+  apiEndpoint = "",
+  theme = { type: "light", config: lightThemeColor },
+}) => {
   return (
     <div className="report">
-      <Report markdown={md} />
+      <Report
+        markdown={md}
+        apiKey={apiKey}
+        apiEndpoint={apiEndpoint}
+        theme={theme}
+      />
     </div>
   );
 };

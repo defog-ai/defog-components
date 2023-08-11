@@ -1,6 +1,6 @@
 {
   "name": "defog-components",
-  "version": "0.47.4",
+  "version": "0.47.8-beta.10",
   "description": "Front-end components for Defog",
   "author": "defog-ai",
   "license": "MIT",
@@ -12,7 +12,8 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "microbundle --no-compress --format modern,cjs --jsx React.createElement"
+    "build": "microbundle --no-compress --format modern,cjs --jsx React.createElement",
+    "start": "microbundle watch --no-compress --format modern,cjs --jsx React.createElement"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.7",

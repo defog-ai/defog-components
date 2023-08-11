@@ -355,6 +355,10 @@ const ResultsWrap = styled.div`
     border-end-end-radius: 2px;
   }
 
+  .chart-container-select h4 {
+    color: ${(props) => (props.theme ? props.theme.primaryText : "#F8FAFB")};
+  }
+
   .ant-table-wrapper
     .ant-table-thead
     > tr

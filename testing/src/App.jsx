@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment } from "react";
-import { AskDefogChat } from "defog-components";
+import { AskDefogChat } from "../../src/index";
 import { Button } from "antd";
 
 const App = () => {

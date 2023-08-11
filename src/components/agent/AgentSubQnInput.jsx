@@ -7,13 +7,13 @@ import { styled } from "styled-components";
 export default function AgentSubQnInput({ subQn, setSubQn }) {
   const [val, setVal] = useState(subQn);
   const [editable, setEditable] = useState(
-    subQn === "" || !subQn ? true : false
+    subQn === "" || !subQn ? true : false,
   );
-  const { TextArea } = Input;
+
   return (
     <AgentSubQnInputWrap>
       <div className="agent-subqn-text">
-        <TextArea
+        <Input
           value={val}
           placeholder="Enter a sub question"
           onChange={(e) => {
@@ -25,7 +25,7 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
           readOnly={!editable}
           status={val === "" || !val ? "error" : "success"}
         />
-        <div className="agent-subqn-text-edit">
+        {/* <div className="agent-subqn-text-edit">
           <Button
             color="blue"
             onClick={() => {
@@ -38,34 +38,42 @@ export default function AgentSubQnInput({ subQn, setSubQn }) {
             icon={editable ? <CheckOutlined /> : <EditOutlined />}
             disabled={val === "" || !val}
           >
-            {editable ? "Save" : "Edit"}
+            {editable ? "Save title" : "Edit title"}
           </Button>
-        </div>
+        </div> */}
       </div>
     </AgentSubQnInputWrap>
   );
 }
 
 const AgentSubQnInputWrap = styled.div`
-  width: calc(100% - 200px);
-  min-width: 400px;
+  // width: calc(100% - 200px);
+  // min-width: 400px;
+
+  text-align: center;
   margin-top: 5px;
   .agent-subqn-text {
     position: relative;
-    textarea {
-      padding-bottom: 30px;
-      &:read-only {
-        color: gray;
-        background-color: #f5f5f5;
-        pointer-events: none;
-        cursor: pointer;
-      }
+    max-width: 800px;
+    margin: 0 auto;
+    input {
+      font-size: 1.5rem;
+      text-align: center;
+    }
+    input[readonly] {
+      border: none;
     }
     .agent-subqn-text-edit {
       display: inline-block;
       position: absolute;
-      bottom: 0;
+      top: 0;
       right: 0;
+      button {
+        padding: 3px 10px;
+        span {
+          font-size: 0.8rem;
+        }
+      }
     }
   }
 `;

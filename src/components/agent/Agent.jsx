@@ -1,7 +1,7 @@
 import React, { useContext, useState, Fragment } from "react";
 
-import AgentSubQnInput from "./AgentSubQnInput";
-import AgentTool from "./AgentTool";
+// import AgentSubQnInput from "./AgentSubQnInput";
+// import AgentTool from "./AgentTool";
 import { styled } from "styled-components";
 
 import { UtilsContext } from "../../context/UtilsContext";
@@ -9,7 +9,7 @@ import { Button, Form, Input, message } from "antd";
 
 import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 
-import { FiTool } from "react-icons/fi";
+// import { FiTool } from "react-icons/fi";
 import ErrorBoundary from "../common/ErrorBoundary";
 
 export default function Agent({ initialSubQns, theme }) {
@@ -59,6 +59,7 @@ export default function Agent({ initialSubQns, theme }) {
         message.success(r.message);
         setSubmitOkay(true);
         setResp(r);
+        // message.success(r.message);
       } else {
         message.error(r.error_message);
         setSubmitOkay(false);
@@ -80,8 +81,9 @@ export default function Agent({ initialSubQns, theme }) {
   function addSubQn(index) {
     const newSubQns = [...subQns];
     newSubQns.splice(index + 1, 0, {
-      tool: null,
-      subqn: "",
+      title: "",
+      reason: "",
+      steps: [],
     });
     setSubQns(newSubQns);
   }
@@ -98,114 +100,87 @@ export default function Agent({ initialSubQns, theme }) {
     <ErrorBoundary>
       <AgentWrap theme={theme}>
         <div className="agent-container">
-          {!submitOkay ? (
-            <>
-              <div className="agent-header">
-                <h3>Welcome to agents for report creation</h3>
-                <p>
-                  We have broken down your query into sub questions, each of
-                  which help us answer an aspect of your broader question.
-                </p>
-                <p>
-                  You can edit <EditOutlined /> or delete <DeleteOutlined />{" "}
-                  existing sub questions, or add <PlusOutlined /> your own!
-                </p>
-                <p>
-                  Behind the scenes, each sub question is answered using a tool{" "}
-                  <div className="tool-icon"><FiTool /></div>. Every
-                  tool is designed to answer a specific type of question.
-                </p>
-                <p>
-                  Hover over a tool in the dropdown menu to get details about
-                  what it does.
-                </p>
-                <p>
-                  In order to get accurate results, make sure the tools fit the
-                  corresponding sub question as closely as possible.
-                </p>
-              </div>
-              <div className="agent-subqns-container" key={subQns.length}>
-                <h3 style={{ paddingLeft: "30px" }}>Sub questions</h3>
-                {subQns.length !== 0 ? (
-                  subQns.map((subQn, index) => {
-                    return (
-                      <div key={index} className="agent-subqn">
-                        <div className="agent-subqn-gutter">
-                          <div className="delete-subqn">
-                            <DeleteOutlined
-                              onClick={() => deleteSubQn(index)}
-                            />
-                          </div>
-                          <div className="gutter-line"></div>
-                          <div className="add-subqn">
-                            <PlusOutlined onClick={() => addSubQn(index)} />
-                          </div>
-                        </div>
-                        <AgentTool
-                          tool={subQn?.tool}
-                          theme={theme?.config}
-                          setTool={(e) => updateSubQns(e, index, "tool")}
-                        />
-                        <AgentSubQnInput
-                          subQn={subQn?.subqn}
-                          theme={theme?.config}
-                          setSubQn={(e) => updateSubQns(e, index, "subqn")}
-                        />
+          <>
+            <div className="agent-header">
+              <h3>Welcome to agents for report creation</h3>
+              <p>
+                We have processed your query and have planned a few analysis to
+                run.
+              </p>
+              <p>
+                You can delete <DeleteOutlined /> planned analysis, or add{" "}
+                <PlusOutlined /> your own.
+              </p>
+              <p>
+                Behind the scenes, we will take your added analysis and find the
+                steps needed for it.
+              </p>
+            </div>
+            <div className="agent-subqns-container" key={subQns.length}>
+              {subQns.length !== 0 ? (
+                subQns.map((subQn, index) => {
+                  return (
+                    <div key={index} className="agent-subqn">
+                      <div className="subqn-heading">{subQn.title}</div>
+                      <div className="subqn-steps">
+                        {subQn.steps.length ? (
+                          subQn.steps.map((step, i) => (
+                            <div
+                              key={i}
+                              className={`subqn-step subqn-step-${i}`}
+                            >
+                              <div className="subqn-step-num">
+                                <span>{i + 1}</span>
+                              </div>
+                              <div className="subqn-step-desc">
+                                {step.description}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p>We will plan out the steps for you.</p>
+                        )}
                       </div>
-                    );
-                  })
-                ) : (
-                  <div className="no-subqn-button">
-                    <Button type="primary" onClick={() => addSubQn(0)}>
-                      Add a sub question
-                    </Button>
-                  </div>
-                )}
-              </div>
-              <AgentSubmitWrap>
-                <div className="agent-submit">
-                  <h3>Enter your email</h3>
-                  <Form>
-                    <Form.Item>
-                      <Input
-                        placeholder="Enter your email address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </Form.Item>
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        onClick={handleSubmit}
-                        disabled={
-                          loading ||
-                          !emailValid ||
-                          subQns.length === 0 ||
-                          subQns.some(
-                            (subQn) =>
-                              !subQn ||
-                              !subQn?.subqn ||
-                              !subQn?.tool ||
-                              subQn?.subqn?.length === 0,
-                          )
-                        }
-                      >
-                        Submit
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </div>
-              </AgentSubmitWrap>
-            </>
-          ) : (
-            <>
-              {resp && resp.message ? (
-                <div className="agent-submit-done">{resp.message}</div>
+                    </div>
+                  );
+                })
               ) : (
-                <></>
+                <div className="no-subqn-button">
+                  <Button type="primary" onClick={() => addSubQn(0)}>
+                    Add a sub question
+                  </Button>
+                </div>
               )}
-            </>
-          )}
+            </div>
+            <AgentSubmitWrap>
+              <div className="agent-submit">
+                <h3>Enter your email</h3>
+                <Form>
+                  <Form.Item>
+                    <Input
+                      placeholder="Enter your email address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </Form.Item>
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      onClick={handleSubmit}
+                      disabled={
+                        loading ||
+                        !emailValid ||
+                        subQns.length === 0 ||
+                        subQns.some((subQn) => !subQn)
+                      }
+                    >
+                      Submit
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </div>
+            </AgentSubmitWrap>
+          </>
         </div>
       </AgentWrap>
     </ErrorBoundary>
@@ -223,9 +198,9 @@ const AgentWrap = styled.div`
     }
     .agent-subqns-container {
       width: 80%;
-      padding: 1rem;
+      padding: 1em;
       border-radius: 5px;
-      margin-bottom: 3rem;
+      margin-bottom: 3em;
       border: 1px solid
         ${(props) => {
           return props.theme ? props.theme.config.questionBorder : "#eee";
@@ -233,17 +208,62 @@ const AgentWrap = styled.div`
 
       .agent-subqn {
         position: relative;
-        margin-bottom: 3rem;
-        margin-top: 3rem;
+        margin-bottom: 3em;
+        margin-top: 3em;
         padding-left: 30px;
         border-bottom: 1px solid transparent;
-        > div {
-          display: inline-block;
-          vertical-align: top;
-        }
+        padding-bottom: 1.5em;
+        border-bottom: 1px solid #efefef;
+        font-size: 14px;
 
         * {
           transition: opacity 0.2s ease-in-out;
+        }
+
+        .subqn-heading {
+          font-size: 1.5em;
+          text-align: center;
+          margin-top: 1.5em;
+        }
+
+        .subqn-steps {
+          display: flex;
+          justify-content: space-between;
+          margin: 0 auto;
+
+          align-items: start;
+          max-width: 900px;
+          flex-wrap: wrap;
+          justify-content: center;
+
+          .subqn-step {
+            display: flex;
+            flex-direction: column;
+            margin: 0 10px;
+            margin-top: 2em;
+            .subqn-step-num {
+              span {
+                margin: 0 auto;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 20px;
+                width: 20px;
+                background-color: #ffb53690;
+                border: 2px solid #ffb53690;
+                padding: 10px;
+                border-radius: 50%;
+              }
+              font-weight: bold;
+              text-align: center;
+            }
+            .subqn-step-desc {
+              width: 250px;
+              text-align: center;
+              margin: 0 auto;
+              margin-top: 1.2em;
+            }
+          }
         }
 
         &:hover {
@@ -322,7 +342,7 @@ const AgentWrap = styled.div`
           }
           .add-subqn {
             position: absolute;
-            bottom: -1.5rem;
+            bottom: -1.5em;
             &:hover {
               color: ${(props) => {
                 return props.theme ? props.theme.config.primaryText : "#ddd";
@@ -360,10 +380,55 @@ const AgentSubmitWrap = styled.div`
     display: flex;
     justify-content: start;
     button {
-      margin-left: 1rem;
+      margin-left: 1em;
     }
     .ant-input {
       min-width: 200px;
     }
   }
 `;
+
+// <div key={index} className="agent-subqn">
+//   <div className="agent-subqn-gutter">
+//     <div className="delete-subqn">
+//       <DeleteOutlined
+//         onClick={() => deleteSubQn(index)}
+//       />
+//     </div>
+//     <div className="gutter-line"></div>
+//     <div className="add-subqn">
+//       <PlusOutlined onClick={() => addSubQn(index)} />
+//     </div>
+//   </div>
+//   <AgentTool
+//     tool={subQn?.tool}
+//     theme={theme?.config}
+//     setTool={(e) => updateSubQns(e, index, "tool")}
+//   />
+//   <AgentSubQnInput
+//     subQn={subQn?.subqn}
+//     theme={theme?.config}
+//     setSubQn={(e) => updateSubQns(e, index, "subqn")}
+//   />
+// </div>
+
+/* <p>
+    You can edit <EditOutlined /> or delete <DeleteOutlined />{" "}
+    existing sub questions, or add <PlusOutlined /> your own!
+  </p>
+  <p>
+    Behind the scenes, each sub question is answered using a tool{" "}
+    <span className="tool-icon">
+      <FiTool />
+    </span>
+    . Every tool is designed to answer a specific type of
+    question.
+  </p>
+  <p>
+    Hover over a tool in the dropdown menu to get details about
+    what it does.
+  </p>
+  <p>
+    In order to get accurate results, make sure the tools fit the
+    corresponding sub question as closely as possible.
+  </p> */
