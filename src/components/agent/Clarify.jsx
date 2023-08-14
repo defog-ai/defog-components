@@ -23,7 +23,7 @@ export default function Clarify({ data, handleSubmit }) {
       q["response"] = answers.current[i];
     });
 
-    handleSubmit(null, { clarification_questions });
+    handleSubmit(null, { clarification_questions }, "clarify");
   }
 
   const UIs = {
@@ -94,8 +94,6 @@ export default function Clarify({ data, handleSubmit }) {
 }
 
 const ClarifyWrap = styled.div`
-  max-width: 800px;
-  margin-left: 2em;
   .ant-slider,
   .ant-select,
   .ant-input {

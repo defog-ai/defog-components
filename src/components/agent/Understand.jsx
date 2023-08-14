@@ -16,7 +16,7 @@ export default function Understand({ data, handleSubmit }) {
       .filter((_, i) => checked.current[i])
       .map((d) => d[0]);
 
-    handleSubmit(null, { understanding: understandingFiltered });
+    handleSubmit(null, { understanding: understandingFiltered }, "understand");
   }
 
   return (
@@ -48,8 +48,6 @@ export default function Understand({ data, handleSubmit }) {
 }
 
 const UnderstandWrap = styled.div`
-  max-width: 800px;
-  margin-left: 2em;
   .ant-slider,
   .ant-select,
   .ant-input {

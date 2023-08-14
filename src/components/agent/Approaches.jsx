@@ -24,54 +24,28 @@ export default function Approaches({ data, theme, handleSubmit }) {
   }
 
   const [approaches, setApproaches] = useState(initialApproaches);
-  const { additionalHeaders, additionalParams, query, apiEndpoint } =
-    useContext(UtilsContext);
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("manasdotsharma@gmail.com");
 
-  const [submitOkay, setSubmitOkay] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resp, setResp] = useState(null);
 
   async function onSubmit(e) {
     e.preventDefault();
 
     setLoading(true);
+    const submitSuccess = handleSubmit(
+      null,
+      { approaches: approaches, email: email },
+      "gen_approaches",
+    );
 
-    handleSubmit(null, { approaches: approaches });
-
-    // try {
-    //   const r = await fetch(apiEndpoint, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       ...additionalHeaders,
-    //     },
-    //     body: JSON.stringify({
-    //       question: query,
-    //       ...additionalParams,
-    //       agent: true,
-    //       approaches: approaches,
-    //       // api_key: apiKey,
-    //       email: email,
-    //       timestamp: new Date().toISOString(),
-    //       generate_report: true,
-    //     }),
-    //   }).then((d) => d.json());
-
-    //   if (r.ran_successfully) {
-    //     message.success(r.message);
-    //     setSubmitOkay(true);
-    //     setResp(r);
-    //     // message.success(r.message);
-    //   } else {
-    //     message.error(r.error_message);
-    //     setSubmitOkay(false);
-    //   }
-    // } catch (e) {
-    //   message.error("Could not reach servers. ");
-    //   setSubmitOkay(false);
-    // }
+    if (submitSuccess) {
+      message.success(
+        "A link to your report will be sent to your email in about 5 minutes!",
+      );
+    } else {
+      message.error("Server error. Could not save report. Please contact us.");
+    }
 
     setLoading(false);
   }
@@ -93,21 +67,6 @@ export default function Approaches({ data, theme, handleSubmit }) {
       <ApproachesWrap theme={theme}>
         <div className="agent-container">
           <>
-            <div className="agent-header">
-              <h3>Welcome to agents for report creation</h3>
-              <p>
-                We have processed your query and have planned a few analysis to
-                run.
-              </p>
-              <p>
-                You can delete <DeleteOutlined /> planned analysis, or add{" "}
-                <PlusOutlined /> your own.
-              </p>
-              <p>
-                Behind the scenes, we will take your added analysis and find the
-                steps needed for it.
-              </p>
-            </div>
             <div className="agent-approaches-container" key={approaches.length}>
               {approaches.length !== 0 ? (
                 approaches.map((approach, index) => {
@@ -189,18 +148,15 @@ const ApproachesWrap = styled.div`
       }};
     }
     .agent-approaches-container {
-      width: 80%;
-      padding: 1em;
       border-radius: 5px;
-      margin-bottom: 3em;
+      margin-bottom: 0;
       border: 1px solid
         ${(props) => {
           return props.theme ? props.theme.config.questionBorder : "#eee";
         }};
-
+      border-bottom: 0px;
       .agent-approach {
         position: relative;
-        margin-bottom: 3em;
         margin-top: 3em;
         padding-left: 30px;
         border-bottom: 1px solid transparent;
