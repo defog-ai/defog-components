@@ -589,9 +589,9 @@ export const DefogReport = ({
   );
 };
 
-import continueData from "./components/agent/continueData.json";
+// import continueData from "./components/agent/continueData.json";
 export const DefogAgent = ({
-  continueFromStage = "gen_approaches",
+  continueFromStage = null,
   agentsEndpoint = null,
 }) => {
   return (
@@ -600,7 +600,7 @@ export const DefogAgent = ({
     >
       <AgentMain
         continueFromStage={continueFromStage}
-        continueData={continueData}
+        continueData={{}}
         agentsEndpoint={agentsEndpoint}
       />
     </ThemeContext.Provider>
