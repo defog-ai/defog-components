@@ -1,16 +1,30 @@
-import React, { useContext, useState, Fragment } from "react";
+import React, { useMemo, useState } from "react";
 
 import { styled } from "styled-components";
-
-import { UtilsContext } from "../../context/UtilsContext";
-import { Button, Form, Input, message } from "antd";
-
-import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
+import { Button, message } from "antd";
 
 // import { FiTool } from "react-icons/fi";
 import ErrorBoundary from "../common/ErrorBoundary";
+import Search from "antd/es/input/Search";
+import Lottie from "lottie-react";
+import LoadingLottie from "../../components/svg/loader.json";
+import AgentLoader from "../AgentLoaderWrap";
+import Writer from "./Writer";
 
-export default function Approaches({ data, theme, handleSubmit }) {
+export default function Approaches({
+  data,
+  theme,
+  handleSubmit,
+  globalLoading,
+  stageDone = true,
+}) {
+  if (!data || !data.approaches)
+    return (
+      <div className="agent-error">
+        Something went wrong, please retry or contact us if it fails again.
+      </div>
+    );
+
   const initialApproaches = data["approaches"];
 
   console.log(initialApproaches);
@@ -23,16 +37,16 @@ export default function Approaches({ data, theme, handleSubmit }) {
     );
   }
 
-  const [approaches, setApproaches] = useState(initialApproaches);
+  const approaches = useMemo(
+    () => initialApproaches.slice(),
+    [initialApproaches],
+  );
 
   const [email, setEmail] = useState("manasdotsharma@gmail.com");
-
-  const [loading, setLoading] = useState(false);
 
   async function onSubmit(e) {
     e.preventDefault();
 
-    setLoading(true);
     const submitSuccess = handleSubmit(
       null,
       { approaches: approaches, email: email },
@@ -46,19 +60,17 @@ export default function Approaches({ data, theme, handleSubmit }) {
     } else {
       message.error("Server error. Could not save report. Please contact us.");
     }
-
-    setLoading(false);
   }
 
-  function addApproach(index) {
-    const newApproaches = [...approaches];
-    newApproaches.splice(index + 1, 0, {
-      title: "",
-      reason: "",
-      steps: [],
-    });
-    setApproaches(newApproaches);
-  }
+  // function addApproach(index) {
+  //   const newApproaches = [...approaches];
+  //   newApproaches.splice(index + 1, 0, {
+  //     title: "",
+  //     reason: "",
+  //     steps: [],
+  //   });
+  //   setApproaches(newApproaches);
+  // }
 
   const emailValid = email && email.indexOf("@") !== -1;
 
@@ -67,68 +79,64 @@ export default function Approaches({ data, theme, handleSubmit }) {
       <ApproachesWrap theme={theme}>
         <div className="agent-container">
           <>
-            <div className="agent-approaches-container" key={approaches.length}>
-              {approaches.length !== 0 ? (
-                approaches.map((approach, index) => {
-                  return (
-                    <div key={index} className="agent-approach">
-                      <div className="approach-heading">{approach.title}</div>
-                      <div className="approach-steps">
-                        {approach.steps.length ? (
-                          approach.steps.map((step, i) => (
-                            <div
-                              key={i}
-                              className={`approach-step approach-step-${i}`}
-                            >
-                              <div className="approach-step-num">
-                                <span>{i + 1}</span>
-                              </div>
-                              <div className="approach-step-desc">
-                                {step.description}
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <p>We will plan out the steps for you.</p>
-                        )}
+            <div className="agent-approaches-container">
+              {approaches.length !== 0
+                ? approaches.map((approach, index) => {
+                    return (
+                      <div key={index} className="agent-approach">
+                        <Writer s={approach.title}>
+                          <div className="approach-heading writer-target"></div>
+                          <div className="approach-steps writer-children">
+                            {approach.steps.length ? (
+                              approach.steps.map((step, i) => (
+                                <div
+                                  key={i}
+                                  className={`approach-step approach-step-${i}`}
+                                >
+                                  <div className="approach-step-num">
+                                    <span>{i + 1}</span>
+                                  </div>
+                                  <div className="approach-step-desc">
+                                    {step.description}
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p>We will plan out the steps for you.</p>
+                            )}
+                          </div>
+                        </Writer>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })
+                : null}
+              {stageDone ? (
+                <></>
               ) : (
-                <div className="no-approach-button">
-                  <Button type="primary" onClick={() => addApproach(0)}>
-                    Add a approach
-                  </Button>
-                </div>
+                <AgentLoader
+                  message={"Loading"}
+                  lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+                />
               )}
             </div>
             <AgentSubmitWrap>
               <div className="agent-submit">
                 <h3>Enter your email</h3>
-                <Form>
-                  <Form.Item>
-                    <Input
-                      placeholder="Enter your email address"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </Form.Item>
-                  <Form.Item>
-                    <Button
-                      type="primary"
-                      onClick={onSubmit}
-                      disabled={
-                        loading ||
-                        !emailValid ||
-                        approaches.length === 0 ||
-                        approaches.some((approach) => !approach)
-                      }
-                    >
-                      Submit
-                    </Button>
-                  </Form.Item>
-                </Form>
+                <Search
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  enterButton="Submit"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") onSubmit(e);
+                  }}
+                  disabled={
+                    globalLoading ||
+                    !emailValid ||
+                    approaches.length === 0 ||
+                    approaches.some((approach) => !approach)
+                  }
+                ></Search>
               </div>
             </AgentSubmitWrap>
           </>
@@ -163,10 +171,6 @@ const ApproachesWrap = styled.div`
         padding-bottom: 1.5em;
         border-bottom: 1px solid #efefef;
         font-size: 14px;
-
-        * {
-          transition: opacity 0.2s ease-in-out;
-        }
 
         .approach-heading {
           font-size: 1.5em;

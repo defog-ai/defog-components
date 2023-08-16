@@ -13,12 +13,11 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { Input, Carousel, message } from "antd";
 import Understand from "./Understand";
 import Clarify from "./Clarify";
-import Lottie from "lottie-react";
-import SearchState from "../SearchState";
-import LoadingLottie from "../../components/svg/loader.json";
 import Approaches from "./Approaches";
 import { ThemeContext } from "../../context/ThemeContext";
 import { styled } from "styled-components";
+import AgentLoader from "../AgentLoaderWrap";
+const { Search } = Input;
 
 const agentRequestTypes = [
   "clarify",
@@ -26,6 +25,13 @@ const agentRequestTypes = [
   "gen_approaches",
   "gen_report",
 ];
+
+// the name of the prop where the data is stored for each stage
+const propNames = {
+  clarify: "clarification_questions",
+  understand: "understanding",
+  gen_approaches: "approaches",
+};
 
 const agentRequestNames = {
   clarify: "Clarifying questions",
@@ -41,9 +47,6 @@ const agentLoadingMessages = {
   gen_report: "Getting Report from Agent",
 };
 
-// continueFromStage is the stage you want the agent to start from.
-// if this is anything other than "clarify", you have to pass the requisite data in continueData.
-// it's named so looking at a possible future version where we store "drafts" at various stages of the report generation process
 export default function AgentMain({
   agentsEndpoint,
   continueFromStage = null,
@@ -52,8 +55,9 @@ export default function AgentMain({
   const socket = useRef(null);
   const el = useRef(null);
   const [currentStage, setCurrentStage] = useState(continueFromStage);
-  const [loading, setLoading] = useState(false);
+  const [globalLoading, setGlobalLoading] = useState(false);
   const [stageData, setStageData] = useState(continueData);
+  const [stageDone, setStageDone] = useState(true);
 
   const { theme } = useContext(ThemeContext);
 
@@ -67,15 +71,35 @@ export default function AgentMain({
 
   function reInitSocket() {
     if (!socket.current || socket.current.readyState === WebSocket.CLOSED) {
-      if (socket.current) console.log(socket.current.readyState);
       socket.current = new WebSocket(agentsEndpoint);
       socket.current.onmessage = function (event) {
+        if (!event.data) return;
+
         const response = JSON.parse(event.data);
         console.log(response);
-        setStageData((prev) => {
-          return { ...prev, [response.request_type]: response.output };
-        });
-        setLoading(false);
+        const rType = response.request_type;
+        const prop = propNames[rType];
+
+        if (response.output) {
+          setStageData((prev) => {
+            // append if exists
+            if (prev[rType]) {
+              return {
+                ...prev,
+                [rType]: {
+                  success: response.output.success,
+                  [prop]: [...prev[rType][prop], ...response.output[prop]],
+                },
+              };
+            }
+
+            return { ...prev, [response.request_type]: response.output };
+          });
+        }
+        if (response.done) {
+          setStageDone(true);
+          setGlobalLoading(false);
+        }
       };
     }
   }
@@ -107,8 +131,17 @@ export default function AgentMain({
         }),
       );
 
-      setCurrentStage(nextStage);
-      setLoading(nextStage);
+      if (nextStage !== "gen_report") {
+        setCurrentStage(nextStage);
+        setStageDone(false);
+        setGlobalLoading(nextStage);
+        setStageData((prev) => {
+          return {
+            ...prev,
+            [nextStage]: { [propNames[nextStage]]: [], success: true },
+          };
+        });
+      }
 
       return true;
     } catch (err) {
@@ -131,64 +164,53 @@ export default function AgentMain({
   return (
     <AgentMainWrap theme={theme}>
       <>
-        <Input
+        <Search
           onPressEnter={(ev) => handleSubmit(ev)}
           ref={el}
           disabled={currentStage !== null}
-        ></Input>
-
-        <button onClick={(ev) => handleSubmit(ev)}>Submit</button>
+          placeholder="Ask a question"
+          enterButton="Ask"
+          defaultValue={continueData.user_question || null}
+        ></Search>
       </>
+
       <div className="carousel-ctr">
         <Carousel dotPosition="top" ref={carousel}>
-          {Object.keys(components).map((stage) => {
-            return (
-              <div
-                key={stage}
-                className={
-                  Object.keys(stageData).indexOf(stage) > -1
-                    ? "ready"
-                    : "not-ready"
-                }
-              >
-                <h3 className="stage-heading">{agentRequestNames[stage]}</h3>
-                {loading && currentStage === stage ? (
-                  <SearchState
-                    message={agentLoadingMessages[stage]}
-                    lottie={
-                      <Lottie animationData={LoadingLottie} loop={true} />
-                    }
-                  />
-                ) : null}
-                {components[stage] &&
-                stageData[stage] &&
-                !(loading && stage === currentStage)
-                  ? React.createElement(components[stage], {
-                      data: stageData[stage],
-                      handleSubmit,
-                      theme: theme,
-                    })
-                  : null}
-              </div>
-            );
-          })}
+          {Object.keys(stageData)
+            .filter((d) => d !== "null" && d !== "user_question")
+            .map((stage) => {
+              return (
+                <div
+                  key={stage}
+                  className={
+                    Object.keys(stageData).indexOf(stage) > -1
+                      ? "ready"
+                      : "not-ready"
+                  }
+                >
+                  <h3 className="stage-heading">{agentRequestNames[stage]}</h3>
+
+                  {components[stage]
+                    ? React.createElement(components[stage], {
+                        data: stageData[stage],
+                        handleSubmit,
+                        theme: theme,
+                        globalLoading: globalLoading,
+                        stageDone: stage === currentStage ? stageDone : true,
+                      })
+                    : null}
+                </div>
+              );
+            })}
         </Carousel>
       </div>
-      {/* {loading ? (
-        <SearchState
-          message={"Getting " + currentStage + " from agent"}
-          lottie={<Lottie animationData={LoadingLottie} loop={true} />}
-        />
-      ) : null} */}
     </AgentMainWrap>
   );
 }
 
 const AgentMainWrap = styled.div`
-  .carousel-ctr {
-    max-width: 800px;
-    margin: 0 auto;
-  }
+  max-width: 800px;
+  margin: 0 auto;
   .slick-list {
     top: -10px;
   }

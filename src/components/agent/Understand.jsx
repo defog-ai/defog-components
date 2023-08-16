@@ -1,8 +1,24 @@
 import { Button, Checkbox } from "antd";
 import React, { useRef } from "react";
 import { styled } from "styled-components";
+import Lottie from "lottie-react";
+import LoadingLottie from "../../components/svg/loader.json";
+import AgentLoader from "../AgentLoaderWrap";
+import Writer from "./Writer";
 
-export default function Understand({ data, handleSubmit }) {
+export default function Understand({
+  data,
+  handleSubmit,
+  globalLoading,
+  stageDone = true,
+}) {
+  if (!data || !data.understanding || !data.success)
+    return (
+      <div className="agent-error">
+        Something went wrong, please retry or contact us if it fails again.
+      </div>
+    );
+
   const { understanding, success } = data;
 
   const checked = useRef(understanding.map(() => true));
@@ -12,9 +28,9 @@ export default function Understand({ data, handleSubmit }) {
   }
 
   function onSubmit() {
-    const understandingFiltered = understanding
-      .filter((_, i) => checked.current[i])
-      .map((d) => d[0]);
+    const understandingFiltered = understanding.filter(
+      (_, i) => checked.current[i],
+    );
 
     handleSubmit(null, { understanding: understandingFiltered }, "understand");
   }
@@ -29,12 +45,14 @@ export default function Understand({ data, handleSubmit }) {
       {success ? (
         <ul>
           {understanding.map((u, i) => (
-            <li key={u}>
+            <li key={u + "-" + i}>
               <Checkbox
                 onChange={(ev) => handleCheck(ev, i)}
                 defaultChecked={true}
               >
-                {u}
+                <Writer s={u} animate={!stageDone}>
+                  <span className="writer-target"></span>
+                </Writer>
               </Checkbox>
             </li>
           ))}
@@ -42,7 +60,17 @@ export default function Understand({ data, handleSubmit }) {
       ) : (
         <></>
       )}
-      <Button onClick={onSubmit}>Submit</Button>
+      {stageDone ? (
+        <></>
+      ) : (
+        <AgentLoader
+          message={"Loading"}
+          lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+        />
+      )}
+      <Button onClick={onSubmit} disabled={globalLoading} type="primary">
+        Submit
+      </Button>
     </UnderstandWrap>
   );
 }

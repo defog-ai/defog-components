@@ -1,25 +1,46 @@
 import { Button, Input, Select, Slider } from "antd";
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { styled } from "styled-components";
+import Lottie from "lottie-react";
+import LoadingLottie from "../../components/svg/loader.json";
+import AgentLoader from "../AgentLoaderWrap";
+import Writer from "./Writer";
 
-export default function Clarify({ data, handleSubmit }) {
-  if (!data) return;
+const defaultValues = {
+  "multi select": [],
+  "text input": "",
+  "date range selector": "12 months",
+};
+
+export default function Clarify({
+  data,
+  handleSubmit,
+  globalLoading,
+  stageDone = true,
+}) {
+  if (!data || !data.clarification_questions || !data.success)
+    return (
+      <div className="agent-error">
+        Something went wrong, please retry or contact us if it fails again.
+      </div>
+    );
 
   const { clarification_questions, success } = data;
 
-  const answers = useRef(clarification_questions.questions.map((d) => null));
+  const answers = useRef(
+    clarification_questions.map((q) => defaultValues[q.ui_tool] || null),
+  );
 
   function genLabels(arr) {
     return arr.map((d) => ({ label: d, value: d }));
   }
 
   function updateAnswer(newAns, i) {
-    const newAnswers = answers.current.slice();
     answers.current[i] = newAns;
   }
 
   function onSubmit() {
-    clarification_questions.questions.forEach((q, i) => {
+    clarification_questions.forEach((q, i) => {
       q["response"] = answers.current[i];
     });
 
@@ -28,7 +49,7 @@ export default function Clarify({ data, handleSubmit }) {
 
   const UIs = {
     "multi select": (q, i, opts) => {
-      answers.current[i] = [];
+      answers.current[i] = defaultValues["multi select"];
       return (
         <Select
           mode="multiple"
@@ -45,25 +66,26 @@ export default function Clarify({ data, handleSubmit }) {
       );
     },
     "text input": (q, i) => {
-      answers.current[i] = "";
+      answers.current[i] = defaultValues["text input"];
       return (
         <Input onChange={(ev) => updateAnswer(ev.target.value, i)}></Input>
       );
     },
     "date range selector": (q, i) => {
-      answers.current[i] = 0;
-      let val = useRef(null);
+      answers.current[i] = defaultValues["date range selector"];
+      let el = null;
 
       return (
         <>
           <span style={{ fontSize: 12 }}>
-            <strong ref={val}>12 months</strong>
+            <strong ref={(t) => (el = t)}>12 months</strong>
           </span>
           <Slider
             max={24}
             defaultValue={12}
-            onChange={(v) => {
-              val.current.innerText = v + " months";
+            onChange={function (v) {
+              if (el) el.innerText = v + " months";
+
               updateAnswer(v + " months", i);
             }}
             tooltip={{ formatter: (d) => d + " months" }}
@@ -75,20 +97,36 @@ export default function Clarify({ data, handleSubmit }) {
 
   return (
     <ClarifyWrap>
-      <h3>Please provide the following additional info</h3>
-      {success ? (
-        <ul>
-          {clarification_questions.questions.map((q, i) => (
-            <li key={q.question}>
-              <p className="q-desc">{q.question}</p>
-              <div>{UIs[q.ui_tool](q, i, q.ui_tool_options)}</div>
-            </li>
-          ))}
-        </ul>
+      {success && clarification_questions.length ? (
+        <>
+          <h3>Please provide the following additional info</h3>
+          <ul>
+            {clarification_questions.map((q, i) => (
+              <li key={q.question}>
+                <Writer s={q.question} animate={!stageDone}>
+                  <p className="q-desc writer-target"></p>
+                  <div className="writer-children">
+                    {UIs[q.ui_tool](q, i, q.ui_tool_options)}
+                  </div>
+                </Writer>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : (
         <></>
       )}
-      <Button onClick={onSubmit}>Submit</Button>
+      {stageDone ? (
+        <></>
+      ) : (
+        <AgentLoader
+          message={"Loading"}
+          lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+        />
+      )}
+      <Button onClick={onSubmit} disabled={globalLoading} type="primary">
+        Submit
+      </Button>
     </ClarifyWrap>
   );
 }

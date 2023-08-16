@@ -589,7 +589,7 @@ export const DefogReport = ({
   );
 };
 
-// import continueData from "./components/agent/continueData.json";
+import continueData from "./components/agent/continueData.json";
 export const DefogAgent = ({
   continueFromStage = null,
   agentsEndpoint = null,
@@ -598,11 +598,7 @@ export const DefogAgent = ({
     <ThemeContext.Provider
       value={{ theme: { type: "light", config: lightThemeColor } }}
     >
-      <AgentMain
-        continueFromStage={continueFromStage}
-        continueData={{}}
-        agentsEndpoint={agentsEndpoint}
-      />
+      <AgentMain agentsEndpoint={agentsEndpoint} continueData={{}} />
     </ThemeContext.Provider>
   );
 };
