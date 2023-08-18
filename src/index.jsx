@@ -417,6 +417,7 @@ export function AskDefogChat({
                       overflowX: "scroll",
                       paddingTop: 0,
                       paddingBottom: 0,
+                      display: chatResponseArray.length === 0 ? "none" : "block",
                     }}
                   >
                     {chatResponseArray.map((response, index) => {
