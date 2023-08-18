@@ -418,6 +418,7 @@ export function AskDefogChat({
                       overflowX: "scroll",
                       paddingTop: 0,
                       paddingBottom: 0,
+                      display: chatResponseArray.length === 0 ? "none" : "block",
                     }}
                   >
                     {chatResponseArray.map((response, index) => {
@@ -589,7 +590,7 @@ export const DefogReport = ({
   );
 };
 
-import continueData from "./components/agent/continueData.json";
+// import continueData from "./components/agent/continueData.json";
 export const DefogAgent = ({
   continueFromStage = null,
   agentsEndpoint = null,
