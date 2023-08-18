@@ -599,7 +599,13 @@ export const DefogAgent = ({
     <ThemeContext.Provider
       value={{ theme: { type: "light", config: lightThemeColor } }}
     >
-      <AgentMain agentsEndpoint={agentsEndpoint} continueData={{}} />
+      <AgentMain
+        agentsEndpoint={agentsEndpoint}
+        continueData={{
+          clarify: continueData.clarify,
+          user_question: continueData.user_question,
+        }}
+      />
     </ThemeContext.Provider>
   );
 };

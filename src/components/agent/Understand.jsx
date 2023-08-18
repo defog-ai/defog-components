@@ -45,12 +45,12 @@ export default function Understand({
       {success ? (
         <ul>
           {understanding.map((u, i) => (
-            <li key={u + "-" + i}>
+            <li key={u.answer + "-" + i}>
               <Checkbox
                 onChange={(ev) => handleCheck(ev, i)}
                 defaultChecked={true}
               >
-                <Writer s={u} animate={!stageDone}>
+                <Writer s={u.answer} animate={!stageDone}>
                   <span className="writer-target"></span>
                 </Writer>
               </Checkbox>

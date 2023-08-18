@@ -127,6 +127,7 @@ export default function Approaches({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   enterButton="Submit"
+                  onSubmit={(e) => onSubmit(e)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") onSubmit(e);
                   }}
