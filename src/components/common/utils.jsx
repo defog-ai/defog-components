@@ -68,7 +68,7 @@ export function roundColumns(data, columns) {
 
     decimalCols?.forEach((colName) => {
       // round to two decimals
-      roundedData[i][colName] = roundedData[i][colName].toFixed(2);
+      roundedData[i][colName] = roundedData[i][colName]?.toFixed(2);
     });
   });
 
