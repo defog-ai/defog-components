@@ -67,6 +67,8 @@ const sub_qns = [
 
 const theme = { type: "dark", config: lightThemeColor };
 
+console.log("blehhhhh");
+
 const App = () => {
   return (
     <div
@@ -104,7 +106,7 @@ const App = () => {
             apiEndpoint: "http://localhost:8080/",
           }}
         >
-          <DefogAgent agentsEndpoint={"ws://localhost:8000/ws"}></DefogAgent>
+          <DefogAgent agentsEndpoint={"wss://agents.defog.ai/ws"}></DefogAgent>
         </UtilsContext.Provider>
       </div>
     </div>

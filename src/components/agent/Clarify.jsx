@@ -32,6 +32,9 @@ export default function Clarify({
   );
 
   function genLabels(arr) {
+    if (!Array.isArray(arr) || !arr) {
+      return [];
+    }
     return arr.map((d) => ({ label: d, value: d }));
   }
 

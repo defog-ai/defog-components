@@ -16,7 +16,6 @@ import Clarify from "./Clarify";
 import Approaches from "./Approaches";
 import { ThemeContext } from "../../context/ThemeContext";
 import { styled } from "styled-components";
-import AgentLoader from "../AgentLoaderWrap";
 const { Search } = Input;
 
 const agentRequestTypes = [
@@ -51,6 +50,7 @@ export default function AgentMain({
   agentsEndpoint,
   continueFromStage = null,
   continueData = {},
+  reportId = "",
 }) {
   const socket = useRef(null);
   const el = useRef(null);
@@ -58,6 +58,7 @@ export default function AgentMain({
   const [globalLoading, setGlobalLoading] = useState(false);
   const [stageData, setStageData] = useState(continueData);
   const [stageDone, setStageDone] = useState(true);
+  const [rId, setReportId] = useState(reportId);
 
   const { theme } = useContext(ThemeContext);
 
@@ -73,14 +74,30 @@ export default function AgentMain({
     if (!socket.current || socket.current.readyState === WebSocket.CLOSED) {
       socket.current = new WebSocket(agentsEndpoint);
       socket.current.onmessage = function (event) {
-        if (!event.data) return;
+        if (!event.data) {
+          setStageDone(false);
+          setGlobalLoading(false);
+          message.error(
+            "Something went wrong. Please try again or contact us if this persists.",
+          );
+        }
 
         const response = JSON.parse(event.data);
-        console.log(response);
+
+        if (response.error_message) {
+          setStageDone(false);
+          setGlobalLoading(false);
+          message.error(
+            "Something went wrong. Please try again or contact us if this persists.",
+          );
+          return;
+        }
+
         const rType = response.request_type;
         const prop = propNames[rType];
 
         if (response.output) {
+          console.log(response);
           setStageData((prev) => {
             // append if exists
             if (prev[rType]) {
@@ -99,6 +116,9 @@ export default function AgentMain({
         if (response.done) {
           setStageDone(true);
           setGlobalLoading(false);
+        }
+        if (response.report_id) {
+          setReportId(response.report_id);
         }
       };
     }
@@ -127,6 +147,7 @@ export default function AgentMain({
         JSON.stringify({
           user_question: query,
           request_type: nextStage,
+          report_id: rId,
           ...stageInput,
         }),
       );

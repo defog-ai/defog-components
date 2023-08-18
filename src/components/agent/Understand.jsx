@@ -32,7 +32,11 @@ export default function Understand({
       (_, i) => checked.current[i],
     );
 
-    handleSubmit(null, { understanding: understandingFiltered }, "understand");
+    handleSubmit(
+      null,
+      { understanding: understandingFiltered.map((d) => d.answer) },
+      "understand",
+    );
   }
 
   return (
