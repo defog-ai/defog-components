@@ -48,15 +48,14 @@ const agentLoadingMessages = {
 
 export default function AgentMain({
   agentsEndpoint,
-  continueFromStage = null,
-  continueData = {},
+  sessionData = {},
   reportId = "",
 }) {
   const socket = useRef(null);
   const el = useRef(null);
-  const [currentStage, setCurrentStage] = useState(continueFromStage);
+  const [currentStage, setCurrentStage] = useState(null);
   const [globalLoading, setGlobalLoading] = useState(false);
-  const [stageData, setStageData] = useState(continueData);
+  const [stageData, setStageData] = useState(sessionData);
   const [stageDone, setStageDone] = useState(true);
   const [rId, setReportId] = useState(reportId);
 
@@ -191,7 +190,7 @@ export default function AgentMain({
           disabled={currentStage !== null}
           placeholder="Ask a question"
           enterButton="Ask"
-          defaultValue={continueData.user_question || null}
+          defaultValue={sessionData.user_question || null}
         ></Search>
       </>
 

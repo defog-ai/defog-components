@@ -418,7 +418,8 @@ export function AskDefogChat({
                       overflowX: "scroll",
                       paddingTop: 0,
                       paddingBottom: 0,
-                      display: chatResponseArray.length === 0 ? "none" : "block",
+                      display:
+                        chatResponseArray.length === 0 ? "none" : "block",
                     }}
                   >
                     {chatResponseArray.map((response, index) => {
@@ -590,21 +591,12 @@ export const DefogReport = ({
   );
 };
 
-export const DefogAgent = ({
-  continueFromStage = null,
-  agentsEndpoint = null,
-}) => {
+export const DefogAgent = ({ sessionData = {}, agentsEndpoint = null }) => {
   return (
     <ThemeContext.Provider
       value={{ theme: { type: "light", config: lightThemeColor } }}
     >
-      <AgentMain
-        agentsEndpoint={agentsEndpoint}
-        continueData={{
-          clarify: continueData.clarify,
-          user_question: continueData.user_question,
-        }}
-      />
+      <AgentMain agentsEndpoint={agentsEndpoint} sessionData={sessionData} />
     </ThemeContext.Provider>
   );
 };
