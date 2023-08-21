@@ -9,7 +9,13 @@
 // eventually there should be a way to cache "where" the user was in a report generation process. And just have them continue.
 // perhaps have a "save as draft" option for reports
 
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  Fragment,
+} from "react";
 import { Input, Carousel, message } from "antd";
 import Understand from "./Understand";
 import Clarify from "./Clarify";
