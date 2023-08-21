@@ -187,6 +187,8 @@ export default function AgentMain({
     }
   }, [currentStage]);
 
+  console.log(stageData);
+
   return (
     <AgentMainWrap theme={theme}>
       <>
@@ -238,7 +240,7 @@ const AgentMainWrap = styled.div`
   max-width: 800px;
   margin: 0 auto;
   .slick-list {
-    top: -10px;
+    top: 40px;
   }
   .stage-heading {
     text-align: center;

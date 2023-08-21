@@ -591,12 +591,20 @@ export const DefogReport = ({
   );
 };
 
-export const DefogAgent = ({ sessionData = {}, agentsEndpoint = null }) => {
+export const DefogAgent = ({
+  sessionData = {},
+  agentsEndpoint = null,
+  reportId = "",
+}) => {
   return (
     <ThemeContext.Provider
       value={{ theme: { type: "light", config: lightThemeColor } }}
     >
-      <AgentMain agentsEndpoint={agentsEndpoint} sessionData={sessionData} />
+      <AgentMain
+        agentsEndpoint={agentsEndpoint}
+        sessionData={sessionData}
+        reportId={reportId}
+      />
     </ThemeContext.Provider>
   );
 };
