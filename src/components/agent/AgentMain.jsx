@@ -244,8 +244,8 @@ const AgentMainWrap = styled.div`
     text-align: center;
     color: gray;
     font-weight: normal;
-    font-size: 0.8rem;
-    margin-bottom: 3rem;
+    font-size: 0.8em;
+    margin-bottom: 3em;
     pointer-events: none;
   }
   .slick-dots li {
