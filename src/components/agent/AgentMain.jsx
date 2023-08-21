@@ -205,7 +205,7 @@ export default function AgentMain({
       <div className="carousel-ctr">
         <Carousel dotPosition="top" ref={carousel}>
           {Object.keys(stageData)
-            .filter((d) => d !== "null" && d !== "user_question")
+            .filter((d) => agentRequestTypes.indexOf(d) > -1)
             .map((stage) => {
               return (
                 <div
