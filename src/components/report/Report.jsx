@@ -1,31 +1,50 @@
 import React, { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { marked } from "marked";
-import { csvTable } from "./marked-extensions";
+import { csvTable, postprocess } from "./marked-extensions";
 import { styled } from "styled-components";
+import WriterGroup from "./WriterGroup";
 
-marked.use({ extensions: [csvTable] });
+marked.use({ extensions: [csvTable], hooks: { postprocess } });
 
-export function Report({ markdown, apiKey, apiEndpoint, theme }) {
-  useEffect(() => {
-    if (!window.renders || !window.renders.length) return;
+export function Report({ sections, theme }) {
+  // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
 
-    window.renders.forEach((item) => {
-      const Component = item.component;
-      const root = createRoot(document.getElementById(item.id));
-      root.render(
-        <Component {...item.props} apiKey={apiKey} apiEndpoint={apiEndpoint} />,
-      );
-    });
-  });
+  // sort sections according to section number
+  const sortedSections = sections.slice().map((d) => ({
+    ...d,
+    tokens: marked.lexer(d.text).filter((d) => d.type != "space"),
+  }));
+
+  sortedSections.sort((a, b) => a.section_number - b.section_number);
+
+  // useEffect(() => {
+  //   if (!window.renders || !window.renders.length) return;
+
+  //   window.renders.forEach((item) => {
+  //     const Component = item.component;
+  //     const root = createRoot(document.getElementById(item.id));
+  //     root.render(
+  //       <Component {...item.props} apiKey={apiKey} apiEndpoint={apiEndpoint} />,
+  //     );
+  //   });
+  // });
 
   return (
     <ReportWrap theme={theme.config}>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: marked.parse(markdown),
-        }}
-      ></div>
+      {sortedSections.map((section) => (
+        <WriterGroup
+          key={section.section_number}
+          items={section.tokens.map((d, i) => {
+            return {
+              ...d,
+              key: section.section_number + "-" + i,
+              emptyHtml: marked.parse(d.raw),
+              animate: true,
+            };
+          })}
+        />
+      ))}
     </ReportWrap>
   );
 }

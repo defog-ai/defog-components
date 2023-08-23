@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
 import Lottie from "lottie-react";
-import { Input, Collapse, AutoComplete, message } from "antd";
+import { Collapse, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
@@ -23,6 +23,7 @@ import { Report } from "./components/report/Report";
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 import AgentMain from "./components/agent/AgentMain";
+import Search from "antd/es/input/Search";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -44,7 +45,6 @@ export function AskDefogChat({
   narrativeEnabled = false,
   placeholderText = "",
 }) {
-  const { Search } = Input;
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -574,19 +574,12 @@ export function AskDefogChat({
 }
 
 export const DefogReport = ({
-  md,
-  apiKey = "",
-  apiEndpoint = "",
+  reportSections,
   theme = { type: "light", config: lightThemeColor },
 }) => {
   return (
     <div className="report">
-      <Report
-        markdown={md}
-        apiKey={apiKey}
-        apiEndpoint={apiEndpoint}
-        theme={theme}
-      />
+      <Report sections={reportSections} theme={theme} />
     </div>
   );
 };
@@ -595,6 +588,7 @@ export const DefogAgent = ({
   sessionData = {},
   agentsEndpoint = null,
   reportId = "",
+  onMessage = () => {},
 }) => {
   return (
     <ThemeContext.Provider
@@ -604,6 +598,7 @@ export const DefogAgent = ({
         agentsEndpoint={agentsEndpoint}
         sessionData={sessionData}
         reportId={reportId}
+        onMessage={onMessage}
       />
     </ThemeContext.Provider>
   );

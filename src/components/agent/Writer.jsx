@@ -2,16 +2,29 @@
 
 import React, { useEffect, useRef } from "react";
 
-export default function Writer({ s, animate = true, children }) {
+export default function Writer({
+  s = "",
+  animate = true,
+  children,
+  onComplete = () => {},
+  start = true,
+}) {
   const targetEl = useRef(null);
   const ctr = useRef(null);
+  const writing = useRef(false);
+  const done = useRef(false);
 
   function write() {
     let i = targetEl.current.innerHTML.length;
     if (i < s.length) {
+      writing.current = true;
+      done.current = false;
       targetEl.current.innerHTML += s.charAt(i);
       setTimeout(write, 20);
     } else {
+      done.current = true;
+      onComplete();
+      writing.current = false;
       // show hidden
       let c = ctr.current.getElementsByClassName("writer-children");
       //   for child inside writer-children, show opacity one by one
@@ -31,18 +44,16 @@ export default function Writer({ s, animate = true, children }) {
   }
 
   useEffect(() => {
-    if (!ctr) return;
+    if (!ctr.current) return;
 
     let tmp;
     // weirdness in carousel where it's cloning stuff
     let clone = ctr.current.closest(".slick-cloned");
-
     tmp = ctr.current.getElementsByClassName("writer-target");
-    if (tmp.length) {
-      targetEl.current = tmp[0];
-    }
 
-    if (animate && !clone) {
+    // if has targets, and animate is true, hide children
+    if (animate && !clone && tmp.length) {
+      // hide children
       let c = ctr.current.getElementsByClassName("writer-children");
 
       if (c.length) {
@@ -51,12 +62,38 @@ export default function Writer({ s, animate = true, children }) {
           ch[i].style.opacity = 0;
         }
       }
-      write();
     }
-    if (!animate) {
-      targetEl.current.innerHTML = s;
+
+    if (tmp.length) {
+      // write target
+      targetEl.current = tmp[0];
+      if (start && animate) {
+        write();
+      }
+
+      if (!animate) {
+        targetEl.current.innerHTML = s;
+      }
+    } else {
+      // no targets. just show everything.
+      done.current = true;
+      writing.current = false;
+      onComplete();
     }
   }, []);
+
+  useEffect(() => {
+    if (
+      !writing.current &&
+      start &&
+      animate &&
+      ctr.current &&
+      !done.current &&
+      targetEl.current
+    ) {
+      write();
+    }
+  }, [start]);
 
   return <div ref={ctr}>{children}</div>;
 }

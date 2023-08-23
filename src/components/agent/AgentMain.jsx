@@ -16,13 +16,13 @@ import React, {
   useState,
   Fragment,
 } from "react";
-import { Input, Carousel, message } from "antd";
+import { Carousel, message } from "antd";
 import Understand from "./Understand";
 import Clarify from "./Clarify";
 import Approaches from "./Approaches";
 import { ThemeContext } from "../../context/ThemeContext";
 import { styled } from "styled-components";
-const { Search } = Input;
+import Search from "antd/es/input/Search";
 
 const agentRequestTypes = [
   "clarify",
@@ -56,6 +56,7 @@ export default function AgentMain({
   agentsEndpoint,
   sessionData = {},
   reportId = "",
+  onMessage = () => {},
 }) {
   const socket = useRef(null);
   const el = useRef(null);
@@ -78,6 +79,12 @@ export default function AgentMain({
   function reInitSocket() {
     if (!socket.current || socket.current.readyState === WebSocket.CLOSED) {
       socket.current = new WebSocket(agentsEndpoint);
+
+      socket.current.onclose = function (event) {
+        console.log(event);
+        console.log("Socket closed");
+      };
+
       socket.current.onmessage = function (event) {
         if (!event.data) {
           setStageDone(false);
@@ -88,6 +95,12 @@ export default function AgentMain({
         }
 
         const response = JSON.parse(event.data);
+
+        if (response.request_type === "gen_report") {
+          onMessage(response);
+          return;
+        }
+        console.log(response);
 
         if (response.error_message) {
           setStageDone(false);
@@ -101,7 +114,11 @@ export default function AgentMain({
         const rType = response.request_type;
         const prop = propNames[rType];
 
-        if (response.output) {
+        if (
+          response.output &&
+          response.output.success &&
+          response.output[prop]
+        ) {
           console.log(response);
           setStageData((prev) => {
             // append if exists
@@ -114,7 +131,7 @@ export default function AgentMain({
                 },
               };
             }
-
+            // else set
             return { ...prev, [response.request_type]: response.output };
           });
         }
@@ -130,10 +147,6 @@ export default function AgentMain({
   }
 
   reInitSocket();
-
-  // useEffect(() => {
-  //   console.log(stageData)
-  // }, []);
 
   function handleSubmit(ev, stageInput = {}, submitSourceStage = null) {
     try {
@@ -186,8 +199,6 @@ export default function AgentMain({
       window.scrollTo(0, 0);
     }
   }, [currentStage]);
-
-  console.log(stageData);
 
   return (
     <AgentMainWrap theme={theme}>

@@ -27,8 +27,6 @@ export default function Approaches({
 
   const initialApproaches = data["approaches"];
 
-  console.log(initialApproaches);
-
   if (!initialApproaches || !Array.isArray(initialApproaches)) {
     return (
       <div className="agent-error">
@@ -45,7 +43,9 @@ export default function Approaches({
   const [email, setEmail] = useState("manasdotsharma@gmail.com");
 
   async function onSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
 
     const submitSuccess = handleSubmit(
       null,
@@ -54,9 +54,9 @@ export default function Approaches({
     );
 
     if (submitSuccess) {
-      message.success(
-        "A link to your report will be sent to your email in about 5 minutes!",
-      );
+      // message.success(
+      //   "A link to your report will be sent to your email in about 5 minutes!",
+      // );
     } else {
       message.error("Server error. Could not save report. Please contact us.");
     }
@@ -127,7 +127,7 @@ export default function Approaches({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   enterButton="Submit"
-                  onSubmit={(e) => onSubmit(e)}
+                  onSearch={(e) => onSubmit(e)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") onSubmit(e);
                   }}
