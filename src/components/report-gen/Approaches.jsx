@@ -1,15 +1,13 @@
 import React, { useMemo, useState, Fragment } from "react";
 
 import { styled } from "styled-components";
-import { Button, message } from "antd";
-
-// import { FiTool } from "react-icons/fi";
+import { message } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
-import Search from "antd/es/input/Search";
+import Search from "antd/lib/input/Search";
 import Lottie from "lottie-react";
 import LoadingLottie from "../../components/svg/loader.json";
-import AgentLoader from "../AgentLoaderWrap";
-import Writer from "./Writer";
+import AgentLoader from "../common/AgentLoader";
+import Writer from "../agent/Writer";
 
 export default function Approaches({
   data,

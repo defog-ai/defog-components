@@ -68,7 +68,7 @@
 
 import React, { useContext } from "react";
 import { styled } from "styled-components";
-import { ThemeContext } from "../context/ThemeContext";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const AgentLoader = ({ type, message, svg, lottie, children }) => {
   const { theme } = useContext(ThemeContext);

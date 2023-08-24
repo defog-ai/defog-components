@@ -3,8 +3,8 @@ import React, { useRef, Fragment } from "react";
 import { styled } from "styled-components";
 import Lottie from "lottie-react";
 import LoadingLottie from "../../components/svg/loader.json";
-import AgentLoader from "../AgentLoaderWrap";
-import Writer from "./Writer";
+import AgentLoader from "../common/AgentLoader";
+import Writer from "../agent/Writer";
 
 const defaultValues = {
   "multi select": [],

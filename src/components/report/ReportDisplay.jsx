@@ -1,13 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Fragment } from "react";
 import { createRoot } from "react-dom/client";
 import { marked } from "marked";
-import { csvTable, postprocess } from "./marked-extensions";
+import { csvTable, postprocess } from "../report-gen/marked-extensions";
 import { styled } from "styled-components";
-import WriterGroup from "./WriterGroup";
+import WriterGroup from "../agent/WriterGroup";
+import Lottie from "lottie-react";
+import LoadingLottie from "../svg/loader.json";
+import AgentLoader from "../common/AgentLoader";
 
 marked.use({ extensions: [csvTable], hooks: { postprocess } });
 
-export function Report({ sections, theme }) {
+export function ReportDisplay({ sections, theme, loading }) {
   // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
 
   // sort sections according to section number
@@ -45,6 +48,14 @@ export function Report({ sections, theme }) {
           })}
         />
       ))}
+      {loading ? (
+        <AgentLoader
+          message={"Generating report..."}
+          lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+        />
+      ) : (
+        <></>
+      )}
     </ReportWrap>
   );
 }

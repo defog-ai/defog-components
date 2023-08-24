@@ -18,12 +18,12 @@ import {
 } from "./context/ThemeContext";
 import { styled } from "styled-components";
 import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
-import { Report } from "./components/report/Report";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 import AgentMain from "./components/agent/AgentMain";
-import Search from "antd/es/input/Search";
+import Search from "antd/lib/input/Search";
+import { ReportDisplay } from "./components/report/ReportDisplay";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -573,22 +573,30 @@ export function AskDefogChat({
   );
 }
 
-export const DefogReport = ({
-  reportSections,
-  theme = { type: "light", config: lightThemeColor },
-}) => {
-  return (
-    <div className="report">
-      <Report sections={reportSections} theme={theme} />
-    </div>
-  );
-};
+// export const DefogReport = ({
+//   reportSections,
+//   theme = { type: "light", config: lightThemeColor },
+//   loading = false,
+// }) => {
+//   return (
+//     <ThemeContext.Provider
+//       value={{ theme: { type: "light", config: lightThemeColor } }}
+//     >
+//       <div className="report">
+//         <ReportDisplay
+//           sections={reportSections}
+//           theme={theme}
+//           loading={loading}
+//         />
+//       </div>
+//     </ThemeContext.Provider>
+//   );
+// };
 
 export const DefogAgent = ({
-  sessionData = {},
+  initialSessionData = {},
   agentsEndpoint = null,
   reportId = "",
-  onMessage = () => {},
 }) => {
   return (
     <ThemeContext.Provider
@@ -596,9 +604,8 @@ export const DefogAgent = ({
     >
       <AgentMain
         agentsEndpoint={agentsEndpoint}
-        sessionData={sessionData}
+        initialSessionData={initialSessionData}
         reportId={reportId}
-        onMessage={onMessage}
       />
     </ThemeContext.Provider>
   );

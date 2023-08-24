@@ -2,7 +2,7 @@
 // call their write function one after the other
 
 import React, { Fragment, useState } from "react";
-import Writer from "../agent/Writer";
+import Writer from "./Writer";
 
 export default function WriterGroup({ items }) {
   const [active, setActive] = useState(0);

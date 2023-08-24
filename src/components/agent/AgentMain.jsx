@@ -1,7 +1,6 @@
 // this component is the "root" of all agent's views.
-// there can be multiple "views" aka UIs for an agents, depending on which step it is on.
-// for eg, there could be the human input for clarifications, could be the next step of confirming "understandings".
-// or the last step of step generation/display.
+// this basically renders 2 tabs:
+// one for Report generation: including the clarifier, understander and approaches
 // also moves the agent comms to websocket for the above to work.
 // the websocket runs on the backend depend on the "request_type" parameter in the request json sent to the websocket
 // request_type can be: "clarify", "understand", "gen_approaches", "gen_report"
@@ -9,20 +8,34 @@
 // eventually there should be a way to cache "where" the user was in a report generation process. And just have them continue.
 // perhaps have a "save as draft" option for reports
 
+import { Tabs, message } from "antd";
 import React, {
-  useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   Fragment,
+  useContext,
 } from "react";
-import { Carousel, message } from "antd";
-import Understand from "./Understand";
-import Clarify from "./Clarify";
-import Approaches from "./Approaches";
+import ReportGen from "../report-gen/ReportGen";
+import { ReportDisplay } from "../report/ReportDisplay";
+import { createGlobalStyle, styled } from "styled-components";
+import ErrorBoundary from "../common/ErrorBoundary";
 import { ThemeContext } from "../../context/ThemeContext";
-import { styled } from "styled-components";
-import Search from "antd/es/input/Search";
+
+const GlobalStyle = createGlobalStyle`
+ body {
+    background-color: white !important;
+ }
+ `;
+
+// the name of the prop where the data is stored for each stage
+const propNames = {
+  clarify: "clarification_questions",
+  understand: "understanding",
+  gen_approaches: "approaches",
+  gen_report: "report_sections",
+};
 
 const agentRequestTypes = [
   "clarify",
@@ -31,50 +44,28 @@ const agentRequestTypes = [
   "gen_report",
 ];
 
-// the name of the prop where the data is stored for each stage
-const propNames = {
-  clarify: "clarification_questions",
-  understand: "understanding",
-  gen_approaches: "approaches",
-};
-
-const agentRequestNames = {
-  clarify: "Clarifying questions",
-  understand: "Model's Understanding",
-  gen_approaches: "Approaches",
-  gen_report: "Generate Report",
-};
-
-const agentLoadingMessages = {
-  clarify: "Getting Clarifications from Agent",
-  understand: "Getting Understandings from Agent",
-  gen_approaches: "Getting Approaches from Agent",
-  gen_report: "Getting Report from Agent",
-};
-
 export default function AgentMain({
-  agentsEndpoint,
-  sessionData = {},
+  initialSessionData,
   reportId = "",
-  onMessage = () => {},
+  agentsEndpoint,
 }) {
   const socket = useRef(null);
-  const el = useRef(null);
-  const [currentStage, setCurrentStage] = useState(null);
-  const [globalLoading, setGlobalLoading] = useState(false);
-  const [stageData, setStageData] = useState(sessionData);
-  const [stageDone, setStageDone] = useState(true);
+  const [sessionData, setSessionData] = useState(initialSessionData);
   const [rId, setReportId] = useState(reportId);
+  const [globalLoading, setGlobalLoading] = useState(false);
+  // find the last existing current stage from agentRequestTypes in the session data's keys
+  // if there is none, then the current stage is null
+  const lastExistingStage = Object.keys(initialSessionData)
+    .filter((d) => agentRequestTypes.includes(d))
+    .sort((a, b) => agentRequestTypes.indexOf(a) - agentRequestTypes.indexOf(b))
+    .pop();
 
+  const [currentStage, setCurrentStage] = useState(lastExistingStage || null);
+  const [activeTab, setActiveTab] = useState("1");
+  const searchRef = useRef(null);
   const { theme } = useContext(ThemeContext);
 
-  const carousel = useRef(null);
-
-  const components = {
-    clarify: Clarify,
-    understand: Understand,
-    gen_approaches: Approaches,
-  };
+  const [stageDone, setStageDone] = useState(true);
 
   function reInitSocket() {
     if (!socket.current || socket.current.readyState === WebSocket.CLOSED) {
@@ -83,6 +74,15 @@ export default function AgentMain({
       socket.current.onclose = function (event) {
         console.log(event);
         console.log("Socket closed");
+        console.log(Date.now());
+        setGlobalLoading(false);
+        setStageDone(true);
+        reInitSocket();
+      };
+
+      socket.onopen = function () {
+        console.log("Socket opened");
+        console.log(Date.now());
       };
 
       socket.current.onmessage = function (event) {
@@ -96,12 +96,6 @@ export default function AgentMain({
 
         const response = JSON.parse(event.data);
 
-        if (response.request_type === "gen_report") {
-          onMessage(response);
-          return;
-        }
-        console.log(response);
-
         if (response.error_message) {
           setStageDone(false);
           setGlobalLoading(false);
@@ -114,13 +108,14 @@ export default function AgentMain({
         const rType = response.request_type;
         const prop = propNames[rType];
 
+        console.log(response);
+
         if (
           response.output &&
           response.output.success &&
           response.output[prop]
         ) {
-          console.log(response);
-          setStageData((prev) => {
+          setSessionData((prev) => {
             // append if exists
             if (prev[rType]) {
               return {
@@ -146,16 +141,16 @@ export default function AgentMain({
     }
   }
 
-  reInitSocket();
-
   function handleSubmit(ev, stageInput = {}, submitSourceStage = null) {
     try {
-      const query = el.current.input.value;
-
+      const query = searchRef.current.input.value;
       // if the submitSourceStage is "clarify", we're getting the user input for the clarification questions, so the next thing the agent
       // has to do is "understand". so send the "understand" request_type to the agent.
       // if this is null, which is the first stage on the front end
       // then just submit the question to the agent. question string + "clarify" request_type
+      // if we're just entering the question for the first time,
+      // we need to send a "clarify" request. so let submitSOurceStage be null
+      // indexOf returns -1 and -1 + 1 is 0 so we get "clarify" from the agentRequestTypes array
       const nextStage =
         agentRequestTypes[agentRequestTypes.indexOf(submitSourceStage) + 1];
 
@@ -163,24 +158,30 @@ export default function AgentMain({
 
       socket.current.send(
         JSON.stringify({
-          user_question: query,
           request_type: nextStage,
           report_id: rId,
+          user_question: query,
           ...stageInput,
         }),
       );
 
-      if (nextStage !== "gen_report") {
-        setCurrentStage(nextStage);
-        setStageDone(false);
-        setGlobalLoading(nextStage);
-        setStageData((prev) => {
-          return {
-            ...prev,
-            [nextStage]: { [propNames[nextStage]]: [], success: true },
-          };
-        });
+      setCurrentStage(nextStage);
+      setStageDone(false);
+      setGlobalLoading(nextStage);
+      setActiveTab(nextStage === "gen_report" ? "2" : "1");
+      let newSessionData = { ...sessionData };
+      newSessionData[nextStage] = { [propNames[nextStage]]: [], success: true };
+
+      // if any of the stages AFTER nextStage exists
+      // remove all data from those stages (to mimic what happens on the backend)
+      let idx = agentRequestTypes.indexOf(nextStage) + 1;
+      if (idx < agentRequestTypes.length) {
+        while (idx < agentRequestTypes.length) {
+          delete newSessionData[agentRequestTypes[idx]];
+          idx++;
+        }
       }
+      setSessionData(newSessionData);
 
       return true;
     } catch (err) {
@@ -192,87 +193,86 @@ export default function AgentMain({
     }
   }
 
-  useEffect(() => {
-    if (currentStage && currentStage !== "gen_report" && carousel.current) {
-      carousel.current.goTo(agentRequestTypes.indexOf(currentStage));
-      // also scroll to top of screen
-      window.scrollTo(0, 0);
-    }
-  }, [currentStage]);
+  reInitSocket();
+
+  const tabs = useMemo(
+    () =>
+      !sessionData
+        ? []
+        : [
+            {
+              component: (
+                <ErrorBoundary>
+                  <ReportGen
+                    sessionData={sessionData}
+                    user_question={sessionData.user_question}
+                    stageDone={stageDone}
+                    currentStage={currentStage}
+                    handleSubmit={handleSubmit}
+                    globalLoading={globalLoading}
+                    searchRef={searchRef}
+                  />
+                </ErrorBoundary>
+              ),
+              tabLabel: "Report Generation",
+              disabled: false,
+            },
+            {
+              component: (
+                <ErrorBoundary>
+                  <ReportDisplay
+                    sections={sessionData?.gen_report?.report_sections || []}
+                    theme={theme}
+                    loading={currentStage === "gen_report" ? !stageDone : false}
+                  />
+                </ErrorBoundary>
+              ),
+              tabLabel: "Report",
+              disabled: !sessionData?.gen_report?.report_sections,
+            },
+          ],
+    [sessionData, stageDone, currentStage, globalLoading, theme],
+  );
+
+  const items = useMemo(() => {
+    return tabs
+      .map((d, i) => ({
+        key: String(i + 1),
+        label: d.tabLabel,
+        children: d.component,
+        disabled: d.disabled,
+        forceRender: true,
+      }))
+      .filter((d) => !d.disabled);
+  }, [tabs]);
 
   return (
-    <AgentMainWrap theme={theme}>
-      <>
-        <Search
-          onPressEnter={(ev) => handleSubmit(ev)}
-          ref={el}
-          disabled={currentStage !== null}
-          placeholder="Ask a question"
-          enterButton="Ask"
-          defaultValue={sessionData.user_question || null}
-        ></Search>
-      </>
-
-      <div className="carousel-ctr">
-        <Carousel dotPosition="top" ref={carousel}>
-          {Object.keys(stageData)
-            .filter((d) => agentRequestTypes.indexOf(d) > -1)
-            .map((stage) => {
-              return (
-                <div
-                  key={stage}
-                  className={
-                    Object.keys(stageData).indexOf(stage) > -1
-                      ? "ready"
-                      : "not-ready"
-                  }
-                >
-                  <h3 className="stage-heading">{agentRequestNames[stage]}</h3>
-
-                  {components[stage]
-                    ? React.createElement(components[stage], {
-                        data: stageData[stage],
-                        handleSubmit,
-                        theme: theme,
-                        globalLoading: globalLoading,
-                        stageDone: stage === currentStage ? stageDone : true,
-                      })
-                    : null}
-                </div>
-              );
-            })}
-        </Carousel>
-      </div>
-    </AgentMainWrap>
+    <ReportPageWrap>
+      {sessionData ? (
+        <>
+          <GlobalStyle />
+          <Tabs
+            activeKey={activeTab}
+            onTabClick={(key) => {
+              setActiveTab(key);
+            }}
+            centered
+            items={items}
+          ></Tabs>
+        </>
+      ) : (
+        <></>
+      )}
+    </ReportPageWrap>
   );
 }
 
-const AgentMainWrap = styled.div`
-  max-width: 800px;
-  margin: 0 auto;
-  .slick-list {
-    top: 40px;
+const ReportPageWrap = styled.div`
+  .ant-tabs-tab-btn {
+    color: black;
   }
-  .stage-heading {
-    text-align: center;
-    color: gray;
-    font-weight: normal;
-    font-size: 0.8em;
-    margin-bottom: 3em;
-    pointer-events: none;
-  }
-  .slick-dots li {
-    button {
-      background-color: #ccc !important;
-    }
 
-    &.slick-active button {
-      background-color: ${(props) => {
-        return (
-          (props.theme ? props.theme.config.brandColor : "#3a3a3a") +
-          " !important"
-        );
-      }};
-    }
+  .report * {
+    color: black;
   }
 `;
