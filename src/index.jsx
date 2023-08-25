@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
 import Lottie from "lottie-react";
-import { Input, Collapse, AutoComplete, message } from "antd";
+import { Collapse, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
@@ -18,10 +18,12 @@ import {
 } from "./context/ThemeContext";
 import { styled } from "styled-components";
 import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
-import { Report } from "./components/report/Report";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
+import AgentMain from "./components/agent/AgentMain";
+import Search from "antd/lib/input/Search";
+import { ReportDisplay } from "./components/report/ReportDisplay";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -43,7 +45,6 @@ export function AskDefogChat({
   narrativeEnabled = false,
   placeholderText = "",
 }) {
-  const { Search } = Input;
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -417,7 +418,8 @@ export function AskDefogChat({
                       overflowX: "scroll",
                       paddingTop: 0,
                       paddingBottom: 0,
-                      display: chatResponseArray.length === 0 ? "none" : "block",
+                      display:
+                        chatResponseArray.length === 0 ? "none" : "block",
                     }}
                   >
                     {chatResponseArray.map((response, index) => {
@@ -571,21 +573,39 @@ export function AskDefogChat({
   );
 }
 
-export const DefogReport = ({
-  md,
-  apiKey = "",
-  apiEndpoint = "",
-  theme = { type: "light", config: lightThemeColor },
+// export const DefogReport = ({
+//   reportSections,
+//   theme = { type: "light", config: lightThemeColor },
+//   loading = false,
+// }) => {
+//   return (
+//     <ThemeContext.Provider
+//       value={{ theme: { type: "light", config: lightThemeColor } }}
+//     >
+//       <div className="report">
+//         <ReportDisplay
+//           sections={reportSections}
+//           theme={theme}
+//           loading={loading}
+//         />
+//       </div>
+//     </ThemeContext.Provider>
+//   );
+// };
+
+export const DefogAgent = ({
+  initialSessionData = {},
+  agentsEndpoint = null,
 }) => {
   return (
-    <div className="report">
-      <Report
-        markdown={md}
-        apiKey={apiKey}
-        apiEndpoint={apiEndpoint}
-        theme={theme}
+    <ThemeContext.Provider
+      value={{ theme: { type: "light", config: lightThemeColor } }}
+    >
+      <AgentMain
+        agentsEndpoint={agentsEndpoint}
+        initialSessionData={initialSessionData}
       />
-    </div>
+    </ThemeContext.Provider>
   );
 };
 

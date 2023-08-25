@@ -67,8 +67,19 @@ export function roundColumns(data, columns) {
     roundedData.push(Object.assign({}, d));
 
     decimalCols?.forEach((colName) => {
-      // round to two decimals
-      roundedData[i][colName] = roundedData[i][colName]?.toFixed(2);
+      let x = roundedData[i][colName];
+      // try to convert to a number
+      if (+x || x === 0) {
+        try {
+          // round to two decimals
+          return x.toFixed(2);
+        } catch (e) {
+          // set to null
+          return null;
+        }
+      } else {
+        return null;
+      }
     });
   });
 

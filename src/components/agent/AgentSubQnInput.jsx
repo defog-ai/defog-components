@@ -57,7 +57,7 @@ const AgentSubQnInputWrap = styled.div`
     max-width: 800px;
     margin: 0 auto;
     input {
-      font-size: 1.5rem;
+      font-size: 1.5em;
       text-align: center;
     }
     input[readonly] {
@@ -71,7 +71,7 @@ const AgentSubQnInputWrap = styled.div`
       button {
         padding: 3px 10px;
         span {
-          font-size: 0.8rem;
+          font-size: 0.8em;
         }
       }
     }

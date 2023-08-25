@@ -1,31 +1,59 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Fragment } from "react";
 import { createRoot } from "react-dom/client";
 import { marked } from "marked";
-import { csvTable } from "./marked-extensions";
+import { csvTable, postprocess } from "../report-gen/marked-extensions";
 import { styled } from "styled-components";
+import WriterGroup from "../agent/WriterGroup";
+import Lottie from "lottie-react";
+import LoadingLottie from "../svg/loader.json";
+import AgentLoader from "../common/AgentLoader";
 
-marked.use({ extensions: [csvTable] });
+marked.use({ extensions: [csvTable], hooks: { postprocess } });
 
-export function Report({ markdown, apiKey, apiEndpoint, theme }) {
+export function ReportDisplay({ sections, theme, loading, animate = false }) {
+  // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
+
+  // sort sections according to section number
+  const sortedSections = sections.slice().map((d) => ({
+    ...d,
+    tokens: marked.lexer(d.text).filter((d) => d.type != "space"),
+  }));
+
+  sortedSections.sort((a, b) => a.section_number - b.section_number);
+
   useEffect(() => {
     if (!window.renders || !window.renders.length) return;
 
     window.renders.forEach((item) => {
       const Component = item.component;
       const root = createRoot(document.getElementById(item.id));
-      root.render(
-        <Component {...item.props} apiKey={apiKey} apiEndpoint={apiEndpoint} />,
-      );
+      root.render(<Component {...item.props} apiKey={""} apiEndpoint={""} />);
     });
   });
 
   return (
     <ReportWrap theme={theme.config}>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: marked.parse(markdown),
-        }}
-      ></div>
+      {sortedSections.map((section) => (
+        <WriterGroup
+          key={section.section_number}
+          items={section.tokens.map((d, i) => {
+            return {
+              ...d,
+              key: section.section_number + "-" + i,
+              emptyHtml: marked.parse(d.raw),
+              animate: animate,
+            };
+          })}
+        />
+      ))}
+      {loading ? (
+        <AgentLoader
+          message={"Generating report..."}
+          lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+        />
+      ) : (
+        <></>
+      )}
     </ReportWrap>
   );
 }

@@ -9,7 +9,7 @@ import { styled } from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp";
 import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
-import Agent from "./agent/Agent";
+// import AgentMain from "./agent/ReportGen";
 import { TableChart } from "./TableChart";
 
 const errorMessages = {
@@ -91,7 +91,7 @@ const DefogDynamicViz = ({
   } else if (vizType === "text") {
     results = <pre>{response.results}</pre>;
   } else if (vizType === "agent") {
-    results = <Agent initialSubQns={response.subQns} theme={theme} />;
+    // results = <AgentMain agentsEndpoint={"ws://localhost:8000/ws"} />;
   } else {
     results = (
       <TableChart response={response} query={query} vizType={vizType} />

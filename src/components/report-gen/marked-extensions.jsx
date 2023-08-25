@@ -79,3 +79,27 @@ export const csvTable = {
     return `<div class="csv-table" id="${randomId}"></div>`;
   },
 };
+
+export function postprocess(html) {
+  let tag = null;
+  let tagWithattrs = null;
+
+  try {
+    // insert "writer-target" as the class for whatever the html tag is
+    html.replace(/<([^/]*?)>/g, (match, p1) => {
+      // if match has class already, add to the class
+      if (p1.indexOf("class") > -1) {
+        tagWithattrs = p1.replace('class="', 'class="writer-target ');
+      } else {
+        tagWithattrs = p1 + ' class="writer-target"';
+      }
+      tag = p1.split(" ")[0];
+      return;
+    });
+
+    return `<${tagWithattrs}></${tag}>`;
+  } catch (e) {
+    console.log(e);
+    return html;
+  }
+}
