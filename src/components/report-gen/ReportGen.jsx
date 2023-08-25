@@ -48,7 +48,7 @@ export default function ReportGen({
       console.log(currentStage, generationStages.indexOf(currentStage));
       carousel.current.goTo(generationStages.indexOf(currentStage));
       // also scroll to top of screen
-      window.scrollTo(0, 0);
+      // window.scrollTo(0, 0);
     }
   });
 
