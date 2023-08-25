@@ -10,7 +10,7 @@ import AgentLoader from "../common/AgentLoader";
 
 marked.use({ extensions: [csvTable], hooks: { postprocess } });
 
-export function ReportDisplay({ sections, theme, loading }) {
+export function ReportDisplay({ sections, theme, loading, animate = false }) {
   // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
 
   // sort sections according to section number
@@ -21,17 +21,15 @@ export function ReportDisplay({ sections, theme, loading }) {
 
   sortedSections.sort((a, b) => a.section_number - b.section_number);
 
-  // useEffect(() => {
-  //   if (!window.renders || !window.renders.length) return;
+  useEffect(() => {
+    if (!window.renders || !window.renders.length) return;
 
-  //   window.renders.forEach((item) => {
-  //     const Component = item.component;
-  //     const root = createRoot(document.getElementById(item.id));
-  //     root.render(
-  //       <Component {...item.props} apiKey={apiKey} apiEndpoint={apiEndpoint} />,
-  //     );
-  //   });
-  // });
+    window.renders.forEach((item) => {
+      const Component = item.component;
+      const root = createRoot(document.getElementById(item.id));
+      root.render(<Component {...item.props} apiKey={""} apiEndpoint={""} />);
+    });
+  });
 
   return (
     <ReportWrap theme={theme.config}>
@@ -43,7 +41,7 @@ export function ReportDisplay({ sections, theme, loading }) {
               ...d,
               key: section.section_number + "-" + i,
               emptyHtml: marked.parse(d.raw),
-              animate: true,
+              animate: animate,
             };
           })}
         />

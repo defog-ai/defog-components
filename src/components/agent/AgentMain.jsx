@@ -44,14 +44,10 @@ const agentRequestTypes = [
   "gen_report",
 ];
 
-export default function AgentMain({
-  initialSessionData,
-  reportId = "",
-  agentsEndpoint,
-}) {
+export default function AgentMain({ initialSessionData, agentsEndpoint }) {
   const socket = useRef(null);
   const [sessionData, setSessionData] = useState(initialSessionData);
-  const [rId, setReportId] = useState(reportId);
+  const [rId, setReportId] = useState(sessionData.report_id);
   const [globalLoading, setGlobalLoading] = useState(false);
   // find the last existing current stage from agentRequestTypes in the session data's keys
   // if there is none, then the current stage is null
@@ -61,7 +57,9 @@ export default function AgentMain({
     .pop();
 
   const [currentStage, setCurrentStage] = useState(lastExistingStage || null);
-  const [activeTab, setActiveTab] = useState("1");
+  const [activeTab, setActiveTab] = useState(
+    initialSessionData.gen_report ? "2" : "1",
+  );
   const searchRef = useRef(null);
   const { theme } = useContext(ThemeContext);
 
@@ -73,16 +71,9 @@ export default function AgentMain({
 
       socket.current.onclose = function (event) {
         console.log(event);
-        console.log("Socket closed");
-        console.log(Date.now());
         setGlobalLoading(false);
         setStageDone(true);
         reInitSocket();
-      };
-
-      socket.onopen = function () {
-        console.log("Socket opened");
-        console.log(Date.now());
       };
 
       socket.current.onmessage = function (event) {
@@ -102,6 +93,7 @@ export default function AgentMain({
           message.error(
             "Something went wrong. Please try again or contact us if this persists.",
           );
+          message.error(response.error_message);
           return;
         }
 
@@ -185,6 +177,9 @@ export default function AgentMain({
 
       return true;
     } catch (err) {
+      console.log(err);
+      setStageDone(false);
+      setGlobalLoading(false);
       message.error(
         "Something went wrong. Please try again or contact us if this persists.",
       );
@@ -224,6 +219,8 @@ export default function AgentMain({
                     sections={sessionData?.gen_report?.report_sections || []}
                     theme={theme}
                     loading={currentStage === "gen_report" ? !stageDone : false}
+                    // only animate if this is new report text coming in
+                    animate={initialSessionData.gen_report ? false : true}
                   />
                 </ErrorBoundary>
               ),
