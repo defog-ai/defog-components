@@ -44,7 +44,6 @@ export default function ReportGen({
   const carousel = useRef(null);
 
   useEffect(() => {
-    console.log("rerender", currentStage, carousel.current, sessionData);
     if (currentStage && currentStage !== "gen_report" && carousel.current) {
       console.log(currentStage, generationStages.indexOf(currentStage));
       carousel.current.goTo(generationStages.indexOf(currentStage));

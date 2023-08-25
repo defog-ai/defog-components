@@ -1,4 +1,4 @@
-import React, { useEffect, Fragment } from "react";
+import React, { useEffect, Fragment, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { marked } from "marked";
 import { csvTable, postprocess } from "../report-gen/marked-extensions";
@@ -12,39 +12,51 @@ marked.use({ extensions: [csvTable], hooks: { postprocess } });
 
 export function ReportDisplay({ sections, theme, loading, animate = false }) {
   // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
-
   // sort sections according to section number
-  const sortedSections = sections.slice().map((d) => ({
-    ...d,
-    tokens: marked.lexer(d.text).filter((d) => d.type != "space"),
-  }));
+  // keep a record of rendered sections. so we don't render them again
+  const [rendered, setRendered] = useState([]);
+  const [writerGroups, setWriterGroups] = useState([]);
 
-  sortedSections.sort((a, b) => a.section_number - b.section_number);
+  function createWriterGroup(section) {
+    const arr = section.tokens.map((tok, i) => {
+      return {
+        ...tok,
+        key: section.section_number + "-" + i,
+        emptyHtml: marked.parse(tok.raw),
+        animate: animate,
+        text: tok.type === "csvTable" ? "" : tok.text,
+      };
+    });
+    arr.section_number = section.section_number;
+    return arr;
+  }
 
   useEffect(() => {
-    if (!window.renders || !window.renders.length) return;
+    // create writer group for any new sections
+    // lex these new sections
+    const newSections = sections
+      .filter((d) => !rendered.includes(d.section_number))
+      .slice()
+      .map((d) => ({
+        ...d,
+        tokens: marked.lexer(d.text).filter((d) => d.type != "space"),
+      }));
 
-    window.renders.forEach((item) => {
-      const Component = item.component;
-      const root = createRoot(document.getElementById(item.id));
-      root.render(<Component {...item.props} apiKey={""} apiEndpoint={""} />);
-    });
-  });
+    const newWriterGroups = newSections.map((d) => createWriterGroup(d));
+    setWriterGroups(
+      [...writerGroups, ...newWriterGroups].sort(
+        (a, b) => a.section_number - b.section_number,
+      ),
+    );
+    setRendered(
+      [...rendered, ...newSections.map((d) => d.section_number)].sort(),
+    );
+  }, [sections]);
 
   return (
     <ReportWrap theme={theme.config}>
-      {sortedSections.map((section) => (
-        <WriterGroup
-          key={section.section_number}
-          items={section.tokens.map((d, i) => {
-            return {
-              ...d,
-              key: section.section_number + "-" + i,
-              emptyHtml: marked.parse(d.raw),
-              animate: animate,
-            };
-          })}
-        />
+      {writerGroups.map((wg) => (
+        <WriterGroup key={wg.section_number} items={wg} />
       ))}
       {loading ? (
         <AgentLoader
@@ -66,6 +78,16 @@ const ReportWrap = styled.div`
     width: 100%;
     min-width: 400px;
     margin: 0 0 4em;
+  }
+
+  p {
+    margin: 1em 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin: 1em 0 0 0;
   }
 
   // ant styles
