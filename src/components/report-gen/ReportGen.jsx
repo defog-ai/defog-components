@@ -57,6 +57,12 @@ export default function ReportGen({
       <>
         <Search
           onPressEnter={(ev) => handleSubmit(ev)}
+          onClick={(ev) => {
+            handleSubmit(ev);
+          }}
+          onSearch={(ev) => {
+            handleSubmit(ev);
+          }}
           ref={searchRef}
           disabled={currentStage !== null}
           placeholder="Ask a question"

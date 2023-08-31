@@ -23,7 +23,21 @@ export default function Understand({
 
   const checked = useRef(understanding.map(() => true));
 
+  if (understanding.length > checked.current.length) {
+    // add the additional elements to true
+    checked.current = checked.current.concat(
+      Array(understanding.length - checked.current.length).fill(true),
+    );
+  }
+
   function handleCheck(ev, i) {
+    // checked has only been initialized with the first element
+    // so check this on all subsequent renders
+    // a bit redundant because of the above id statement
+    if (i >= checked.current.length) {
+      checked.current.push(true);
+    }
+
     checked.current[i] = ev.target.checked;
   }
 
