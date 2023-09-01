@@ -32,6 +32,7 @@ export function ReportDisplay({ sections, theme, loading, animate = false }) {
   }
 
   useEffect(() => {
+    const nums = sections.map((d) => d.section_number);
     // create writer group for any new sections
     // lex these new sections
     const newSections = sections
@@ -42,14 +43,27 @@ export function ReportDisplay({ sections, theme, loading, animate = false }) {
         tokens: marked.lexer(d.text).filter((d) => d.type != "space"),
       }));
 
+    // also find the deleted sections
+    const deletedSections = rendered.filter((d) => !nums.includes(d));
+
     const newWriterGroups = newSections.map((d) => createWriterGroup(d));
+
+    // keep only non deleted ones
+    const keepWriterGroups = writerGroups.filter(
+      (d) => !deletedSections.includes(d.section_number),
+    );
+
     setWriterGroups(
-      [...writerGroups, ...newWriterGroups].sort(
+      [...keepWriterGroups, ...newWriterGroups].sort(
         (a, b) => a.section_number - b.section_number,
       ),
     );
+
     setRendered(
-      [...rendered, ...newSections.map((d) => d.section_number)].sort(),
+      [
+        ...keepWriterGroups.map((d) => d.section_number),
+        ...newSections.map((d) => d.section_number),
+      ].sort(),
     );
   }, [sections]);
 

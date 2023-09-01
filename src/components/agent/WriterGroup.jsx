@@ -7,12 +7,11 @@ import { createRoot } from "react-dom/client";
 
 export default function WriterGroup({ items }) {
   const [active, setActive] = useState(0);
-  function onComplete() {
-    setActive(active + 1);
+
+  function onComplete(item) {
     try {
-      if (items[active] && items[active]?.type === "csvTable") {
-        const table = items[active];
-        const id = table.emptyHtml.match(/csv-table-[0-9]+/)[0];
+      if (item.type === "csvTable") {
+        const id = item.emptyHtml.match(/csv-table-[0-9]+/)[0];
         // find the matching id in window.renders
         const rdr = window.renders.find((d) => d.id === id);
 
@@ -23,6 +22,7 @@ export default function WriterGroup({ items }) {
     } catch (e) {
       console.log(e);
     }
+    setActive(active + 1);
   }
 
   return (
@@ -32,7 +32,7 @@ export default function WriterGroup({ items }) {
           s={item.text}
           key={item.key || i}
           animate={item.animate}
-          onComplete={onComplete}
+          onComplete={() => onComplete(item)}
           start={item.animate && active === i}
         >
           <div dangerouslySetInnerHTML={{ __html: item.emptyHtml }}></div>

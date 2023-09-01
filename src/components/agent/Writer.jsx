@@ -4,9 +4,13 @@ import React, { useEffect, useRef } from "react";
 
 export default function Writer({
   s = "",
+  // so you want the writer to "animate" or not.
+  // if animate is false, it will just show the string
+  // if animate is true, it will type in the string one character at a time
   animate = true,
   children,
   onComplete = () => {},
+  // this prop allows you to control when the animation starts
   start = true,
 }) {
   const targetEl = useRef(null);
@@ -67,31 +71,21 @@ export default function Writer({
     if (tmp.length) {
       // write target
       targetEl.current = tmp[0];
-      if (start && animate) {
-        write();
-      }
-
-      if (!animate) {
-        targetEl.current.innerHTML = s;
-      }
-    } else {
-      // no targets. just show everything.
-      done.current = true;
-      writing.current = false;
-      onComplete();
     }
   }, []);
 
   useEffect(() => {
-    if (
-      !writing.current &&
-      start &&
-      animate &&
-      ctr.current &&
-      !done.current &&
-      targetEl.current
-    ) {
-      write();
+    if (!writing.current && ctr.current && !done.current && targetEl.current) {
+      if (start && animate) write();
+      else if (!animate) {
+        // no animation. just show everything.
+        done.current = true;
+        writing.current = false;
+        if (targetEl.current) {
+          targetEl.current.innerHTML = s;
+        }
+        onComplete();
+      }
     }
   }, [start]);
 

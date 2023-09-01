@@ -62,6 +62,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
   );
   const searchRef = useRef(null);
   const { theme } = useContext(ThemeContext);
+  const [newReportTextReceived, setNewReportTextReceived] = useState(false);
 
   const [stageDone, setStageDone] = useState(true);
 
@@ -87,6 +88,8 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
 
         const response = JSON.parse(event.data);
 
+        console.log(response);
+
         if (response.error_message) {
           setStageDone(false);
           setGlobalLoading(false);
@@ -99,8 +102,6 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
 
         const rType = response.request_type;
         const prop = propNames[rType];
-
-        console.log(response);
 
         if (
           response.output &&
@@ -121,10 +122,13 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
             // else set
             return { ...prev, [response.request_type]: response.output };
           });
+
+          setNewReportTextReceived(rType === "gen_report");
         }
         if (response.done) {
           setStageDone(true);
           setGlobalLoading(false);
+          setNewReportTextReceived(false);
         }
         if (response.report_id) {
           setReportId(response.report_id);
@@ -164,7 +168,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
       let newSessionData = { ...sessionData };
       newSessionData[nextStage] = { [propNames[nextStage]]: [], success: true };
 
-      // if any of the stages AFTER nextStage exists
+      // if any of the stages includeing and after nextStage exists
       // remove all data from those stages (to mimic what happens on the backend)
       let idx = agentRequestTypes.indexOf(nextStage) + 1;
       if (idx < agentRequestTypes.length) {
@@ -173,6 +177,10 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
           idx++;
         }
       }
+      // empty the next stage data
+      // we can't delete this prop because we still want the tab to show up in the carousel
+      // deleting a prop removes a tab
+      newSessionData[nextStage][propNames[nextStage]] = [];
       setSessionData(newSessionData);
 
       return true;
@@ -220,7 +228,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
                     theme={theme}
                     loading={currentStage === "gen_report" ? !stageDone : false}
                     // only animate if this is new report text coming in
-                    animate={initialSessionData.gen_report ? false : true}
+                    animate={newReportTextReceived ? true : false}
                   />
                 </ErrorBoundary>
               ),
@@ -228,7 +236,14 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
               disabled: !sessionData?.gen_report?.report_sections,
             },
           ],
-    [sessionData, stageDone, currentStage, globalLoading, theme],
+    [
+      sessionData,
+      stageDone,
+      currentStage,
+      globalLoading,
+      theme,
+      newReportTextReceived,
+    ],
   );
 
   const items = useMemo(() => {
