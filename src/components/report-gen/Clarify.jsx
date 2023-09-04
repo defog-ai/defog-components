@@ -6,12 +6,6 @@ import LoadingLottie from "../../components/svg/loader.json";
 import AgentLoader from "../common/AgentLoader";
 import Writer from "../agent/Writer";
 
-const defaultValues = {
-  "multi select": [],
-  "text input": "",
-  "date range selector": "12 months",
-};
-
 export default function Clarify({
   data,
   handleSubmit,
@@ -27,36 +21,44 @@ export default function Clarify({
 
   const { clarification_questions, success } = data;
 
-  const answers = useRef(
-    clarification_questions.map((q) => defaultValues[q.ui_tool] || null),
-  );
+  const answers = useRef(clarification_questions);
 
-  function genLabels(arr) {
+  // answers has only been initialized with the first element
+  // so check this on all subsequent renders
+  if (clarification_questions.length > answers.current.length) {
+    // add the new elements from clarification_questions
+    answers.current = answers.current.concat(
+      clarification_questions.slice(answers.current.length),
+    );
+  }
+
+  function createDropdownOptions(arr) {
     if (!Array.isArray(arr) || !arr) {
       return [];
     }
     return arr.map((d) => ({ label: d, value: d }));
   }
 
-  function updateAnswer(newAns, i) {
-    answers.current[i] = newAns;
+  function updateAnswer(newAns, i, formattedReponse = null) {
+    answers.current[i].response = newAns;
+    if (formattedReponse) {
+      answers.current[i].response_formatted = formattedReponse;
+    } else {
+      answers.current[i].response_formatted = newAns;
+    }
   }
 
   function onSubmit() {
-    clarification_questions.forEach((q, i) => {
-      q["response"] = answers.current[i];
-    });
-
-    handleSubmit(null, { clarification_questions }, "clarify");
+    handleSubmit(null, { clarification_questions: answers.current }, "clarify");
   }
 
   const UIs = {
     "multi select": (q, i, opts) => {
-      answers.current[i] = defaultValues["multi select"];
       return (
         <Select
           mode="multiple"
-          options={genLabels(opts)}
+          options={createDropdownOptions(opts)}
+          defaultValue={q.response}
           onChange={(_, allSel) => {
             return updateAnswer(
               allSel.map((d) => d.value),
@@ -69,27 +71,27 @@ export default function Clarify({
       );
     },
     "text input": (q, i) => {
-      answers.current[i] = defaultValues["text input"];
       return (
-        <Input onChange={(ev) => updateAnswer(ev.target.value, i)}></Input>
+        <Input
+          onChange={(ev) => updateAnswer(ev.target.value, i)}
+          defaultValue={q.response}
+        ></Input>
       );
     },
     "date range selector": (q, i) => {
-      answers.current[i] = defaultValues["date range selector"];
       let el = null;
 
       return (
         <>
           <span style={{ fontSize: 12 }}>
-            <strong ref={(t) => (el = t)}>12 months</strong>
+            <strong ref={(t) => (el = t)}>{q.response_formatted}</strong>
           </span>
           <Slider
             max={24}
-            defaultValue={12}
+            defaultValue={q.response}
             onChange={function (v) {
-              if (el) el.innerText = v + " months";
-
-              updateAnswer(v + " months", i);
+              updateAnswer(v, i, v + " months");
+              if (el) el.innerText = q.response_formatted;
             }}
             tooltip={{ formatter: (d) => d + " months" }}
           ></Slider>

@@ -9,14 +9,7 @@
 // perhaps have a "save as draft" option for reports
 
 import { Tabs, message } from "antd";
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  Fragment,
-  useContext,
-} from "react";
+import React, { useMemo, useRef, useState, Fragment, useContext } from "react";
 import ReportGen from "../report-gen/ReportGen";
 import { ReportDisplay } from "../report/ReportDisplay";
 import { createGlobalStyle, styled } from "styled-components";

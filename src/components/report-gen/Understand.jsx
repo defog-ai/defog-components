@@ -12,6 +12,13 @@ export default function Understand({
   globalLoading,
   stageDone = true,
 }) {
+  // data format: [
+  //   {
+  //     question: str,
+  //     answer: str,
+  //     checked: true/false (checked or not)
+  //   },
+  // ]
   if (!data || !data.understanding || !data.success)
     return (
       <div className="agent-error">
@@ -21,31 +28,23 @@ export default function Understand({
 
   const { understanding, success } = data;
 
-  const checked = useRef(understanding.map(() => true));
+  const checked = useRef(understanding);
 
   // checked has only been initialized with the first element
   // so check this on all subsequent renders
   if (understanding.length > checked.current.length) {
-    // add the additional elements to true
+    // add the new elements from understanding
     checked.current = checked.current.concat(
-      Array(understanding.length - checked.current.length).fill(true),
+      understanding.slice(checked.current.length),
     );
   }
 
   function handleCheck(ev, i) {
-    checked.current[i] = ev.target.checked;
+    checked.current[i]["checked"] = ev.target.checked;
   }
 
   function onSubmit() {
-    const understandingFiltered = understanding.filter(
-      (_, i) => checked.current[i],
-    );
-
-    handleSubmit(
-      null,
-      { understanding: understandingFiltered.map((d) => d.answer) },
-      "understand",
-    );
+    handleSubmit(null, { understanding: checked.current }, "understand");
   }
 
   return (
@@ -61,7 +60,7 @@ export default function Understand({
             <li key={u.answer + "-" + i}>
               <Checkbox
                 onChange={(ev) => handleCheck(ev, i)}
-                defaultChecked={true}
+                defaultChecked={u.checked}
               >
                 <Writer s={u.answer} animate={!stageDone}>
                   <span className="writer-target"></span>
