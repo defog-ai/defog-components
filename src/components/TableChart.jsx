@@ -1,14 +1,22 @@
-import React, { isValidElement } from "react";
+import React, { isValidElement, Fragment } from "react";
 import { Tabs, Table } from "antd";
 import ChartContainer from "./ChartContainer";
-import { processData, roundColumns } from "./common/utils";
+import { chartNames, processData, roundColumns } from "./common/utils";
 import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
 import ErrorBoundary from "./common/ErrorBoundary";
+import ChartImage from "./ChartImage";
 
 export function TableChart({
   response,
   query = "",
   vizType = "table",
+  chartImage = {
+    // path to the chart image
+    path: "",
+    // type of chart
+    type: "",
+  },
+  sql = "",
   // 2d array of {component: ReactComponent, tabLabel: string]
   // both component and tabLabel are mandatory fields
   extraTabs = [],
@@ -47,35 +55,60 @@ export function TableChart({
       icon: <TableOutlined />,
     },
   ];
+  if (!chartImage || !chartImage.path || chartImage.path.length === 0) {
+    const {
+      xAxisColumns,
+      categoricalColumns,
+      yAxisColumns,
+      xAxisColumnValues,
+      dateColumns,
+    } = processData(response.data, response.columns);
 
-  const {
-    xAxisColumns,
-    categoricalColumns,
-    yAxisColumns,
-    xAxisColumnValues,
-    dateColumns,
-  } = processData(response.data, response.columns);
-
-  results.push({
-    component: (
-      <ErrorBoundary>
-        <ChartContainer
-          xAxisColumns={xAxisColumns}
-          dateColumns={dateColumns}
-          categoricalColumns={categoricalColumns}
-          yAxisColumns={yAxisColumns}
-          xAxisColumnValues={xAxisColumnValues}
-          data={response.data}
-          columns={response.columns}
-          title={query}
-          key="1"
-          vizType={vizType === "table" ? "Bar Chart" : vizType}
-        ></ChartContainer>
-      </ErrorBoundary>
-    ),
-    tabLabel: "Chart",
-    icon: <BarChartOutlined />,
-  });
+    results.push({
+      component: (
+        <ErrorBoundary>
+          <ChartContainer
+            xAxisColumns={xAxisColumns}
+            dateColumns={dateColumns}
+            categoricalColumns={categoricalColumns}
+            yAxisColumns={yAxisColumns}
+            xAxisColumnValues={xAxisColumnValues}
+            data={response.data}
+            columns={response.columns}
+            title={query}
+            key="1"
+            vizType={vizType === "table" ? "Bar Chart" : vizType}
+          ></ChartContainer>
+        </ErrorBoundary>
+      ),
+      tabLabel: "Chart",
+      icon: <BarChartOutlined />,
+    });
+  } else {
+    // if chartImagePath is present, load the image of the chart instead
+    results.push({
+      component: (
+        <ErrorBoundary>
+          <ChartImage img={chartImage} />
+        </ErrorBoundary>
+      ),
+      tabLabel: chartNames[chartImage.type] || "Chart",
+    });
+  }
+  if (sql && sql.length > 0) {
+    // show the sql query
+    results.push({
+      component: (
+        <ErrorBoundary>
+          <>
+            <p>The following query was generated:</p>
+            <pre>{sql}</pre>
+          </>
+        </ErrorBoundary>
+      ),
+      tabLabel: "SQL",
+    });
+  }
 
   // push extra tabs
   results = results.concat(extraTabs);
@@ -83,7 +116,7 @@ export function TableChart({
   // convert to antd tabs
   results = (
     <Tabs
-      defaultActiveKey={vizType === "table" ? "0" : "1"}
+      defaultActiveKey={!chartImage || !chartImage.path ? "0" : "1"}
       items={results.map((d, i) => ({
         key: String(i),
         label: (

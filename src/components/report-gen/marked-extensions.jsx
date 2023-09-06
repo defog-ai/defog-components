@@ -13,10 +13,18 @@ const AskDefogWrap = styled.div`
   }
 `;
 
-function ReportTableChart({ response, apiKey, apiEndpoint }) {
+function ReportTableChart({
+  response,
+  apiKey,
+  apiEndpoint,
+  chartImage = null,
+  sql,
+}) {
   return (
     <TableChart
       response={response}
+      chartImage={chartImage}
+      sql={sql}
       extraTabs={[
         {
           component: (
@@ -55,6 +63,28 @@ export const csvTable = {
   renderer(token) {
     const randomId = `csv-table-${Math.floor(Math.random() * 100000)}`;
     const colNames = token.text.split("\n")[0].split(",");
+    // find if there's an <sql> or <report-plot> tag
+    // if so, save it separately
+    let sql = token.text.match(/<sql>[\s\S]*<\/sql>/);
+    if (sql) {
+      // remove this from the token.text
+      token.text = token.text.replace(sql[0], "");
+      sql = sql[0];
+    }
+
+    // find chart image
+    let chartImage = token.text.match(
+      /<report-img-chart[\s\S]*<\/report-img-chart>/,
+    );
+    if (chartImage) {
+      // remove this from the token.text
+      token.text = token.text.replace(chartImage[0], "");
+      // get chartType
+      chartImage = {
+        path: chartImage[0].match(/path="(.*)" /)[1],
+        type: chartImage[0].match(/type="(.*)"/)[1],
+      };
+    }
 
     const rows = token.text
       .split("\n")
@@ -69,6 +99,8 @@ export const csvTable = {
       text: token.text,
       component: ReportTableChart,
       props: {
+        sql,
+        chartImage,
         response: {
           columns: r.newCols,
           data: r.newRows,

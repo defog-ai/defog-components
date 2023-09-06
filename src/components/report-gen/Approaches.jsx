@@ -34,7 +34,8 @@ export default function Approaches({
   }
 
   const approaches = useMemo(
-    () => initialApproaches.slice(),
+    // sometimes backend can error and have a null in the approach
+    () => initialApproaches.slice().filter((d) => d),
     [initialApproaches],
   );
 
@@ -78,15 +79,15 @@ export default function Approaches({
         <div className="agent-container">
           <>
             <div className="agent-approaches-container">
-              {approaches.length !== 0
+              {approaches.length !== 0 && Array.isArray(approaches)
                 ? approaches.map((approach, index) => {
                     return (
                       <div key={index} className="agent-approach">
-                        <Writer s={approach.title}>
+                        <Writer s={approach?.title}>
                           <div className="approach-heading writer-target"></div>
                           <div className="approach-steps writer-children">
-                            {approach.steps.length ? (
-                              approach.steps.map((step, i) => (
+                            {approach?.steps.length ? (
+                              approach?.steps.map((step, i) => (
                                 <div
                                   key={i}
                                   className={`approach-step approach-step-${i}`}

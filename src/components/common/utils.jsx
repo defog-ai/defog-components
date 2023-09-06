@@ -559,3 +559,7 @@ export const reFormatData = (data, columns) => {
 
   return { newCols, newRows };
 };
+
+export const chartNames = {
+  kmc: "Kaplan-Meier Curve",
+};
