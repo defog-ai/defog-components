@@ -18,7 +18,7 @@ const SearchState = ({ type, message, svg, lottie, children }) => {
 export default SearchState;
 
 const SearchStateWrap = styled.div`
-  margin-top: 2rem;
+  margin-top: 2em;
   background: ${(props) => (props.theme ? props.theme.background2 : "#F8FAFB")};
   color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
   display: flex;
@@ -28,7 +28,7 @@ const SearchStateWrap = styled.div`
   text-align: center;
   padding: 20px;
   h2 {
-    margin-top: 1.2rem;
+    margin-top: 1.2em;
   }
   h3 {
     font-size: ${(props) => (props.type === "error" ? "14px" : "14px")};
@@ -41,6 +41,6 @@ const SearchStateWrap = styled.div`
   }
   pre {
     white-space: pre-wrap;
-    margin-top: 1.2rem;
+    margin-top: 1.2em;
   }
 `;

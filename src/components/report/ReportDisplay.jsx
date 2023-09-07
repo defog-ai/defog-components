@@ -1,31 +1,85 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Fragment, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { marked } from "marked";
-import { csvTable } from "./marked-extensions";
+import { csvTable, postprocess } from "../report-gen/marked-extensions";
 import { styled } from "styled-components";
+import WriterGroup from "../agent/WriterGroup";
+import Lottie from "lottie-react";
+import LoadingLottie from "../svg/loader.json";
+import AgentLoader from "../common/AgentLoader";
 
-marked.use({ extensions: [csvTable] });
+marked.use({ extensions: [csvTable], hooks: { postprocess } });
 
-export function Report({ markdown, apiKey, apiEndpoint, theme }) {
-  useEffect(() => {
-    if (!window.renders || !window.renders.length) return;
+export function ReportDisplay({ sections, theme, loading, animate = false }) {
+  // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
+  // sort sections according to section number
+  // keep a record of rendered sections. so we don't render them again
+  const [rendered, setRendered] = useState([]);
+  const [writerGroups, setWriterGroups] = useState([]);
 
-    window.renders.forEach((item) => {
-      const Component = item.component;
-      const root = createRoot(document.getElementById(item.id));
-      root.render(
-        <Component {...item.props} apiKey={apiKey} apiEndpoint={apiEndpoint} />,
-      );
+  function createWriterGroup(section) {
+    const arr = section.tokens.map((tok, i) => {
+      return {
+        ...tok,
+        key: section.section_number + "-" + i,
+        emptyHtml: marked.parse(tok.raw),
+        animate: animate,
+        text: tok.type === "csvTable" ? "" : tok.text,
+      };
     });
-  });
+    arr.section_number = section.section_number;
+    return arr;
+  }
+
+  useEffect(() => {
+    const nums = sections.map((d) => d.section_number);
+    // create writer group for any new sections
+    // lex these new sections
+    const newSections = sections
+      .filter((d) => !rendered.includes(d.section_number))
+      .slice()
+      .map((d) => ({
+        ...d,
+        tokens: marked.lexer(d.text).filter((d) => d.type != "space"),
+      }));
+
+    // also find the deleted sections
+    const deletedSections = rendered.filter((d) => !nums.includes(d));
+
+    const newWriterGroups = newSections.map((d) => createWriterGroup(d));
+
+    // keep only non deleted ones
+    const keepWriterGroups = writerGroups.filter(
+      (d) => !deletedSections.includes(d.section_number),
+    );
+
+    setWriterGroups(
+      [...keepWriterGroups, ...newWriterGroups].sort(
+        (a, b) => a.section_number - b.section_number,
+      ),
+    );
+
+    setRendered(
+      [
+        ...keepWriterGroups.map((d) => d.section_number),
+        ...newSections.map((d) => d.section_number),
+      ].sort(),
+    );
+  }, [sections]);
 
   return (
     <ReportWrap theme={theme.config}>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: marked.parse(markdown),
-        }}
-      ></div>
+      {writerGroups.map((wg) => (
+        <WriterGroup key={wg.section_number} items={wg} />
+      ))}
+      {loading ? (
+        <AgentLoader
+          message={"Generating report..."}
+          lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+        />
+      ) : (
+        <></>
+      )}
     </ReportWrap>
   );
 }
@@ -38,6 +92,16 @@ const ReportWrap = styled.div`
     width: 100%;
     min-width: 400px;
     margin: 0 0 4em;
+  }
+
+  p {
+    margin: 1em 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    margin: 1em 0 0 0;
   }
 
   // ant styles
