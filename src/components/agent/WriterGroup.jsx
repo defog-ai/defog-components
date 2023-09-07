@@ -4,8 +4,9 @@
 import React, { Fragment, useState } from "react";
 import Writer from "./Writer";
 import { createRoot } from "react-dom/client";
+import { styled } from "styled-components";
 
-export default function WriterGroup({ items }) {
+export default function WriterGroup({ items, onChange = () => {} }) {
   const [active, setActive] = useState(0);
 
   function onComplete(item) {
@@ -35,9 +36,45 @@ export default function WriterGroup({ items }) {
           onComplete={() => onComplete(item)}
           start={item.animate && active === i}
         >
-          <div dangerouslySetInnerHTML={{ __html: item.emptyHtml }}></div>
+          <WriterCtrWrap>
+            <div
+              className="writer-ctr"
+              dangerouslySetInnerHTML={{ __html: item.emptyHtml }}
+              onBlur={(ev) => onChange(ev, item)}
+            ></div>
+          </WriterCtrWrap>
         </Writer>
       ))}
     </>
   );
 }
+
+const WriterCtrWrap = styled.div`
+  .writer-target {
+    position: relative;
+    &:before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -20px;
+      width: 10px;
+      height: 100%;
+      background-color: #f5f5f5;
+      opacity: 0;
+    }
+
+    &:hover {
+      &:before {
+        opacity: 1;
+      }
+    }
+
+    &:focus {
+      outline: none;
+      &:before {
+        background-color: #6c8bfc;
+        opacity: 1;
+      }
+    }
+  }
+`;

@@ -114,22 +114,26 @@ export const csvTable = {
 
 export function postprocess(html) {
   let tag = null;
-  let tagWithattrs = null;
+  let tagWithAttrs = null;
 
   try {
     // insert "writer-target" as the class for whatever the html tag is
+    // also set contenteditable to true
     html.replace(/<([^/]*?)>/g, (match, p1) => {
       // if match has class already, add to the class
       if (p1.indexOf("class") > -1) {
-        tagWithattrs = p1.replace('class="', 'class="writer-target ');
+        tagWithAttrs = p1.replace('class="', 'class="writer-target ');
       } else {
-        tagWithattrs = p1 + ' class="writer-target"';
+        tagWithAttrs = p1 + ' class="writer-target"';
       }
       tag = p1.split(" ")[0];
       return;
     });
 
-    return `<${tagWithattrs}></${tag}>`;
+    // make all non csv table tags editable
+    return `<${tagWithAttrs} ${
+      tagWithAttrs.indexOf("csv-table") > -1 ? "" : 'contenteditable="true"'
+    }></${tag}>`;
   } catch (e) {
     console.log(e);
     return html;
