@@ -61,76 +61,86 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
 
   function reInitSocket() {
     if (!socket.current || socket.current.readyState === WebSocket.CLOSED) {
-      socket.current = new WebSocket(agentsEndpoint);
+      return new Promise(function (resolve, reject) {
+        socket.current = new WebSocket(agentsEndpoint);
+        console.log("reconnecting..");
 
-      socket.current.onclose = function (event) {
-        console.log(event);
-        setGlobalLoading(false);
-        setStageDone(true);
-        reInitSocket();
-      };
-
-      socket.current.onmessage = function (event) {
-        if (!event.data) {
-          setStageDone(false);
+        socket.current.onclose = async function (event) {
+          console.log(event);
           setGlobalLoading(false);
-          message.error(
-            "Something went wrong. Please try again or contact us if this persists.",
-          );
-        }
-
-        const response = JSON.parse(event.data);
-
-        console.log(response);
-
-        if (response.error_message) {
-          setStageDone(false);
-          setGlobalLoading(false);
-          message.error(
-            "Something went wrong. Please try again or contact us if this persists.",
-          );
-          message.error(response.error_message);
-          return;
-        }
-
-        const rType = response.request_type;
-        const prop = propNames[rType];
-
-        if (
-          response.output &&
-          response.output.success &&
-          response.output[prop]
-        ) {
-          setSessionData((prev) => {
-            // append if exists
-            if (prev[rType]) {
-              return {
-                ...prev,
-                [rType]: {
-                  success: response.output.success,
-                  [prop]: [...prev[rType][prop], ...response.output[prop]],
-                },
-              };
-            }
-            // else set
-            return { ...prev, [response.request_type]: response.output };
-          });
-
-          setNewReportTextReceived(rType === "gen_report");
-        }
-        if (response.done) {
           setStageDone(true);
-          setGlobalLoading(false);
-          setNewReportTextReceived(false);
-        }
-        if (response.report_id) {
-          setReportId(response.report_id);
-        }
-      };
+          console.log("disconnected.");
+          const _ = await reInitSocket();
+        };
+
+        socket.current.onopen = function () {
+          console.log("reconnected!");
+          resolve();
+        };
+
+        socket.current.onmessage = function (event) {
+          if (!event.data) {
+            setStageDone(false);
+            setGlobalLoading(false);
+            message.error(
+              "Something went wrong. Please try again or contact us if this persists.",
+            );
+          }
+
+          const response = JSON.parse(event.data);
+
+          console.log(response);
+
+          if (response.error_message) {
+            setStageDone(false);
+            setGlobalLoading(false);
+            message.error(
+              "Something went wrong. Please try again or contact us if this persists.",
+            );
+            message.error(response.error_message);
+            return;
+          }
+
+          const rType = response.request_type;
+          const prop = propNames[rType];
+
+          if (
+            response.output &&
+            response.output.success &&
+            response.output[prop]
+          ) {
+            setSessionData((prev) => {
+              // append if exists
+              if (prev[rType]) {
+                return {
+                  ...prev,
+                  [rType]: {
+                    success: response.output.success,
+                    [prop]: [...prev[rType][prop], ...response.output[prop]],
+                  },
+                };
+              }
+              // else set
+              return { ...prev, [response.request_type]: response.output };
+            });
+
+            setNewReportTextReceived(rType === "gen_report");
+          }
+          if (response.done) {
+            setStageDone(true);
+            setGlobalLoading(false);
+            setNewReportTextReceived(false);
+          }
+          if (response.report_id) {
+            setReportId(response.report_id);
+          }
+        };
+      });
     }
+    return null;
   }
 
-  function handleSubmit(ev, stageInput = {}, submitSourceStage = null) {
+  async function handleSubmit(ev, stageInput = {}, submitSourceStage = null) {
     try {
       const query = searchRef.current.input.value;
       // if the submitSourceStage is "clarify", we're getting the user input for the clarification questions, so the next thing the agent
@@ -143,7 +153,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
       const nextStage =
         agentRequestTypes[agentRequestTypes.indexOf(submitSourceStage) + 1];
 
-      reInitSocket();
+      const _ = await reInitSocket();
 
       socket.current.send(
         JSON.stringify({
@@ -189,6 +199,47 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
     }
   }
 
+  async function updateReportText(sectionNumber, newSectionMarkdown) {
+    if (socket.current.readyState !== WebSocket.OPEN) {
+      const _ = await reInitSocket();
+    }
+    // first update session data locally
+    try {
+      const newReportSections = sessionData.gen_report.report_sections.slice();
+      // find the section number and update the text
+      const sectionToUpdate = newReportSections.find(
+        (d) => d.section_number === sectionNumber,
+      );
+      if (!sectionToUpdate) return;
+      sectionToUpdate.text = newSectionMarkdown;
+
+      // next, send this to the server to update as well.
+      await fetch("https://agents.defog.ai/edit_report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          request_type: "update_report_md",
+          report_id: rId,
+          report_sections: newReportSections,
+        }),
+      });
+
+      setSessionData((prev) => {
+        return {
+          ...prev,
+          gen_report: {
+            ...prev.gen_report,
+            report_sections: newReportSections,
+          },
+        };
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   reInitSocket();
 
   const tabs = useMemo(
@@ -218,6 +269,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
                 <ErrorBoundary>
                   <ReportDisplay
                     sections={sessionData?.gen_report?.report_sections || []}
+                    updateReportText={updateReportText}
                     theme={theme}
                     loading={currentStage === "gen_report" ? !stageDone : false}
                     // only animate if this is new report text coming in
