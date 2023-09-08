@@ -37,21 +37,21 @@ const agentRequestTypes = [
   "gen_report",
 ];
 
-export default function AgentMain({ initialSessionData, agentsEndpoint }) {
+export default function AgentMain({ initialReportData, agentsEndpoint }) {
   const socket = useRef(null);
-  const [sessionData, setSessionData] = useState(initialSessionData);
-  const [rId, setReportId] = useState(sessionData.report_id);
+  const [reportData, setReportData] = useState(initialReportData);
+  const [rId, setReportId] = useState(reportData.report_id);
   const [globalLoading, setGlobalLoading] = useState(false);
-  // find the last existing current stage from agentRequestTypes in the session data's keys
+  // find the last existing current stage from agentRequestTypes in the report data's keys
   // if there is none, then the current stage is null
-  const lastExistingStage = Object.keys(initialSessionData)
+  const lastExistingStage = Object.keys(initialReportData)
     .filter((d) => agentRequestTypes.includes(d))
     .sort((a, b) => agentRequestTypes.indexOf(a) - agentRequestTypes.indexOf(b))
     .pop();
 
   const [currentStage, setCurrentStage] = useState(lastExistingStage || null);
   const [activeTab, setActiveTab] = useState(
-    initialSessionData.gen_report ? "2" : "1",
+    initialReportData.gen_report ? "2" : "1",
   );
   const searchRef = useRef(null);
   const { theme } = useContext(ThemeContext);
@@ -109,7 +109,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
             response.output.success &&
             response.output[prop]
           ) {
-            setSessionData((prev) => {
+            setReportData((prev) => {
               // append if exists
               if (prev[rType]) {
                 return {
@@ -168,23 +168,23 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
       setStageDone(false);
       setGlobalLoading(nextStage);
       setActiveTab(nextStage === "gen_report" ? "2" : "1");
-      let newSessionData = { ...sessionData };
-      newSessionData[nextStage] = { [propNames[nextStage]]: [], success: true };
+      let newReportData = { ...reportData };
+      newReportData[nextStage] = { [propNames[nextStage]]: [], success: true };
 
       // if any of the stages includeing and after nextStage exists
       // remove all data from those stages (to mimic what happens on the backend)
       let idx = agentRequestTypes.indexOf(nextStage) + 1;
       if (idx < agentRequestTypes.length) {
         while (idx < agentRequestTypes.length) {
-          delete newSessionData[agentRequestTypes[idx]];
+          delete newReportData[agentRequestTypes[idx]];
           idx++;
         }
       }
       // empty the next stage data
       // we can't delete this prop because we still want the tab to show up in the carousel
       // deleting a prop removes a tab
-      newSessionData[nextStage][propNames[nextStage]] = [];
-      setSessionData(newSessionData);
+      newReportData[nextStage][propNames[nextStage]] = [];
+      setReportData(newReportData);
 
       return true;
     } catch (err) {
@@ -203,9 +203,9 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
     if (socket.current.readyState !== WebSocket.OPEN) {
       const _ = await reInitSocket();
     }
-    // first update session data locally
+    // first update report data locally
     try {
-      const newReportSections = sessionData.gen_report.report_sections.slice();
+      const newReportSections = reportData.gen_report.report_sections.slice();
       // find the section number and update the text
       const sectionToUpdate = newReportSections.find(
         (d) => d.section_number === sectionNumber,
@@ -226,7 +226,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
         }),
       });
 
-      setSessionData((prev) => {
+      setReportData((prev) => {
         return {
           ...prev,
           gen_report: {
@@ -244,15 +244,15 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
 
   const tabs = useMemo(
     () =>
-      !sessionData
+      !reportData
         ? []
         : [
             {
               component: (
                 <ErrorBoundary>
                   <ReportGen
-                    sessionData={sessionData}
-                    user_question={sessionData.user_question}
+                    reportData={reportData}
+                    user_question={reportData.user_question}
                     stageDone={stageDone}
                     currentStage={currentStage}
                     handleSubmit={handleSubmit}
@@ -268,7 +268,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
               component: (
                 <ErrorBoundary>
                   <ReportDisplay
-                    sections={sessionData?.gen_report?.report_sections || []}
+                    sections={reportData?.gen_report?.report_sections || []}
                     updateReportText={updateReportText}
                     theme={theme}
                     loading={currentStage === "gen_report" ? !stageDone : false}
@@ -278,11 +278,11 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
                 </ErrorBoundary>
               ),
               tabLabel: "Report",
-              disabled: !sessionData?.gen_report?.report_sections,
+              disabled: !reportData?.gen_report?.report_sections,
             },
           ],
     [
-      sessionData,
+      reportData,
       stageDone,
       currentStage,
       globalLoading,
@@ -305,7 +305,7 @@ export default function AgentMain({ initialSessionData, agentsEndpoint }) {
 
   return (
     <ReportPageWrap>
-      {sessionData ? (
+      {reportData ? (
         <>
           <GlobalStyle />
           <Tabs
