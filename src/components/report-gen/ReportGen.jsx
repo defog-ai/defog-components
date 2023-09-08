@@ -30,7 +30,7 @@ const components = {
 };
 
 export default function ReportGen({
-  sessionData,
+  reportData,
   user_question = null,
   // if the "current stage" is done or not
   stageDone = true,
@@ -70,14 +70,14 @@ export default function ReportGen({
 
       <div className="carousel-ctr">
         <Carousel dotPosition="top" ref={carousel}>
-          {Object.keys(sessionData)
-            .filter((d) => generationStages.indexOf(d) > -1 && sessionData[d])
+          {Object.keys(reportData)
+            .filter((d) => generationStages.indexOf(d) > -1 && reportData[d])
             .map((stage) => {
               return (
                 <div
                   key={stage}
                   className={
-                    Object.keys(sessionData).indexOf(stage) > -1
+                    Object.keys(reportData).indexOf(stage) > -1
                       ? "ready"
                       : "not-ready"
                   }
@@ -86,7 +86,7 @@ export default function ReportGen({
 
                   {components[stage]
                     ? React.createElement(components[stage], {
-                        data: sessionData[stage],
+                        data: reportData[stage],
                         handleSubmit,
                         theme: theme,
                         globalLoading: globalLoading,
