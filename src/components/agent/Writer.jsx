@@ -30,19 +30,23 @@ export default function Writer({
       onComplete();
       writing.current = false;
       // show hidden
-      let c = ctr.current.getElementsByClassName("writer-children");
-      //   for child inside writer-children, show opacity one by one
-      if (c.length) {
-        c[0].style.opacity = 1;
+      try {
+        let c = ctr.current.getElementsByClassName("writer-children");
+        //   for child inside writer-children, show opacity one by one
+        if (c.length) {
+          c[0].style.opacity = 1;
 
-        let ch = c[0].children;
+          let ch = c[0].children;
 
-        for (let i = 0; i < ch.length; i++) {
-          ch[i].style.transitionProperty = "opacity";
-          ch[i].style.transitionDuration = "1s";
-          ch[i].style.transitionDelay = i * 0.5 + "s";
-          ch[i].style.opacity = 1;
+          for (let i = 0; i < ch.length; i++) {
+            ch[i].style.transitionProperty = "opacity";
+            ch[i].style.transitionDuration = "1s";
+            ch[i].style.transitionDelay = i * 0.5 + "s";
+            ch[i].style.opacity = 1;
+          }
         }
+      } catch (err) {
+        console.log(err);
       }
     }
   }
