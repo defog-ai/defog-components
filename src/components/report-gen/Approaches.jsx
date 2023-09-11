@@ -71,7 +71,7 @@ export default function Approaches({
   //   setApproaches(newApproaches);
   // }
 
-  const emailValid = email && email.indexOf("@") !== -1;
+  // const emailValid = email && email.indexOf("@") !== -1;
 
   return (
     <ErrorBoundary>
@@ -121,6 +121,10 @@ export default function Approaches({
             <AgentSubmitWrap>
               <div className="agent-submit">
                 <h3>Enter your email</h3>
+                <p>
+                  Report creation might take anywhere from 10-15 minutes. Please
+                  enter your email address to be notified when it is done.
+                </p>
                 <Search
                   placeholder="Enter your email address"
                   value={email}
@@ -132,7 +136,6 @@ export default function Approaches({
                   }}
                   disabled={
                     globalLoading ||
-                    !emailValid ||
                     approaches.length === 0 ||
                     approaches.some((approach) => !approach)
                   }
@@ -319,10 +322,16 @@ const ApproachesWrap = styled.div`
           props.theme ? props.theme.config.brandColor : "#2B59FF"};
       }
     }
-    .agent-submit-done {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    .agent-submit {
+      margin-top: 2rem;
+      margin-bottom: 3rem;
+      h3 {
+        margin-bottom: 1rem;
+      }
+      p {
+        margin: 1rem 0;
+        max-width: 500px;
+      }
     }
   }
 `;
