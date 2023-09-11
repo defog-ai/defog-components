@@ -38,6 +38,7 @@ const agentRequestTypes = [
 ];
 
 export default function AgentMain({ initialReportData, agentsEndpoint }) {
+  console.log(initialReportData);
   const socket = useRef(null);
   const [reportData, setReportData] = useState(initialReportData);
   const [rId, setReportId] = useState(reportData.report_id);
@@ -92,7 +93,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
           console.log(response);
 
           if (response.error_message) {
-            setStageDone(false);
+            setStageDone(true);
             setGlobalLoading(false);
             message.error(
               "Something went wrong. Please try again or contact us if this persists.",

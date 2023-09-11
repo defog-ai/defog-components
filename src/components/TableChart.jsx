@@ -106,7 +106,7 @@ export function TableChart({
           </>
         </ErrorBoundary>
       ),
-      tabLabel: "SQL",
+      tabLabel: "Code",
     });
   }
 
