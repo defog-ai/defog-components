@@ -52,28 +52,30 @@ export default function WriterGroup({ items, onChange = () => {} }) {
 const WriterCtrWrap = styled.div`
   .writer-target {
     position: relative;
-    &:before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -20px;
-      width: 10px;
-      height: 100%;
-      background-color: #f5f5f5;
-      opacity: 0;
-    }
-
-    &:hover {
+    &:not(.csv-table) {
       &:before {
-        opacity: 1;
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -20px;
+        width: 10px;
+        height: 100%;
+        background-color: #f5f5f5;
+        opacity: 0;
       }
-    }
 
-    &:focus {
-      outline: none;
-      &:before {
-        background-color: #6c8bfc;
-        opacity: 1;
+      &:hover {
+        &:before {
+          opacity: 1;
+        }
+      }
+
+      &:focus {
+        outline: none;
+        &:before {
+          background-color: #6c8bfc;
+          opacity: 1;
+        }
       }
     }
   }

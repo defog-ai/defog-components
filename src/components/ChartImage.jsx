@@ -19,8 +19,15 @@ export default function ChartImage({ img }) {
       });
       try {
         const blob = await res.blob();
-        setUrl(URL.createObjectURL(blob));
-        setLoading(false);
+        await new Promise((resolve) => {
+          let reader = new FileReader();
+          reader.onload = function () {
+            setUrl(this.result);
+            setLoading(false);
+            resolve();
+          };
+          reader.readAsDataURL(blob);
+        });
       } catch (e) {
         console.log(e);
         setErr("Error loading chart image.");
