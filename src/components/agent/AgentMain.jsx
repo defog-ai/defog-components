@@ -32,7 +32,7 @@ const propNames = {
 
 const agentRequestTypes = [
   "clarify",
-  "understand",
+  // "understand",
   "gen_approaches",
   "gen_report",
 ];

@@ -7,7 +7,11 @@ import { ThemeContext } from "../../context/ThemeContext";
 import { styled } from "styled-components";
 import Search from "antd/lib/input/Search";
 
-const generationStages = ["clarify", "understand", "gen_approaches"];
+const generationStages = [
+  "clarify",
+  // "understand",
+  "gen_approaches",
+];
 
 const agentRequestNames = {
   clarify: "Clarifying questions",
