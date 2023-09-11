@@ -10,12 +10,7 @@ export function TableChart({
   response,
   query = "",
   vizType = "table",
-  chartImage = {
-    // path to the chart image
-    path: "",
-    // type of chart
-    type: "",
-  },
+  chartImages = [],
   sql = "",
   // 2d array of {component: ReactComponent, tabLabel: string]
   // both component and tabLabel are mandatory fields
@@ -55,7 +50,7 @@ export function TableChart({
       icon: <TableOutlined />,
     },
   ];
-  if (!chartImage || !chartImage.path || chartImage.path.length === 0) {
+  if (!chartImages || chartImages.length <= 0) {
     const {
       xAxisColumns,
       categoricalColumns,
@@ -89,10 +84,10 @@ export function TableChart({
     results.push({
       component: (
         <ErrorBoundary>
-          <ChartImage img={chartImage} />
+          <ChartImage images={chartImages} />
         </ErrorBoundary>
       ),
-      tabLabel: chartNames[chartImage.type] || "Chart",
+      tabLabel: chartNames[chartImages[0].type] || "Chart",
     });
   }
   if (sql && sql.length > 0) {
@@ -116,7 +111,7 @@ export function TableChart({
   // convert to antd tabs
   results = (
     <Tabs
-      defaultActiveKey={!chartImage || !chartImage.path ? "0" : "1"}
+      defaultActiveKey={!chartImages || !chartImages.length ? "0" : "1"}
       items={results.map((d, i) => ({
         key: String(i),
         label: (

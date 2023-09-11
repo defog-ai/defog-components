@@ -17,13 +17,13 @@ function ReportTableChart({
   response,
   apiKey,
   apiEndpoint,
-  chartImage = null,
+  chartImages = null,
   sql,
 }) {
   return (
     <TableChart
       response={response}
-      chartImage={chartImage}
+      chartImages={chartImages}
       sql={sql}
       extraTabs={[
         {
@@ -73,17 +73,23 @@ export const csvTable = {
     }
 
     // find chart image
-    let chartImage = token.text.match(
-      /<report-img-chart[\s\S]*<\/report-img-chart>/,
+    let chartImages = Array.from(
+      token.text.matchAll(/<report-img-chart[\s\S]*?<\/report-img-chart>/gi),
     );
-    if (chartImage) {
-      // remove this from the token.text
-      token.text = token.text.replace(chartImage[0], "");
-      // get chartType
-      chartImage = {
-        path: chartImage[0].match(/path="(.*)" /)[1],
-        type: chartImage[0].match(/type="(.*)"/)[1],
-      };
+    if (chartImages.length) {
+      chartImages.forEach((chartImage, i) => {
+        try {
+          // remove this from the token.text
+          token.text = token.text.replace(chartImage[0], "");
+          // get chartType
+          chartImages[i] = {
+            path: chartImage[0].match(/path="(.*)" /)[1],
+            type: chartImage[0].match(/type="(.*)"/)[1],
+          };
+        } catch (err) {
+          console.log(err);
+        }
+      });
     }
 
     const rows = token.text
@@ -100,7 +106,7 @@ export const csvTable = {
       component: ReportTableChart,
       props: {
         sql,
-        chartImage,
+        chartImages,
         response: {
           columns: r.newCols,
           data: r.newRows,
