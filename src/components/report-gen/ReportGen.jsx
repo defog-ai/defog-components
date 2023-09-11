@@ -116,6 +116,13 @@ const ReportGenWrap = styled.div`
     margin-bottom: 3em;
     pointer-events: none;
   }
+  .ant-input-search .ant-input {
+    background-color: white;
+    color: #3a3a3a;
+    * {
+      color: #3a3a3a;
+    }
+  }
 
   .slick-dots li {
     button {
