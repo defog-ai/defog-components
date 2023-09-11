@@ -65,11 +65,13 @@ export const csvTable = {
     const colNames = token.text.split("\n")[0].split(",");
     // find if there's an <sql> or <report-plot> tag
     // if so, save it separately
-    let sql = token.text.match(/<sql>[\s\S]*<\/sql>/);
-    if (sql) {
+    let sql = token.text.match(/(?:<sql>)([\s\S]*)(?:<\/sql>)/);
+    if (sql && sql.length > 1) {
       // remove this from the token.text
       token.text = token.text.replace(sql[0], "");
-      sql = sql[0];
+      sql = sql[1];
+    } else {
+      sql = null;
     }
 
     // find chart image

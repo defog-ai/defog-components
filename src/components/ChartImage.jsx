@@ -42,7 +42,7 @@ export default function ChartImage({ images = [] }) {
         <img
           ref={(ref) => (imgRefs.current[i] = ref)}
           key={i}
-          alt={image.path}
+          alt={"Loading image"}
         />
       ))}
     </>

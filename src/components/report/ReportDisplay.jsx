@@ -120,7 +120,9 @@ export function ReportDisplay({
       ))}
       {loading ? (
         <AgentLoader
-          message={"Generating report..."}
+          message={
+            "Generating report. This might take a while. We will send you an email when done."
+          }
           lottie={<Lottie animationData={LoadingLottie} loop={true} />}
         />
       ) : (
