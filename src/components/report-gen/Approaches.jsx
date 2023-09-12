@@ -1,7 +1,7 @@
 import React, { useMemo, useState, Fragment } from "react";
 
 import { styled } from "styled-components";
-import { message } from "antd";
+import { Checkbox, message } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
 import Search from "antd/lib/input/Search";
 import Lottie from "lottie-react";
@@ -24,13 +24,10 @@ export default function Approaches({
       </div>
     );
 
-  const approaches = useMemo(
-    data["approaches"].filter((d) => d),
-    [data],
-  );
+  const approaches = useMemo(() => data["approaches"].filter((d) => d), [data]);
   const enabledApproaches = approaches.map(
     // legacy support
-    (a) => (Object.hasOwn(a, "enabled") && a.enabled) || true,
+    (a) => (Object.hasOwn(a, "enabled") ? a.enabled : true),
   );
 
   if (!approaches || !Array.isArray(approaches)) {
@@ -63,10 +60,14 @@ export default function Approaches({
     }
   }
 
-  function toggleApproach(idx, val) {
+  function toggleEnable(idx, val) {
     if (globalLoading || !stageDone) return;
     enabledApproaches[idx] = val;
-    handleEdit(idx, "enable", val);
+    handleEdit("gen_approaches", {
+      approach_idx: idx,
+      request_type: "enabled",
+      new_value: val,
+    });
   }
 
   return (
@@ -78,37 +79,63 @@ export default function Approaches({
               {approaches.length !== 0 && Array.isArray(approaches)
                 ? approaches.map((approach, index) => {
                     return (
-                      <div key={index} className="agent-approach">
-                        {!approach.disabled ? (
-                          <Writer s={approach?.title}>
-                            <div className="approach-heading writer-target"></div>
-                            <div className="approach-steps writer-children">
-                              {approach?.steps.length ? (
-                                approach?.steps.map((step, i) => (
-                                  <div
-                                    key={i}
-                                    className={`approach-step approach-step-${i}`}
-                                  >
-                                    <div className="approach-step-num">
-                                      <span>{i + 1}</span>
-                                    </div>
-                                    <div className="approach-step-desc">
-                                      {step.description}
-                                    </div>
-                                  </div>
-                                ))
-                              ) : (
-                                <p>We will plan out the steps for you.</p>
-                              )}
-                            </div>
-                          </Writer>
+                      <div
+                        key={index}
+                        className={
+                          "agent-approach" +
+                          (approach.enabled ? "" : " approach-disabled")
+                        }
+                      >
+                        {globalLoading || !stageDone ? (
+                          <></>
                         ) : (
-                          <div
-                            className="approach-disabled"
-                            onClick={disableApproach(index, false)}
-                          >
-                            <p>Disabled approach. Undo?</p>
+                          <div className="approach-toggle">
+                            <Checkbox
+                              checked={enabledApproaches[index]}
+                              onChange={(ev) => {
+                                toggleEnable(index, !enabledApproaches[index]);
+                                console.log(ev);
+                              }}
+                            ></Checkbox>
                           </div>
+                        )}
+                        <Writer s={approach?.title}>
+                          <div className="approach-heading writer-target"></div>
+                          <div className="approach-steps writer-children">
+                            {approach?.steps.length ? (
+                              approach?.steps.map((step, i) => (
+                                <div
+                                  key={i}
+                                  className={`approach-step approach-step-${i}`}
+                                >
+                                  <div className="approach-step-num">
+                                    <span>{i + 1}</span>
+                                  </div>
+                                  <div className="approach-step-desc">
+                                    {step.description}
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p>We will plan out the steps for you.</p>
+                            )}
+                          </div>
+                        </Writer>
+                        {!enabledApproaches[index] ? (
+                          <div
+                            className="approach-disabled-msg"
+                            onClick={() => toggleEnable(index, true)}
+                          >
+                            <p>
+                              This approach has been removed and will not be
+                              part of your report.
+                            </p>
+                            <p style={{ marginTop: "1rem" }}>
+                              Click here to add it back again.
+                            </p>
+                          </div>
+                        ) : (
+                          <></>
                         )}
                       </div>
                     );
@@ -166,7 +193,7 @@ const ApproachesWrap = styled.div`
       border-bottom: 0px;
       .agent-approach {
         position: relative;
-        margin-top: 3em;
+        padding-top: 3em;
         padding-left: 30px;
         border-bottom: 1px solid transparent;
         padding-bottom: 1.5em;
@@ -177,6 +204,12 @@ const ApproachesWrap = styled.div`
           font-size: 1.5em;
           text-align: center;
           margin-top: 1.5em;
+        }
+        .approach-toggle {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          z-index: 2;
         }
 
         .approach-steps {
@@ -219,6 +252,26 @@ const ApproachesWrap = styled.div`
           }
         }
       }
+
+      .approach-disabled-msg {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        background: #f9f9f9;
+        justify-content: center;
+        flex-direction: column;
+        color: #bbb;
+        cursor: pointer;
+        > * {
+          pointer-events: none;
+        }
+      }
+    }
+
     .agent-submit {
       margin-top: 2rem;
       margin-bottom: 3rem;

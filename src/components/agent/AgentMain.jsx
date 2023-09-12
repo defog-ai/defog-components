@@ -213,15 +213,16 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
   }
 
   async function updateApproaches({ approach_idx, request_type, new_value }) {
-    if (request_type !== "enable" && request_type !== "delete") return;
+    if (request_type !== "enabled" && request_type !== "delete") return;
     if (
-      !approach_idx ||
       typeof approach_idx !== "number" ||
       approach_idx > reportData.gen_approaches.approaches.length ||
       approach_idx < 0
     )
       return;
 
+    console.log("updating approaches");
+    console.log(approach_idx, request_type, new_value);
     const newApproaches = reportData.gen_approaches.approaches.slice();
     const approachToUpdate = newApproaches[approach_idx];
     if (!approachToUpdate) return;
@@ -237,9 +238,10 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
         body: JSON.stringify({
           request_type: "edit_approaches",
           report_id: rId,
-          report_sections: newApproaches,
+          approaches: newApproaches,
         }),
       }).then((d) => d.json());
+
       if (!res.success) {
         message.error(
           "Something went wrong. Please try again or contact us if this persists.",
