@@ -32,6 +32,30 @@ export function ReportDisplay({
         text: tok.type === "csvTable" ? "" : tok.text,
       };
     });
+    // if /'s a list, convert it to multiple p tags with a class
+    // so we can animate them one by one
+    arr.forEach((item, i) => {
+      if (item.type !== "list") return;
+      const list = item;
+      const listItems = list.items;
+      const pTags = listItems.map((ul, j) => ({
+        ...ul,
+        text: "- " + ul?.text?.trim(),
+        type: "paragraph",
+        emptyHtml:
+          '<p class="writer-target p-list-item" contenteditable="true"></p>',
+        key: section.section_number + "-" + (i + j),
+      }));
+
+      // insert these p tags into the array
+      arr.splice(i, 1, ...pTags);
+      // edit the keys for all items after this one
+      arr.forEach((item, k) => {
+        if (k <= i) return;
+        item.key = section.section_number + "-" + k;
+      });
+    });
+
     arr.section_number = section.section_number;
     return arr;
   }
@@ -143,6 +167,11 @@ const ReportWrap = styled.div`
 
   p {
     margin: 1em 0;
+  }
+
+  p.writer-target.p-list-item {
+    margin: 0.5em 0;
+    padding-inline-start: 1em;
   }
 
   h1,
