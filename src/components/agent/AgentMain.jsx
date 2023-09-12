@@ -65,8 +65,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
         socket.current = new WebSocket(agentsEndpoint);
         console.log("reconnecting..");
 
-        socket.current.onclose = async function (event) {
-          console.log(event);
+        socket.current.onclose = async function () {
           setGlobalLoading(false);
           setStageDone(true);
           console.log("disconnected.");
@@ -222,7 +221,6 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
       return;
 
     console.log("updating approaches");
-    console.log(approach_idx, request_type, new_value);
     const newApproaches = reportData.gen_approaches.approaches.slice();
     const approachToUpdate = newApproaches[approach_idx];
     if (!approachToUpdate) return;
@@ -271,6 +269,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
       await reInitSocket();
     }
     try {
+      console.log("updating report text");
       const newReportSections = reportData.gen_report.report_sections.slice();
       // find the section number and update the text
       const sectionToUpdate = newReportSections.find(
@@ -343,7 +342,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
                 <ErrorBoundary>
                   <ReportDisplay
                     sections={reportData?.gen_report?.report_sections || []}
-                    updateReportText={updateReportText}
+                    handleEdit={handleEdit}
                     theme={theme}
                     loading={currentStage === "gen_report" ? !stageDone : false}
                     // only animate if this is new report text coming in

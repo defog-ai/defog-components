@@ -92,9 +92,8 @@ export default function Approaches({
                           <div className="approach-toggle">
                             <Checkbox
                               checked={enabledApproaches[index]}
-                              onChange={(ev) => {
+                              onChange={() => {
                                 toggleEnable(index, !enabledApproaches[index]);
-                                console.log(ev);
                               }}
                             ></Checkbox>
                           </div>
