@@ -262,12 +262,8 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
   }
 
   async function updateReportText({ sectionNumber, newSectionMarkdown }) {
-    if (!sectionNumber) return;
     if (typeof newSectionMarkdown !== "string") return;
 
-    if (socket.current.readyState !== WebSocket.OPEN) {
-      await reInitSocket();
-    }
     try {
       console.log("updating report text");
       const newReportSections = reportData.gen_report.report_sections.slice();
