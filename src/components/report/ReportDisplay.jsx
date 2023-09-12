@@ -42,6 +42,7 @@ export function ReportDisplay({
         ...ul,
         text: "- " + ul?.text?.trim(),
         type: "paragraph",
+        animate: animate,
         emptyHtml:
           '<p class="writer-target p-list-item" contenteditable="true"></p>',
         key: section.section_number + "-" + (i + j),
