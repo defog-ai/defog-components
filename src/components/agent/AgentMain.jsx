@@ -61,7 +61,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
 
   function reInitSocket() {
     if (!socket.current || socket.current.readyState === WebSocket.CLOSED) {
-      return new Promise(function (resolve, reject) {
+      return new Promise(function (resolve) {
         socket.current = new WebSocket(agentsEndpoint);
         console.log("reconnecting..");
 
@@ -70,7 +70,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
           setGlobalLoading(false);
           setStageDone(true);
           console.log("disconnected.");
-          const _ = await reInitSocket();
+          await reInitSocket();
         };
 
         socket.current.onopen = function () {
@@ -153,7 +153,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
       const nextStage =
         agentRequestTypes[agentRequestTypes.indexOf(submitSourceStage) + 1];
 
-      const _ = await reInitSocket();
+      await reInitSocket();
 
       socket.current.send(
         JSON.stringify({
@@ -268,7 +268,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
     if (typeof newSectionMarkdown !== "string") return;
 
     if (socket.current.readyState !== WebSocket.OPEN) {
-      const _ = await reInitSocket();
+      await reInitSocket();
     }
     try {
       const newReportSections = reportData.gen_report.report_sections.slice();
