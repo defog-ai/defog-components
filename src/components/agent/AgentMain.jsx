@@ -38,7 +38,6 @@ const agentRequestTypes = [
 ];
 
 export default function AgentMain({ initialReportData, agentsEndpoint }) {
-  console.log(initialReportData);
   const socket = useRef(null);
   const [reportData, setReportData] = useState(initialReportData);
   const [rId, setReportId] = useState(reportData.report_id);
@@ -200,11 +199,75 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
     }
   }
 
-  async function updateReportText(sectionNumber, newSectionMarkdown) {
+  async function handleEdit(sourceStage = null, stageInput = null) {
+    if (!sourceStage) return;
+    if (!stageInput) return;
+
+    if (sourceStage === "gen_approaches") {
+      await updateApproaches(stageInput);
+    }
+
+    if (sourceStage === "gen_report") {
+      await updateReportText(stageInput);
+    }
+  }
+
+  async function updateApproaches({ approach_idx, request_type, new_value }) {
+    if (request_type !== "enable" && request_type !== "delete") return;
+    if (
+      !approach_idx ||
+      typeof approach_idx !== "number" ||
+      approach_idx > reportData.gen_approaches.approaches.length ||
+      approach_idx < 0
+    )
+      return;
+
+    const newApproaches = reportData.gen_approaches.approaches.slice();
+    const approachToUpdate = newApproaches[approach_idx];
+    if (!approachToUpdate) return;
+
+    approachToUpdate[request_type] = new_value;
+
+    try {
+      const res = await fetch("https://agents.defog.ai/edit_report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          request_type: "edit_approaches",
+          report_id: rId,
+          report_sections: newApproaches,
+        }),
+      }).then((d) => d.json());
+      if (!res.success) {
+        message.error(
+          "Something went wrong. Please try again or contact us if this persists.",
+        );
+        return;
+      }
+
+      setReportData((prev) => {
+        return {
+          ...prev,
+          gen_approaches: {
+            ...prev.gen_approaches,
+            approaches: newApproaches,
+          },
+        };
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  async function updateReportText({ sectionNumber, newSectionMarkdown }) {
+    if (!sectionNumber) return;
+    if (typeof newSectionMarkdown !== "string") return;
+
     if (socket.current.readyState !== WebSocket.OPEN) {
       const _ = await reInitSocket();
     }
-    // first update report data locally
     try {
       const newReportSections = reportData.gen_report.report_sections.slice();
       // find the section number and update the text
@@ -215,17 +278,24 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
       sectionToUpdate.text = newSectionMarkdown;
 
       // next, send this to the server to update as well.
-      await fetch("https://agents.defog.ai/edit_report", {
+      const res = await fetch("https://agents.defog.ai/edit_report", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          request_type: "update_report_md",
+          request_type: "edit_report_md",
           report_id: rId,
           report_sections: newReportSections,
         }),
-      });
+      }).then((d) => d.json());
+
+      if (!res.success) {
+        message.error(
+          "Something went wrong. Please try again or contact us if this persists.",
+        );
+        return;
+      }
 
       setReportData((prev) => {
         return {
@@ -259,6 +329,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
                     handleSubmit={handleSubmit}
                     globalLoading={globalLoading}
                     searchRef={searchRef}
+                    handleEdit={handleEdit}
                   />
                 </ErrorBoundary>
               ),

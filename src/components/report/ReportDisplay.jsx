@@ -15,7 +15,7 @@ export function ReportDisplay({
   theme,
   loading,
   animate = false,
-  updateReportText = () => {},
+  handleEdit = () => {},
 }) {
   // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
   // sort sections according to section number
@@ -107,7 +107,7 @@ export function ReportDisplay({
         "",
       );
       // send this to the backend with the section index
-      updateReportText(sectionNumber, newSectionMarkdown);
+      handleEdit("gen_report", { sectionNumber, newSectionMarkdown });
     } catch (e) {
       console.log(e);
     }

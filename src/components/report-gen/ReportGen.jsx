@@ -43,18 +43,22 @@ export default function ReportGen({
   handleSubmit = () => {},
   globalLoading,
   searchRef = null,
+  handleEdit = () => {},
 }) {
   const { theme } = useContext(ThemeContext);
   const carousel = useRef(null);
 
+  console.log(currentStage);
+
   useEffect(() => {
-    if (currentStage && currentStage !== "gen_report" && carousel.current) {
-      console.log(currentStage, generationStages.indexOf(currentStage));
-      carousel.current.goTo(generationStages.indexOf(currentStage));
-      // also scroll to top of screen
-      // window.scrollTo(0, 0);
+    if (currentStage && carousel.current) {
+      const idx = generationStages.indexOf(currentStage);
+      // if idx is -1, we're probably already generated a report. set to last (aka approaches)
+      carousel.current.goTo(idx > -1 ? idx : generationStages.length - 1);
+      // go to the top of the screen
+      window.scrollTo(0, 0);
     }
-  });
+  }, [currentStage]);
 
   return (
     <ReportGenWrap theme={theme}>
@@ -95,6 +99,7 @@ export default function ReportGen({
                         theme: theme,
                         globalLoading: globalLoading,
                         stageDone: stage === currentStage ? stageDone : true,
+                        handleEdit,
                       })
                     : null}
                 </div>

@@ -15,6 +15,7 @@ export default function Approaches({
   handleSubmit,
   globalLoading,
   stageDone = true,
+  handleEdit = () => {},
 }) {
   if (!data || !data.approaches)
     return (
@@ -23,9 +24,16 @@ export default function Approaches({
       </div>
     );
 
-  const initialApproaches = data["approaches"];
+  const approaches = useMemo(
+    data["approaches"].filter((d) => d),
+    [data],
+  );
+  const enabledApproaches = approaches.map(
+    // legacy support
+    (a) => (Object.hasOwn(a, "enabled") && a.enabled) || true,
+  );
 
-  if (!initialApproaches || !Array.isArray(initialApproaches)) {
+  if (!approaches || !Array.isArray(approaches)) {
     return (
       <div className="agent-error">
         Something went wrong, please retry or contact us if it fails again.
@@ -33,13 +41,7 @@ export default function Approaches({
     );
   }
 
-  const approaches = useMemo(
-    // sometimes backend can error and have a null in the approach
-    () => initialApproaches.slice().filter((d) => d),
-    [initialApproaches],
-  );
-
-  const [email, setEmail] = useState("manasdotsharma@gmail.com");
+  const [email, setEmail] = useState("");
 
   async function onSubmit(e) {
     if (e && e.preventDefault) {
@@ -61,17 +63,11 @@ export default function Approaches({
     }
   }
 
-  // function addApproach(index) {
-  //   const newApproaches = [...approaches];
-  //   newApproaches.splice(index + 1, 0, {
-  //     title: "",
-  //     reason: "",
-  //     steps: [],
-  //   });
-  //   setApproaches(newApproaches);
-  // }
-
-  // const emailValid = email && email.indexOf("@") !== -1;
+  function toggleApproach(idx, val) {
+    if (globalLoading || !stageDone) return;
+    enabledApproaches[idx] = val;
+    handleEdit(idx, "enable", val);
+  }
 
   return (
     <ErrorBoundary>
@@ -83,28 +79,37 @@ export default function Approaches({
                 ? approaches.map((approach, index) => {
                     return (
                       <div key={index} className="agent-approach">
-                        <Writer s={approach?.title}>
-                          <div className="approach-heading writer-target"></div>
-                          <div className="approach-steps writer-children">
-                            {approach?.steps.length ? (
-                              approach?.steps.map((step, i) => (
-                                <div
-                                  key={i}
-                                  className={`approach-step approach-step-${i}`}
-                                >
-                                  <div className="approach-step-num">
-                                    <span>{i + 1}</span>
+                        {!approach.disabled ? (
+                          <Writer s={approach?.title}>
+                            <div className="approach-heading writer-target"></div>
+                            <div className="approach-steps writer-children">
+                              {approach?.steps.length ? (
+                                approach?.steps.map((step, i) => (
+                                  <div
+                                    key={i}
+                                    className={`approach-step approach-step-${i}`}
+                                  >
+                                    <div className="approach-step-num">
+                                      <span>{i + 1}</span>
+                                    </div>
+                                    <div className="approach-step-desc">
+                                      {step.description}
+                                    </div>
                                   </div>
-                                  <div className="approach-step-desc">
-                                    {step.description}
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p>We will plan out the steps for you.</p>
-                            )}
+                                ))
+                              ) : (
+                                <p>We will plan out the steps for you.</p>
+                              )}
+                            </div>
+                          </Writer>
+                        ) : (
+                          <div
+                            className="approach-disabled"
+                            onClick={disableApproach(index, false)}
+                          >
+                            <p>Disabled approach. Undo?</p>
                           </div>
-                        </Writer>
+                        )}
                       </div>
                     );
                   })
@@ -151,13 +156,6 @@ export default function Approaches({
 
 const ApproachesWrap = styled.div`
   .agent-container {
-    .agent-header {
-      margin-bottom: 30px;
-      width: 80%;
-      color: ${(props) => {
-        return props.theme ? props.theme.config.primaryText : "#3a3a3a";
-      }};
-    }
     .agent-approaches-container {
       border-radius: 5px;
       margin-bottom: 0;
@@ -220,108 +218,7 @@ const ApproachesWrap = styled.div`
             }
           }
         }
-
-        &:hover {
-          .agent-approach-gutter {
-            opacity: 1;
-            background-color: ${(props) => {
-              return props.theme
-                ? props.theme.type === "light"
-                  ? "#f3f3f3"
-                  : "#333"
-                : "#eee";
-            }};
-
-            .add-approach,
-            .delete-approach {
-              color: ${(props) => {
-                return props.theme
-                  ? props.theme.type === "light"
-                    ? "#00000040"
-                    : "white"
-                  : "#00000040";
-              }};
-            }
-          }
-        }
-
-        .ant-select-selection-placeholder {
-          color: ${(props) => {
-            return props.theme
-              ? props.theme.type === "light"
-                ? "#00000040"
-                : "white"
-              : "#00000040";
-          }};
-        }
-
-        .agent-approach-gutter {
-          position: absolute;
-          top: 0;
-          left: 2px;
-          z-index: 2;
-          opacity: 0;
-          height: 100%;
-          padding: 1px 3px;
-          border-radius: 4px 0 0 4px;
-
-          .gutter-line {
-            opacity: 0;
-            width: 1px;
-            background-color: ${(props) => {
-              return props.theme
-                ? props.theme.type === "light"
-                  ? "#eee"
-                  : "#eee"
-                : "#eee";
-            }};
-            height: calc(100% - 60px);
-            position: absolute;
-            top: 25px;
-            left: 6px;
-          }
-
-          .add-approach,
-          .delete-approach {
-            background: none;
-            color: ${(props) => {
-              return props.theme
-                ? props.theme.type === "light"
-                  ? "#ddd"
-                  : "#ddd"
-                : "#eee";
-            }};
-            font-weight: bold;
-            text-align: center;
-            cursor: pointer;
-          }
-          .add-approach {
-            position: absolute;
-            bottom: -1.5em;
-            &:hover {
-              color: ${(props) => {
-                return props.theme ? props.theme.config.primaryText : "#ddd";
-              }};
-            }
-          }
-          .delete-approach {
-            &:hover {
-              color: #d52d68;
-            }
-          }
-        }
       }
-      .no-approach-button > button {
-        min-height: 36px;
-        min-width: 120px;
-        border-radius: 6px !important;
-        border-color: transparent;
-        color: #fff;
-        box-shadow: none !important;
-        background: ${(props) =>
-          props.theme ? props.theme.config.brandColor : "#2B59FF"};
-      }
-    }
     .agent-submit {
       margin-top: 2rem;
       margin-bottom: 3rem;
@@ -348,48 +245,3 @@ const AgentSubmitWrap = styled.div`
     }
   }
 `;
-
-// <div key={index} className="agent-approach">
-//   <div className="agent-approach-gutter">
-//     <div className="delete-approach">
-//       <DeleteOutlined
-//         onClick={() => deleteSubQn(index)}
-//       />
-//     </div>
-//     <div className="gutter-line"></div>
-//     <div className="add-approach">
-//       <PlusOutlined onClick={() => addApproach(index)} />
-//     </div>
-//   </div>
-//   <AgentTool
-//     tool={approach?.tool}
-//     theme={theme?.config}
-//     setTool={(e) => updateSubQns(e, index, "tool")}
-//   />
-//   <AgentSubQnInput
-//     approach={approach?.approach}
-//     theme={theme?.config}
-//     setSubQn={(e) => updateSubQns(e, index, "approach")}
-//   />
-// </div>
-
-/* <p>
-    You can edit <EditOutlined /> or delete <DeleteOutlined />{" "}
-    existing approaches, or add <PlusOutlined /> your own!
-  </p>
-  <p>
-    Behind the scenes, each approach is answered using a tool{" "}
-    <span className="tool-icon">
-      <FiTool />
-    </span>
-    . Every tool is designed to answer a specific type of
-    question.
-  </p>
-  <p>
-    Hover over a tool in the dropdown menu to get details about
-    what it does.
-  </p>
-  <p>
-    In order to get accurate results, make sure the tools fit the
-    corresponding approach as closely as possible.
-  </p> */
