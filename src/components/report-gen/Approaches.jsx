@@ -1,7 +1,7 @@
 import React, { useMemo, useState, Fragment } from "react";
 
 import { styled } from "styled-components";
-import { message } from "antd";
+import { Checkbox, message } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
 import Search from "antd/lib/input/Search";
 import Lottie from "lottie-react";
@@ -15,6 +15,7 @@ export default function Approaches({
   handleSubmit,
   globalLoading,
   stageDone = true,
+  handleEdit = () => {},
 }) {
   if (!data || !data.approaches)
     return (
@@ -23,9 +24,13 @@ export default function Approaches({
       </div>
     );
 
-  const initialApproaches = data["approaches"];
+  const approaches = useMemo(() => data["approaches"].filter((d) => d), [data]);
+  const enabledApproaches = approaches.map(
+    // legacy support
+    (a) => (Object.hasOwn(a, "enabled") ? a.enabled : true),
+  );
 
-  if (!initialApproaches || !Array.isArray(initialApproaches)) {
+  if (!approaches || !Array.isArray(approaches)) {
     return (
       <div className="agent-error">
         Something went wrong, please retry or contact us if it fails again.
@@ -33,13 +38,7 @@ export default function Approaches({
     );
   }
 
-  const approaches = useMemo(
-    // sometimes backend can error and have a null in the approach
-    () => initialApproaches.slice().filter((d) => d),
-    [initialApproaches],
-  );
-
-  const [email, setEmail] = useState("manasdotsharma@gmail.com");
+  const [email, setEmail] = useState("");
 
   async function onSubmit(e) {
     if (e && e.preventDefault) {
@@ -61,17 +60,15 @@ export default function Approaches({
     }
   }
 
-  // function addApproach(index) {
-  //   const newApproaches = [...approaches];
-  //   newApproaches.splice(index + 1, 0, {
-  //     title: "",
-  //     reason: "",
-  //     steps: [],
-  //   });
-  //   setApproaches(newApproaches);
-  // }
-
-  const emailValid = email && email.indexOf("@") !== -1;
+  function toggleEnable(idx, val) {
+    if (globalLoading || !stageDone) return;
+    enabledApproaches[idx] = val;
+    handleEdit("gen_approaches", {
+      approach_idx: idx,
+      request_type: "enabled",
+      new_value: val,
+    });
+  }
 
   return (
     <ErrorBoundary>
@@ -82,7 +79,25 @@ export default function Approaches({
               {approaches.length !== 0 && Array.isArray(approaches)
                 ? approaches.map((approach, index) => {
                     return (
-                      <div key={index} className="agent-approach">
+                      <div
+                        key={index}
+                        className={
+                          "agent-approach" +
+                          (approach.enabled ? "" : " approach-disabled")
+                        }
+                      >
+                        {globalLoading || !stageDone ? (
+                          <></>
+                        ) : (
+                          <div className="approach-toggle">
+                            <Checkbox
+                              checked={enabledApproaches[index]}
+                              onChange={() => {
+                                toggleEnable(index, !enabledApproaches[index]);
+                              }}
+                            ></Checkbox>
+                          </div>
+                        )}
                         <Writer s={approach?.title}>
                           <div className="approach-heading writer-target"></div>
                           <div className="approach-steps writer-children">
@@ -105,6 +120,22 @@ export default function Approaches({
                             )}
                           </div>
                         </Writer>
+                        {!enabledApproaches[index] ? (
+                          <div
+                            className="approach-disabled-msg"
+                            onClick={() => toggleEnable(index, true)}
+                          >
+                            <p>
+                              This approach has been removed and will not be
+                              part of your report.
+                            </p>
+                            <p style={{ marginTop: "1rem" }}>
+                              Click here to add it back again.
+                            </p>
+                          </div>
+                        ) : (
+                          <></>
+                        )}
                       </div>
                     );
                   })
@@ -121,6 +152,10 @@ export default function Approaches({
             <AgentSubmitWrap>
               <div className="agent-submit">
                 <h3>Enter your email</h3>
+                <p>
+                  Report creation might take anywhere from 10-15 minutes. Please
+                  enter your email address to be notified when it is done.
+                </p>
                 <Search
                   placeholder="Enter your email address"
                   value={email}
@@ -132,7 +167,6 @@ export default function Approaches({
                   }}
                   disabled={
                     globalLoading ||
-                    !emailValid ||
                     approaches.length === 0 ||
                     approaches.some((approach) => !approach)
                   }
@@ -148,13 +182,6 @@ export default function Approaches({
 
 const ApproachesWrap = styled.div`
   .agent-container {
-    .agent-header {
-      margin-bottom: 30px;
-      width: 80%;
-      color: ${(props) => {
-        return props.theme ? props.theme.config.primaryText : "#3a3a3a";
-      }};
-    }
     .agent-approaches-container {
       border-radius: 5px;
       margin-bottom: 0;
@@ -165,7 +192,7 @@ const ApproachesWrap = styled.div`
       border-bottom: 0px;
       .agent-approach {
         position: relative;
-        margin-top: 3em;
+        padding-top: 3em;
         padding-left: 30px;
         border-bottom: 1px solid transparent;
         padding-bottom: 1.5em;
@@ -176,6 +203,12 @@ const ApproachesWrap = styled.div`
           font-size: 1.5em;
           text-align: center;
           margin-top: 1.5em;
+        }
+        .approach-toggle {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          z-index: 2;
         }
 
         .approach-steps {
@@ -217,112 +250,37 @@ const ApproachesWrap = styled.div`
             }
           }
         }
-
-        &:hover {
-          .agent-approach-gutter {
-            opacity: 1;
-            background-color: ${(props) => {
-              return props.theme
-                ? props.theme.type === "light"
-                  ? "#f3f3f3"
-                  : "#333"
-                : "#eee";
-            }};
-
-            .add-approach,
-            .delete-approach {
-              color: ${(props) => {
-                return props.theme
-                  ? props.theme.type === "light"
-                    ? "#00000040"
-                    : "white"
-                  : "#00000040";
-              }};
-            }
-          }
-        }
-
-        .ant-select-selection-placeholder {
-          color: ${(props) => {
-            return props.theme
-              ? props.theme.type === "light"
-                ? "#00000040"
-                : "white"
-              : "#00000040";
-          }};
-        }
-
-        .agent-approach-gutter {
-          position: absolute;
-          top: 0;
-          left: 2px;
-          z-index: 2;
-          opacity: 0;
-          height: 100%;
-          padding: 1px 3px;
-          border-radius: 4px 0 0 4px;
-
-          .gutter-line {
-            opacity: 0;
-            width: 1px;
-            background-color: ${(props) => {
-              return props.theme
-                ? props.theme.type === "light"
-                  ? "#eee"
-                  : "#eee"
-                : "#eee";
-            }};
-            height: calc(100% - 60px);
-            position: absolute;
-            top: 25px;
-            left: 6px;
-          }
-
-          .add-approach,
-          .delete-approach {
-            background: none;
-            color: ${(props) => {
-              return props.theme
-                ? props.theme.type === "light"
-                  ? "#ddd"
-                  : "#ddd"
-                : "#eee";
-            }};
-            font-weight: bold;
-            text-align: center;
-            cursor: pointer;
-          }
-          .add-approach {
-            position: absolute;
-            bottom: -1.5em;
-            &:hover {
-              color: ${(props) => {
-                return props.theme ? props.theme.config.primaryText : "#ddd";
-              }};
-            }
-          }
-          .delete-approach {
-            &:hover {
-              color: #d52d68;
-            }
-          }
-        }
       }
-      .no-approach-button > button {
-        min-height: 36px;
-        min-width: 120px;
-        border-radius: 6px !important;
-        border-color: transparent;
-        color: #fff;
-        box-shadow: none !important;
-        background: ${(props) =>
-          props.theme ? props.theme.config.brandColor : "#2B59FF"};
+
+      .approach-disabled-msg {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        background: #f9f9f9;
+        justify-content: center;
+        flex-direction: column;
+        color: #bbb;
+        cursor: pointer;
+        > * {
+          pointer-events: none;
+        }
       }
     }
-    .agent-submit-done {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+
+    .agent-submit {
+      margin-top: 2rem;
+      margin-bottom: 3rem;
+      h3 {
+        margin-bottom: 1rem;
+      }
+      p {
+        margin: 1rem 0;
+        max-width: 500px;
+      }
     }
   }
 `;
@@ -339,48 +297,3 @@ const AgentSubmitWrap = styled.div`
     }
   }
 `;
-
-// <div key={index} className="agent-approach">
-//   <div className="agent-approach-gutter">
-//     <div className="delete-approach">
-//       <DeleteOutlined
-//         onClick={() => deleteSubQn(index)}
-//       />
-//     </div>
-//     <div className="gutter-line"></div>
-//     <div className="add-approach">
-//       <PlusOutlined onClick={() => addApproach(index)} />
-//     </div>
-//   </div>
-//   <AgentTool
-//     tool={approach?.tool}
-//     theme={theme?.config}
-//     setTool={(e) => updateSubQns(e, index, "tool")}
-//   />
-//   <AgentSubQnInput
-//     approach={approach?.approach}
-//     theme={theme?.config}
-//     setSubQn={(e) => updateSubQns(e, index, "approach")}
-//   />
-// </div>
-
-/* <p>
-    You can edit <EditOutlined /> or delete <DeleteOutlined />{" "}
-    existing approaches, or add <PlusOutlined /> your own!
-  </p>
-  <p>
-    Behind the scenes, each approach is answered using a tool{" "}
-    <span className="tool-icon">
-      <FiTool />
-    </span>
-    . Every tool is designed to answer a specific type of
-    question.
-  </p>
-  <p>
-    Hover over a tool in the dropdown menu to get details about
-    what it does.
-  </p>
-  <p>
-    In order to get accurate results, make sure the tools fit the
-    corresponding approach as closely as possible.
-  </p> */

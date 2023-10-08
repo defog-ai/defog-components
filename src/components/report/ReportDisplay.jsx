@@ -1,5 +1,4 @@
 import React, { useEffect, Fragment, useState } from "react";
-import { createRoot } from "react-dom/client";
 import { marked } from "marked";
 import { csvTable, postprocess } from "../report-gen/marked-extensions";
 import { styled } from "styled-components";
@@ -10,14 +9,20 @@ import AgentLoader from "../common/AgentLoader";
 
 marked.use({ extensions: [csvTable], hooks: { postprocess } });
 
-export function ReportDisplay({ sections, theme, loading, animate = false }) {
+export function ReportDisplay({
+  sections,
+  theme,
+  loading,
+  animate = false,
+  handleEdit = () => {},
+}) {
   // marked lexer through each section, parse each of the generated tokens, and render it using the Writer
   // sort sections according to section number
   // keep a record of rendered sections. so we don't render them again
   const [rendered, setRendered] = useState([]);
   const [writerGroups, setWriterGroups] = useState([]);
 
-  function createWriterGroup(section) {
+  function createWriterGroupItems(section) {
     const arr = section.tokens.map((tok, i) => {
       return {
         ...tok,
@@ -27,6 +32,31 @@ export function ReportDisplay({ sections, theme, loading, animate = false }) {
         text: tok.type === "csvTable" ? "" : tok.text,
       };
     });
+    // if /'s a list, convert it to multiple p tags with a class
+    // so we can animate them one by one
+    arr.forEach((item, i) => {
+      if (item.type !== "list") return;
+      const list = item;
+      const listItems = list.items;
+      const pTags = listItems.map((ul, j) => ({
+        ...ul,
+        text: "- " + ul?.text?.trim(),
+        type: "paragraph",
+        animate: animate,
+        emptyHtml:
+          '<p class="writer-target p-list-item" contenteditable="true"></p>',
+        key: section.section_number + "-" + (i + j),
+      }));
+
+      // insert these p tags into the array
+      arr.splice(i, 1, ...pTags);
+      // edit the keys for all items after this one
+      arr.forEach((item, k) => {
+        if (k <= i) return;
+        item.key = section.section_number + "-" + k;
+      });
+    });
+
     arr.section_number = section.section_number;
     return arr;
   }
@@ -46,7 +76,7 @@ export function ReportDisplay({ sections, theme, loading, animate = false }) {
     // also find the deleted sections
     const deletedSections = rendered.filter((d) => !nums.includes(d));
 
-    const newWriterGroups = newSections.map((d) => createWriterGroup(d));
+    const newWriterGroups = newSections.map((d) => createWriterGroupItems(d));
 
     // keep only non deleted ones
     const keepWriterGroups = writerGroups.filter(
@@ -67,14 +97,56 @@ export function ReportDisplay({ sections, theme, loading, animate = false }) {
     );
   }, [sections]);
 
+  function onChange(ev, item) {
+    if (!item || !item.type || !ev || !ev.target || item.type === "csvTable")
+      return;
+    try {
+      const [sectionNumber, tokenIdx] = item.key
+        .split("-")
+        .map((d) => parseInt(d));
+      const newWriterGroups = writerGroups.slice();
+      // find the section
+      const sectionToUpdate = newWriterGroups.find(
+        (d) => d.section_number === sectionNumber,
+      );
+      if (!sectionToUpdate) return;
+
+      const tokenToUpdate = sectionToUpdate[tokenIdx];
+
+      const newText = ev.target.innerText;
+      // use tokenToUpdate.text, which is holding the old value of the text
+      // find tokenToUpdate.text in tokenToUpdate.raw (which is holding the old markdown)
+      // replace the old text with the new text in tokenToUpdate.raw
+      // then replace tokenToUpdate.text with the new text
+      const newRaw = tokenToUpdate.raw.replace(tokenToUpdate.text, newText);
+      tokenToUpdate.raw = newRaw;
+      tokenToUpdate.text = newText;
+
+      setWriterGroups(newWriterGroups);
+
+      // send update to the backend
+      // merge all raws into one string to get the new section markdown
+      const newSectionMarkdown = sectionToUpdate.reduce(
+        (acc, curr) => acc + curr.raw + "\n\n",
+        "",
+      );
+      // send this to the backend with the section index
+      handleEdit("gen_report", { sectionNumber, newSectionMarkdown });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   return (
     <ReportWrap theme={theme.config}>
       {writerGroups.map((wg) => (
-        <WriterGroup key={wg.section_number} items={wg} />
+        <WriterGroup key={wg.section_number} items={wg} onChange={onChange} />
       ))}
       {loading ? (
         <AgentLoader
-          message={"Generating report..."}
+          message={
+            "Generating report. This might take a while. We will send you an email when done."
+          }
           lottie={<Lottie animationData={LoadingLottie} loop={true} />}
         />
       ) : (
@@ -96,6 +168,11 @@ const ReportWrap = styled.div`
 
   p {
     margin: 1em 0;
+  }
+
+  p.writer-target.p-list-item {
+    margin: 0.5em 0;
+    padding-inline-start: 1em;
   }
 
   h1,

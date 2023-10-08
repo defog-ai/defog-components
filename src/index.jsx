@@ -594,7 +594,7 @@ export function AskDefogChat({
 // };
 
 export const DefogAgent = ({
-  initialSessionData = {},
+  initialReportData = {},
   agentsEndpoint = null,
 }) => {
   return (
@@ -603,7 +603,7 @@ export const DefogAgent = ({
     >
       <AgentMain
         agentsEndpoint={agentsEndpoint}
-        initialSessionData={initialSessionData}
+        initialReportData={initialReportData}
       />
     </ThemeContext.Provider>
   );

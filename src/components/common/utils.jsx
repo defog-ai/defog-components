@@ -561,5 +561,5 @@ export const reFormatData = (data, columns) => {
 };
 
 export const chartNames = {
-  kmc: "Kaplan-Meier Curve",
+  kmc: "Kaplan-Meier Curves",
 };

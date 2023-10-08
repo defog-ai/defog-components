@@ -17,13 +17,13 @@ function ReportTableChart({
   response,
   apiKey,
   apiEndpoint,
-  chartImage = null,
+  chartImages = null,
   sql,
 }) {
   return (
     <TableChart
       response={response}
-      chartImage={chartImage}
+      chartImages={chartImages}
       sql={sql}
       extraTabs={[
         {
@@ -65,25 +65,33 @@ export const csvTable = {
     const colNames = token.text.split("\n")[0].split(",");
     // find if there's an <sql> or <report-plot> tag
     // if so, save it separately
-    let sql = token.text.match(/<sql>[\s\S]*<\/sql>/);
-    if (sql) {
+    let sql = token.text.match(/(?:<sql>)([\s\S]*)(?:<\/sql>)/);
+    if (sql && sql.length > 1) {
       // remove this from the token.text
       token.text = token.text.replace(sql[0], "");
-      sql = sql[0];
+      sql = sql[1];
+    } else {
+      sql = null;
     }
 
     // find chart image
-    let chartImage = token.text.match(
-      /<report-img-chart[\s\S]*<\/report-img-chart>/,
+    let chartImages = Array.from(
+      token.text.matchAll(/<report-img-chart[\s\S]*?<\/report-img-chart>/gi),
     );
-    if (chartImage) {
-      // remove this from the token.text
-      token.text = token.text.replace(chartImage[0], "");
-      // get chartType
-      chartImage = {
-        path: chartImage[0].match(/path="(.*)" /)[1],
-        type: chartImage[0].match(/type="(.*)"/)[1],
-      };
+    if (chartImages.length) {
+      chartImages.forEach((chartImage, i) => {
+        try {
+          // remove this from the token.text
+          token.text = token.text.replace(chartImage[0], "");
+          // get chartType
+          chartImages[i] = {
+            path: chartImage[0].match(/path="(.*)" /)[1],
+            type: chartImage[0].match(/type="(.*)"/)[1],
+          };
+        } catch (err) {
+          console.log(err);
+        }
+      });
     }
 
     const rows = token.text
@@ -100,7 +108,7 @@ export const csvTable = {
       component: ReportTableChart,
       props: {
         sql,
-        chartImage,
+        chartImages,
         response: {
           columns: r.newCols,
           data: r.newRows,
@@ -114,22 +122,26 @@ export const csvTable = {
 
 export function postprocess(html) {
   let tag = null;
-  let tagWithattrs = null;
+  let tagWithAttrs = null;
 
   try {
     // insert "writer-target" as the class for whatever the html tag is
+    // also set contenteditable to true
     html.replace(/<([^/]*?)>/g, (match, p1) => {
       // if match has class already, add to the class
       if (p1.indexOf("class") > -1) {
-        tagWithattrs = p1.replace('class="', 'class="writer-target ');
+        tagWithAttrs = p1.replace('class="', 'class="writer-target ');
       } else {
-        tagWithattrs = p1 + ' class="writer-target"';
+        tagWithAttrs = p1 + ' class="writer-target"';
       }
       tag = p1.split(" ")[0];
       return;
     });
 
-    return `<${tagWithattrs}></${tag}>`;
+    // make all non csv table tags editable
+    return `<${tagWithAttrs} ${
+      tagWithAttrs.indexOf("csv-table") > -1 ? "" : 'contenteditable="true"'
+    }></${tag}>`;
   } catch (e) {
     console.log(e);
     return html;
