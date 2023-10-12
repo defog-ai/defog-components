@@ -6,6 +6,7 @@ import React from "react";
 import { AskDefogChat } from "../../index";
 import { Logo } from "../svg/Logo";
 import { styled } from "styled-components";
+import { TableChartNew } from "../TableChartNew";
 
 const AskDefogWrap = styled.div`
   .results-panel .ant-collapse-extra {
@@ -117,6 +118,48 @@ export const csvTable = {
     });
 
     return `<div class="csv-table" id="${randomId}"></div>`;
+  },
+};
+
+export const csvTableNew = {
+  name: "csvTableNew",
+  level: "block",
+  start(src) {
+    return src.match(/^(<csv id=.*?>)/)?.index;
+  },
+  tokenizer(src) {
+    const rule = /^(?:<csv id=.*?>)([\s\S]*?)(?:<\/csv>)(?:\n|$)/;
+    const match = rule.exec(src);
+    if (match) {
+      const token = {
+        type: "csvTableNew",
+        raw: match[0],
+        text: match[1].trim(),
+        tokens: [],
+      };
+      this.lexer.inline(token.text, token.tokens);
+      return token;
+    }
+  },
+  renderer(token) {
+    let tableId = null;
+    try {
+      tableId = token.raw.match(/^(?:<csv id=")(.*?)(?:">)/)[1];
+    } catch (e) {
+      console.log(e);
+    }
+
+    window.renders = window.renders || [];
+    window.renders.push({
+      id: tableId,
+      text: token.text,
+      component: TableChartNew,
+      props: {
+        tableId,
+      },
+    });
+
+    return `<div class="csv-table" id="${tableId}"></div>`;
   },
 };
 
