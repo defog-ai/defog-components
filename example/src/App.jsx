@@ -78,26 +78,26 @@ const App = () => {
       }}
     >
       <div style={{ width: "100%" }}>
-        {/* <AskDefogChat
+        <AskDefogChat
           maxWidth={"100%"}
           maxHeight={"100%"}
-          // apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
+          apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
           // apiEndpoint="https://us-central1-defog-backend.cloudfunctions.net/agents-gcp"
-          apiEndpoint="ws://localhost:8000/ws"
+          // apiEndpoint="ws://localhost:8000/ws"
           buttonText={"Ask Defog"}
           debugMode={true}
-          apiKey={"test"}
+          // apiKey={"test"}
           sqlOnly={false}
           dashboard={false}
           enableNarrative={false}
           darkMode={false}
-          agent={true}
-          mode={"websocket"}
+          // agent={true}
+          // mode={"websocket"}
           // narrativeEnabled={false}
           // additionalParams={{ "test" : "test"}}
           // additionalHeaders={{ "test": "test" }}
-        /> */}
-        <UtilsContext.Provider
+        />
+        {/* <UtilsContext.Provider
           value={{
             apiKey: "test",
             additionalHeaders: {},
@@ -107,7 +107,7 @@ const App = () => {
           }}
         >
           <DefogAgent agentsEndpoint={"wss://agents.defog.ai/ws"}></DefogAgent>
-        </UtilsContext.Provider>
+        </UtilsContext.Provider> */}
       </div>
     </div>
   );
