@@ -1,13 +1,17 @@
 import React, { useEffect, Fragment, useState } from "react";
 import { marked } from "marked";
-import { csvTable, postprocess } from "../report-gen/marked-extensions";
+import {
+  csvTable,
+  csvTableNew,
+  postprocess,
+} from "../report-gen/marked-extensions";
 import { styled } from "styled-components";
 import WriterGroup from "../agent/WriterGroup";
 import Lottie from "lottie-react";
 import LoadingLottie from "../svg/loader.json";
 import AgentLoader from "../common/AgentLoader";
 
-marked.use({ extensions: [csvTable], hooks: { postprocess } });
+marked.use({ extensions: [csvTable, csvTableNew], hooks: { postprocess } });
 
 export function ReportDisplay({
   sections,
@@ -29,7 +33,8 @@ export function ReportDisplay({
         key: section.section_number + "-" + i,
         emptyHtml: marked.parse(tok.raw),
         animate: animate,
-        text: tok.type === "csvTable" ? "" : tok.text,
+        text:
+          tok.type === "csvTable" || tok.type === "csvTableNew" ? "" : tok.text,
       };
     });
     // if /'s a list, convert it to multiple p tags with a class
@@ -98,7 +103,14 @@ export function ReportDisplay({
   }, [sections]);
 
   function onChange(ev, item) {
-    if (!item || !item.type || !ev || !ev.target || item.type === "csvTable")
+    if (
+      !item ||
+      !item.type ||
+      !ev ||
+      !ev.target ||
+      item.type === "csvTable" ||
+      item.type === "csvTableNew"
+    )
       return;
     try {
       const [sectionNumber, tokenIdx] = item.key

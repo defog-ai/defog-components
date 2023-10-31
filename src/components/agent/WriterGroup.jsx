@@ -11,8 +11,8 @@ export default function WriterGroup({ items, onChange = () => {} }) {
 
   function onComplete(item) {
     try {
-      if (item.type === "csvTable") {
-        const id = item.emptyHtml.match(/csv-table-[0-9]+/)[0];
+      if (item.type === "csvTable" || item.type === "csvTableNew") {
+        const id = item.emptyHtml.match(/"csv-table-.+"/)[0].slice(1, -1);
         // find the matching id in window.renders
         const rdr = window.renders.find((d) => d.id === id);
 
