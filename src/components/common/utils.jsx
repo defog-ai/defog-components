@@ -329,19 +329,23 @@ export function sanitiseColumns(columns) {
   return cleanColumns;
 }
 
-export function sanitiseData(data, removePercentages = false) {
+export function sanitiseData(data, chart = false) {
   // check if it's not an array or undefined
   if (!Array.isArray(data) || !data) {
     return [];
   }
+
   // filter out null elements from data array
   // for the remaining rows, check if the whole row is null
-  const cleanData = data
+  let cleanData;
+  if (!chart) {
+    cleanData = data
     .filter((d) => d)
     .filter((d) => !d.every((val) => val === null));
-  
-  // if removePercentages is true, remove the % sign from the end of all values, and convert values with a % sign to a number
-  if (removePercentages) {
+  } else {
+    cleanData = data;
+
+    // remove percentage signs from data
     cleanData.forEach((d) => {
       Object.entries(d).forEach(([key, value]) => {
         if (typeof value === "string" && value.endsWith("%")) {
@@ -508,7 +512,7 @@ export const reFormatData = (data, columns) => {
 
   let validData = sanitiseData(data, false);
   let validColumns = sanitiseColumns(columns);
-
+  
   if (validColumns.length && validData.length) {
     const cols = columns;
     const rows = validData;
@@ -551,7 +555,9 @@ export const reFormatData = (data, columns) => {
 
       for (let j = 0; j < cols.length; j++) {
         if (numericAsString.indexOf(j) >= 0) {
-          row[cols[j]] = +rows[i][j];
+          row[cols[j]] = rows[i][j]
+          // convert rows[i][j] to number, while removing any commas or trailing % signs
+          // row[cols[j]] = +rows[i][j].replace(/,/g, "").replace(/%$/, "");
         } else if (stringAsNumeric.indexOf(j) >= 0) {
           row[cols[j]] = "" + rows[i][j];
         } else row[cols[j]] = rows[i][j];
