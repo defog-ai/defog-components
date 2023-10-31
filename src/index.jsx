@@ -23,7 +23,6 @@ import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 import AgentMain from "./components/agent/AgentMain";
 import Search from "antd/lib/input/Search";
-import { ReportDisplay } from "./components/report/ReportDisplay";
 
 export function AskDefogChat({
   apiEndpoint,

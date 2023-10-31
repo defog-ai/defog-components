@@ -90,9 +90,13 @@ export function roundColumns(data, columns) {
 // so use regex instead of typeof
 // from here: https://stackoverflow.com/questions/2811031/decimal-or-numeric-values-in-regular-expression-validation
 function isNumber(input) {
-  const regex1 = /^-?(0|[1-9]\d*)?(\.\d+)?$/;
-  const regex2 = /\d$/;
-  return regex1.test(input) && regex2.test(input);
+  // This regex matches a string that is a valid number with an optional % sign at the end.
+  const regex = /^-?(0|[1-9]\d*)?(\.\d+)?%?$/;
+  
+  // Check if the input ends with a digit or a % sign, ensuring it's a number or a percentage
+  const endsWithDigitOrPercent = /\d%?$/.test(input);
+  
+  return regex.test(input) && endsWithDigitOrPercent;
 }
 
 function isExpontential(input) {
@@ -113,13 +117,13 @@ export function inferColumnType(rows, colIdx, colName) {
     res["colType"] = "string";
     res["variableType"] = "categorical";
     res["numeric"] = false;
-    res["simpleTypeOf"] = typeof val;
+    res["simpleTypeOf"] = "string";
     return res;
   } else if (/^year$/gi.test(colName) || /^month$/gi.test(colName)) {
     res["colType"] = "date";
     res["variableType"] = "categorical";
     res["numeric"] = false;
-    res["simpleTypeOf"] = typeof val;
+    res["simpleTypeOf"] = "string";
     return res;
   } else {
     for (let i = 0; i < rows.length; i++) {
@@ -293,12 +297,15 @@ export function processData(data, columns) {
     xAxisColumnValues[c.key] = getColValues(data, [c.key]);
   });
 
+  const cleanedData = sanitiseData(data, true);
+
   return {
     xAxisColumns: xAxisColumns ? xAxisColumns : [],
     categoricalColumns: categoricalColumns ? categoricalColumns : [],
     yAxisColumns: yAxisColumns ? yAxisColumns : [],
     dateColumns: dateColumns ? dateColumns : [],
     xAxisColumnValues,
+    data: cleanedData,
   };
 }
 
@@ -322,7 +329,7 @@ export function sanitiseColumns(columns) {
   return cleanColumns;
 }
 
-export function sanitiseData(data) {
+export function sanitiseData(data, removePercentages = false) {
   // check if it's not an array or undefined
   if (!Array.isArray(data) || !data) {
     return [];
@@ -332,6 +339,17 @@ export function sanitiseData(data) {
   const cleanData = data
     .filter((d) => d)
     .filter((d) => !d.every((val) => val === null));
+  
+  // if removePercentages is true, remove the % sign from the end of all values, and convert values with a % sign to a number
+  if (removePercentages) {
+    cleanData.forEach((d) => {
+      Object.entries(d).forEach(([key, value]) => {
+        if (typeof value === "string" && value.endsWith("%")) {
+          d[key] = +value.slice(0, -1);
+        }
+      });
+    });
+  }
   return cleanData;
 }
 
@@ -488,7 +506,7 @@ export const reFormatData = (data, columns) => {
   // if inferred type is numeric but variable Type is "categorical"
   const stringAsNumeric = [];
 
-  let validData = sanitiseData(data);
+  let validData = sanitiseData(data, false);
   let validColumns = sanitiseColumns(columns);
 
   if (validColumns.length && validData.length) {
