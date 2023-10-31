@@ -23,7 +23,6 @@ import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 import AgentMain from "./components/agent/AgentMain";
 import Search from "antd/lib/input/Search";
-import { ReportDisplay } from "./components/report/ReportDisplay";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -299,7 +298,7 @@ export function AskDefogChat({
   const handleDataResponse = (dataResponse, query) => {
     // remove rows for which every value is null
     setRawData(sanitiseData(dataResponse?.data));
-
+    
     if (
       query.toLowerCase().indexOf("pie chart") > -1 ||
       query.toLowerCase().indexOf("piechart") > -1
