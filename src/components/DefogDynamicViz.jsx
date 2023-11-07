@@ -1,16 +1,13 @@
 import React, { useState, useContext, Fragment } from "react";
 import { Button, message, Modal, Input, ConfigProvider } from "antd";
-
 import { CloseOutlined } from "@ant-design/icons";
-
-import { download_csv, isEmpty, transformToCSV } from "./common/utils";
-
+import { isEmpty } from "./common/utils";
 import { styled } from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp";
 import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
-// import AgentMain from "./agent/ReportGen";
 import { TableChart } from "./TableChart";
+import Search from "antd/lib/input/Search";
 
 const errorMessages = {
   noReponse:
@@ -18,19 +15,17 @@ const errorMessages = {
 };
 
 const DefogDynamicViz = ({
-  vizType = null,
   response,
-  rawData,
   query,
   debugMode,
   apiKey,
-  resetChat,
   sqlOnly,
-  narrativeEnabled,
+  questionId,
+  followUpQuestion,
+  buttonLoading,
+  level
 }) => {
   const { theme } = useContext(ThemeContext);
-  const [narrative, setNarrative] = useState(null);
-  const [narrativeLoading, setNarrativeLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
 
@@ -88,69 +83,30 @@ const DefogDynamicViz = ({
 
   if (sqlOnly === true) {
     results = null;
-  } else if (vizType === "text") {
-    results = <pre>{response.results}</pre>;
-  } else if (vizType === "agent") {
-    // results = <AgentMain agentsEndpoint={"ws://localhost:8000/ws"} />;
   } else {
     results = (
-      <TableChart response={response} query={query} vizType={vizType} />
+      <TableChart response={response} query={query} vizType={"table"} />
     );
   }
 
   let csvDownload;
 
   csvDownload = (
-    <div className="exportNarativeBtn">
-      {vizType === "agent" ? (
-        <></>
-      ) : (
-        <Button
-          onClick={() =>
-            download_csv(
-              transformToCSV(
-                rawData,
-                response.columns.map((d) => d.title),
-              ),
-            )
-          }
-        >
-          ⬇️ CSV
-        </Button>
-      )}
-
-      {narrativeEnabled && (
-        <Button
-          loading={narrativeLoading}
-          onClick={async () => {
-            setNarrativeLoading(true);
-            const resp = await fetch(
-              `https://api.defog.ai/generate_data_insights`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  apiKey: apiKey,
-                  data: {
-                    data: rawData.slice(0, 100),
-                    columns: response.columns,
-                  },
-                }),
-              },
-            );
-            const data = await resp.json();
-            setNarrative(data.response);
-            setNarrativeLoading(false);
-          }}
-        >
-          💭 Narrative
-        </Button>
-      )}
-
-      <Button onClick={() => resetChat()}>Reset Chat</Button>
-    </div>
+    // <div className="exportNarativeBtn">
+    //   <Button onClick={() => followUpQuestion()}>Follow Up Question</Button>
+    // </div>
+    <Search
+      placeholder={
+        "Enter a follow up question to get more insights from the data"
+      }
+      enterButton={"Ask Follow Up"}
+      size="small"
+      onSearch={(query) => {
+        followUpQuestion(query, questionId);
+      }}
+      loading={buttonLoading}
+      disabled={buttonLoading}
+    />
   );
 
   return (
@@ -194,8 +150,9 @@ const DefogDynamicViz = ({
           </FeedbackModalWrap>
         </Modal>
       </ConfigProvider>
-      <div>
+      <div style={{marginLeft: level*20, borderLeft: level > 0 ? "1px solid grey" : null}}>
         <ResultsWrap theme={theme.config}>
+          <p style={{ paddingTop: 15, paddingBottom: 15, paddingLeft: 10, backgroundColor: "#f3f3f3" }}>{response.question}</p>
           {results && results}
           {sqlOnly === false ? csvDownload : null}
         </ResultsWrap>
@@ -207,13 +164,6 @@ const DefogDynamicViz = ({
                   <p>The following query was generated:</p>
                   <pre>{response.generatedSql}</pre>
                 </>
-              )}
-
-              {narrativeEnabled && (
-                <div className="generatedNarrative">
-                  <p>Narrative</p>
-                  {narrative}
-                </div>
               )}
             </RateQualityContainer>
 
@@ -495,15 +445,6 @@ const RateQualityContainer = styled.div`
     &::-webkit-scrollbar-thumb {
       background-color: #1677ffc4;
       border-radius: 2px;
-    }
-  }
-
-  & > .generatedNarrative {
-    margin-bottom: 20px;
-    p {
-      font-weight: 600;
-      margin-top: 20px;
-      margin-bottom: 0px;
     }
   }
 `;
