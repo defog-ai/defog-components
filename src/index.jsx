@@ -146,7 +146,7 @@ export function AskDefogChat({
   }
 
   const handleSubmit = async (query, parentQuestionId = null, previousQuestions=[]) => {
-    if (!query.trim()) {
+    if (!query?.trim()) {
       // message.error("Please enter a question to search");
       return;
     }

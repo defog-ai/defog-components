@@ -11,7 +11,7 @@ const Answers = ({
 }) => {
   const [answers, setAnswers] = useState([]);
 
-  const followUpQuestion = (question, parentQuestionId) => {
+  let followUpQuestion = (question, parentQuestionId) => {
     const previousQuestions = []
     let nextParent = parentQuestionId;
     while (nextParent) {
@@ -23,7 +23,7 @@ const Answers = ({
     }
     handleSubmit(question, parentQuestionId, previousQuestions);
   }
-
+  
   useEffect(() => {
     const answers = Object.keys(questionsAsked).map((questionId) => {
       const { question, sql, level, parentQuestionId, askedAt, columns, data } = questionsAsked[questionId];
@@ -38,9 +38,42 @@ const Answers = ({
         data,
       }
     });
-    setAnswers(answers);
-    console.log(answers);
-  }, [forceReload]);
+    answers.sort((a, b) => {
+      if (a.level === 0 && b.level === 0) {
+        return a.askedAt > b.askedAt;
+      }
+      return 0;
+    });
+
+    const parentToChildrenMap = answers.reduce((map, answer) => {
+      if (answer.parentQuestionId !== undefined) {
+        if (!map[answer.parentQuestionId]) {
+          map[answer.parentQuestionId] = [];
+        }
+        map[answer.parentQuestionId].push(answer);
+      }
+      return map;
+    }, {});
+    
+    const getOrderedAnswers = (answerList, parentId) => {
+      let orderedAnswers = [];
+      for (const answer of answerList) {
+        if ((answer.parentQuestionId === parentId && answer.level !== 0) || (parentId === undefined && answer.level === 0)) {
+          orderedAnswers.push(answer);
+          // If this answer has children, add them right after the answer
+          if (parentToChildrenMap[answer.questionId]) {
+            const children = getOrderedAnswers(parentToChildrenMap[answer.questionId], answer.questionId);
+            orderedAnswers = orderedAnswers.concat(children);
+          }
+        }
+      }
+      return orderedAnswers;
+    };
+
+    const orderedAnswers = getOrderedAnswers(answers);
+
+    setAnswers(orderedAnswers);
+  }, [questionsAsked, forceReload]);
   
   return (
     <div>
@@ -61,4 +94,4 @@ const Answers = ({
   )
 }
 
-export default Answers
+export default React.memo(Answers);
