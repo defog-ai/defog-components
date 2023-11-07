@@ -90,22 +90,21 @@ const DefogDynamicViz = ({
   }
 
   let csvDownload;
-
+  const customButton = <Button>Ask Follow Up</Button>
+  
   csvDownload = (
-    // <div className="exportNarativeBtn">
-    //   <Button onClick={() => followUpQuestion()}>Follow Up Question</Button>
-    // </div>
     <Search
       placeholder={
-        "Enter a follow up question to get more insights from the data"
+        "Continue asking related questions"
       }
-      enterButton={"Ask Follow Up"}
+      enterButton={customButton}
       size="small"
       onSearch={(query) => {
         followUpQuestion(query, questionId);
       }}
       loading={buttonLoading}
       disabled={buttonLoading}
+      style={{paddingBottom: "1em"}}
     />
   );
 
@@ -150,7 +149,7 @@ const DefogDynamicViz = ({
           </FeedbackModalWrap>
         </Modal>
       </ConfigProvider>
-      <div style={{marginLeft: level*20, borderLeft: level > 0 ? "1px solid grey" : null}}>
+      <div style={{ paddingLeft: level*10, marginLeft: level*10, borderLeft: level > 0 ? "1px dashed #d3d3d3" : null }}>
         <ResultsWrap theme={theme.config}>
           <p style={{ paddingTop: 15, paddingBottom: 15, paddingLeft: 10, backgroundColor: "#f3f3f3" }}>{response.question}</p>
           {results && results}
