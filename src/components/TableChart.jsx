@@ -43,7 +43,7 @@ export function TableChart({
             maxHeight: 300,
           }}
           size="small"
-          pagination={{ pageSize: 5, showSizeChanger: false }}
+          pagination={{ pageSize: 5, showSizeChanger: false, hideOnSinglePage: true }}
         />
       ),
       tabLabel: "Table",
