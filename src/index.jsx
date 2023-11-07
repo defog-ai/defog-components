@@ -4,11 +4,10 @@ import { Collapse, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
-import DefogDynamicViz from "./components/DefogDynamicViz";
+import Answers from "./components/Answers";
 import {
   questionModes,
   reFormatData,
-  sanitiseData,
 } from "./components/common/utils";
 import QALayout from "./components/common/QALayout";
 import {
@@ -21,7 +20,6 @@ import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
-import AgentMain from "./components/agent/AgentMain";
 import Search from "antd/lib/input/Search";
 
 export function AskDefogChat({
@@ -30,30 +28,22 @@ export function AskDefogChat({
   maxWidth = "100%",
   buttonText = "Ask Defog",
   debugMode = false,
-  personality = "Friendly",
   apiKey = null,
   darkMode,
   additionalParams = {},
   additionalHeaders = {},
   sqlOnly = false,
-  // dashboard = false,
   predefinedQuestions = [],
   mode = "http", // can be "websocket" or "http"
   loadingMessage = "Generating a query for your question...",
   agent = false,
-  narrativeEnabled = false,
   placeholderText = "",
 }) {
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
-
-  const [previousQuestions, setPreviousQuestions] = useState([]);
-  const [chatResponseArray, setChatResponseArray] = useState([]);
-  const [dataResponseArray, setDataResponseArray] = useState([]);
-  const [vizType, setVizType] = useState("table");
-  const [rawData, setRawData] = useState([]);
-
+  const [questionsAsked, setQuestionsAsked] = useState({});
+  const [forceReload, setForceReload] = useState(1);
   const questionMode = questionModes[agent ? 0 : 1];
 
   const [query, setQuery] = useState("");
@@ -93,11 +83,10 @@ export function AskDefogChat({
   }
 `;
 
-  function resetChat() {
-    setChatResponseArray([]);
-    setDataResponseArray([]);
-    setPreviousQuestions([]);
-    setRawData([]);
+  function uuidv4() {
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
   }
 
   useEffect(() => {
@@ -151,12 +140,12 @@ export function AskDefogChat({
       if (response.response_type === "model-completion") {
         handleChatResponse(response, query, agent, false);
       } else if (response.response_type === "generated-data") {
-        handleDataResponse(response, query);
+        handleDataResponse(response, query, null, {});
       }
     };
   }
 
-  const handleSubmit = async (query) => {
+  const handleSubmit = async (query, parentQuestionId = null, previousQuestions=[]) => {
     if (!query.trim()) {
       // message.error("Please enter a question to search");
       return;
@@ -187,7 +176,6 @@ export function AskDefogChat({
         JSON.stringify({
           question: query,
           previous_context: previousQuestions,
-          agent,
           api_key: apiKey,
         }),
       );
@@ -204,8 +192,6 @@ export function AskDefogChat({
             question: query,
             previous_context: previousQuestions,
             ...additionalParams,
-            personality: personality,
-            agent,
             api_key: apiKey,
           }),
         }).then((d) => d.json());
@@ -218,13 +204,13 @@ export function AskDefogChat({
           );
         }
 
-        handleChatResponse(queryChatResponse, query, agent, !agent);
+        handleChatResponse(queryChatResponse, query, agent, !agent, parentQuestionId);
       } catch (e) {
-        console.log(e);
         // from agents
         if (queryChatResponse?.error_message) {
           message.error(queryChatResponse.error_message);
         } else {
+          console.log(e);
           message.error(
             "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
           );
@@ -239,8 +225,8 @@ export function AskDefogChat({
     query,
     agent = false,
     executeData = true,
+    parentQuestionId = null,
   ) {
-    console.log(queryChatResponse, agent, executeData);
     // parse agent sub_qns in case string
     if (agent && typeof queryChatResponse.sub_qns === "string") {
       try {
@@ -257,89 +243,47 @@ export function AskDefogChat({
     }
 
     // set response array to have the latest everything except data and columns
-    setChatResponseArray([
-      ...chatResponseArray,
-      !agent
-        ? {
-            queryReason: queryChatResponse.reason_for_query,
-            suggestedQuestions:
-              queryChatResponse.suggestion_for_further_questions,
-            question: query,
-            generatedSql:
-              queryChatResponse.query_generated || queryChatResponse.code,
-            previousContext: previousQuestions,
-            results: queryChatResponse.results,
-            agent: false,
-          }
-        : {
-            subQns: queryChatResponse.sub_qns,
-            question: query,
-            agent: true,
-          },
-    ]);
+    const questionId = uuidv4();
+    const now = new Date();
 
-    const contextQuestions = [query, queryChatResponse.query_generated];
-    setPreviousQuestions([...previousQuestions, ...contextQuestions]);
+    console.log(questionsAsked);
+    const updatedQuestions = {
+      ...questionsAsked,
+      [questionId]: {
+        question: query,
+        sql: queryChatResponse.query_generated || queryChatResponse.code,
+        parentQuestionId,
+        level: parentQuestionId ? questionsAsked[parentQuestionId]?.level + 1 : 0,
+        askedAt: now.toISOString(),
+      },
+    }
 
-    if (sqlOnly === false && executeData) {
-      handleDataResponse(queryChatResponse, query);
+    if (sqlOnly === false & executeData) {
+      handleDataResponse(queryChatResponse, query, questionId, updatedQuestions);
+    } else {
+      setQuestionsAsked({...updatedQuestions});
+      setForceReload(forceReload + 1);
     }
 
     if (sqlOnly === true || agent) {
       setButtonLoading(false);
     }
-
-    if (agent) {
-      setVizType("agent");
-      setDataResponseArray([...dataResponseArray, {}]);
-    }
   }
 
-  const handleDataResponse = (dataResponse, query) => {
+  const handleDataResponse = (dataResponse, query, questionId, questionsAsked) => {
     // remove rows for which every value is null
-    setRawData(sanitiseData(dataResponse?.data));
-    
-    if (
-      query.toLowerCase().indexOf("pie chart") > -1 ||
-      query.toLowerCase().indexOf("piechart") > -1
-    ) {
-      setVizType("Pie Chart");
-    } else if (
-      query.toLowerCase().indexOf("bar chart") > -1 ||
-      query.toLowerCase().indexOf("barchart") > -1 ||
-      query.toLowerCase().indexOf("column chart") > -1 ||
-      query.toLowerCase().indexOf("columnchart") > -1
-    ) {
-      setVizType("Bar Chart");
-    } else if (
-      query.toLowerCase().indexOf("trend chart") > -1 ||
-      query.toLowerCase().indexOf("trendchart") > -1 ||
-      query.toLowerCase().indexOf("line chart") > -1 ||
-      query.toLowerCase().indexOf("linechart") > -1
-    ) {
-      setVizType("Line Chart");
-    } else if (dataResponse.code) {
-      setVizType("text");
-    } else if (query.toLowerCase().indexOf(" chart ") > -1) {
-      setVizType("Bar Chart");
-    } else {
-      setVizType("table");
-    }
-
     const { newRows, newCols } = reFormatData(
       dataResponse?.data,
       dataResponse?.columns,
     );
 
-    // update the last item in response array with the above data and columns
-    setDataResponseArray([
-      ...dataResponseArray,
-      {
-        data: newRows,
-        columns: newCols,
-      },
-    ]);
+    const newQuestionsAsked = { ...questionsAsked };
+    newQuestionsAsked[questionId].data = newRows;
+    newQuestionsAsked[questionId].columns = newCols;
+    setQuestionsAsked({ ...newQuestionsAsked });
+    setForceReload(forceReload + 1);
 
+    // update the last item in response array with the above data and columns
     setButtonLoading(false);
 
     // scroll to the bottom of the results div
@@ -418,79 +362,24 @@ export function AskDefogChat({
                       paddingTop: 0,
                       paddingBottom: 0,
                       display:
-                        chatResponseArray.length === 0 ? "none" : "block",
+                        questionsAsked.length === 0 ? "none" : "block",
                     }}
                   >
-                    {chatResponseArray.map((response, index) => {
-                      return (
-                        <ColoredContainer key={index} theme={theme.config}>
-                          <QALayout type={"Question"}>
-                            <p style={{ margin: 0 }}>{response.question}</p>
-                          </QALayout>
-                          <QALayout type={"Answer"}>
-                            <>
-                              <p style={{ marginTop: 0 }}>
-                                {response.queryReason}
-                              </p>
-                              {sqlOnly === true ? (
-                                <DefogDynamicViz
-                                  vizType={vizType}
-                                  response={Object.assign(
-                                    chatResponseArray[index],
-                                  )}
-                                  rawData={[]}
-                                  query={query}
-                                  debugMode={debugMode}
-                                  apiKey={apiKey}
-                                  sqlOnly={true}
-                                  resetChat={resetChat}
-                                  narrativeEnabled={narrativeEnabled}
-                                />
-                              ) : !dataResponseArray[index] ? (
-                                <div
-                                  className="data-loading-search-state"
-                                  style={{ width: "50%", margin: "0 auto" }}
-                                >
-                                  <SearchState
-                                    message={
-                                      "Query generated! Getting your data..."
-                                    }
-                                    lottie={
-                                      <Lottie
-                                        animationData={LoadingLottie}
-                                        loop={true}
-                                      />
-                                    }
-                                  />
-                                </div>
-                              ) : (
-                                <DefogDynamicViz
-                                  vizType={vizType}
-                                  response={Object.assign(
-                                    chatResponseArray[index],
-                                    dataResponseArray[index],
-                                  )}
-                                  rawData={rawData}
-                                  query={query}
-                                  debugMode={debugMode}
-                                  apiKey={apiKey}
-                                  sqlOnly={false}
-                                  resetChat={resetChat}
-                                />
-                              )}
-                            </>
-                          </QALayout>
-                        </ColoredContainer>
-                      );
-                    })}
+                    <Answers
+                      questionsAsked={questionsAsked}
+                      debugMode={debugMode}
+                      sqlOnly={sqlOnly}
+                      handleSubmit={handleSubmit}
+                      buttonLoading={buttonLoading}
+                      forceReload={forceReload}
+                    />
                   </div>
                   {/* 
                   if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet for the most recently asked question, otherwise we'd have chatResponse and a missing dataResponse.
                   Hence it won't show up in the chat response array map above.
                   So render an extra layout + lottie loader for the most recently asked question.
                   */}
-                  {buttonLoading &&
-                  chatResponseArray.length === dataResponseArray.length ? (
+                  {buttonLoading ? (
                     <div
                       style={{
                         background: theme.config.background2,
@@ -537,7 +426,9 @@ export function AskDefogChat({
                         }
                         enterButton={buttonText}
                         size="small"
-                        onSearch={handleSubmit}
+                        onSearch={(query) => {
+                          handleSubmit(query, null, []);
+                        }}
                         loading={buttonLoading}
                         disabled={buttonLoading}
                       />
@@ -545,25 +436,6 @@ export function AskDefogChat({
                   </SearchWrap>
                 </Panel>
               </Collapse>
-              {/* {dashboard ? (
-                <div>
-                  <Row style={{ paddingLeft: 20 }} gutter={8}>
-                    {dashboardCharts.map((chart, index) => {
-                      return (
-                        <Col xs={{ span: 24 }} md={{ span: 12 }} key={index}>
-                          <h3>{chart.title}</h3>
-                          <DefogDynamicViz
-                            vizType={chart.vizType}
-                            response={chart}
-                            rawData={chart.rawData}
-                            query={""}
-                          />
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                </div>
-              ) : null} */}
             </div>
           </Wrap>
         </ThemeContext.Provider>
@@ -571,42 +443,6 @@ export function AskDefogChat({
     </>
   );
 }
-
-// export const DefogReport = ({
-//   reportSections,
-//   theme = { type: "light", config: lightThemeColor },
-//   loading = false,
-// }) => {
-//   return (
-//     <ThemeContext.Provider
-//       value={{ theme: { type: "light", config: lightThemeColor } }}
-//     >
-//       <div className="report">
-//         <ReportDisplay
-//           sections={reportSections}
-//           theme={theme}
-//           loading={loading}
-//         />
-//       </div>
-//     </ThemeContext.Provider>
-//   );
-// };
-
-export const DefogAgent = ({
-  initialReportData = {},
-  agentsEndpoint = null,
-}) => {
-  return (
-    <ThemeContext.Provider
-      value={{ theme: { type: "light", config: lightThemeColor } }}
-    >
-      <AgentMain
-        agentsEndpoint={agentsEndpoint}
-        initialReportData={initialReportData}
-      />
-    </ThemeContext.Provider>
-  );
-};
 
 const Wrap = styled.div`
   position: relative;
@@ -635,37 +471,6 @@ const Wrap = styled.div`
     }
   }
 `;
-
-const ColoredContainer = styled.div`
-  background: ${(props) => (props.theme ? props.theme.background3 : "#F8FAFB")};
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  margin-top: 20px;
-
-  @container (max-width: 767px) {
-    padding: 12px;
-  }
-`;
-
-// const SuggestedQuestionWrap = styled.button`
-//   font-size: 14px;
-//   margin-top: 4px;
-//   background: ${(props) => (props.theme ? props.theme.background2 : "#F8FAFB")};
-//   color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
-//   border-radius: 7px;
-//   padding: 12px;
-//   display: inline-block;
-//   border: none;
-//   cursor: pointer;
-//   text-align: left;
-
-//   span {
-//     display: block;
-//     color: inherit;
-//     font-weight: 600;
-//   }
-// `;
 
 const SearchWrap = styled.div`
   display: flex;
