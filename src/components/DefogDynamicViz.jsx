@@ -183,7 +183,7 @@ const DefogDynamicViz = ({
   );
 };
 
-export default React.memo(DefogDynamicViz, () => true);
+export default React.memo(DefogDynamicViz);
 
 const ResultsWrap = styled.div`
   position: relative;
