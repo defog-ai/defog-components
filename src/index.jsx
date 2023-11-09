@@ -5,10 +5,7 @@ import { CaretRightOutlined } from "@ant-design/icons";
 import SearchState from "./components/SearchState";
 import LoadingLottie from "./components/svg/loader.json";
 import Answers from "./components/Answers";
-import {
-  questionModes,
-  reFormatData,
-} from "./components/common/utils";
+import { questionModes, reFormatData } from "./components/common/utils";
 import QALayout from "./components/common/QALayout";
 import {
   ThemeContext,
@@ -41,7 +38,7 @@ export function AskDefogChat({
 }) {
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
-  const [buttonLoading, setButtonLoading] = useState(false);
+  const [globalLoading, setGlobalLoading] = useState(false);
   const [questionsAsked, setQuestionsAsked] = useState({});
   const [forceReload, setForceReload] = useState(1);
   const questionMode = questionModes[agent ? 0 : 1];
@@ -84,8 +81,11 @@ export function AskDefogChat({
 `;
 
   function uuidv4() {
-    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
-      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+      (
+        c ^
+        (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
+      ).toString(16),
     );
   }
 
@@ -145,7 +145,11 @@ export function AskDefogChat({
     };
   }
 
-  const handleSubmit = async (query, parentQuestionId = null, previousQuestions=[]) => {
+  const handleSubmit = async (
+    query,
+    parentQuestionId = null,
+    previousQuestions = [],
+  ) => {
     if (!query?.trim()) {
       // message.error("Please enter a question to search");
       return;
@@ -158,7 +162,7 @@ export function AskDefogChat({
       }
     }, 0);
 
-    setButtonLoading(true);
+    setGlobalLoading(true);
     setQuery(query);
     setTimeout(() => {
       const divEl = document.getElementById("results");
@@ -204,7 +208,13 @@ export function AskDefogChat({
           );
         }
 
-        handleChatResponse(queryChatResponse, query, agent, !agent, parentQuestionId);
+        handleChatResponse(
+          queryChatResponse,
+          query,
+          agent,
+          !agent,
+          parentQuestionId,
+        );
       } catch (e) {
         // from agents
         if (queryChatResponse?.error_message) {
@@ -215,7 +225,7 @@ export function AskDefogChat({
             "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
           );
         }
-        setButtonLoading(false);
+        setGlobalLoading(false);
       }
     }
   };
@@ -238,7 +248,7 @@ export function AskDefogChat({
         message.error(
           "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
         );
-        setButtonLoading(false);
+        setGlobalLoading(false);
       }
     }
 
@@ -253,24 +263,36 @@ export function AskDefogChat({
         question: query,
         sql: queryChatResponse.query_generated || queryChatResponse.code,
         parentQuestionId,
-        level: parentQuestionId ? questionsAsked[parentQuestionId]?.level + 1 : 0,
+        level: parentQuestionId
+          ? questionsAsked[parentQuestionId]?.level + 1
+          : 0,
         askedAt: now.toISOString(),
       },
-    }
+    };
 
-    if (sqlOnly === false & executeData) {
-      handleDataResponse(queryChatResponse, query, questionId, updatedQuestions);
+    if ((sqlOnly === false) & executeData) {
+      handleDataResponse(
+        queryChatResponse,
+        query,
+        questionId,
+        updatedQuestions,
+      );
     } else {
-      setQuestionsAsked({...updatedQuestions});
+      setQuestionsAsked({ ...updatedQuestions });
       setForceReload(forceReload + 1);
     }
 
     if (sqlOnly === true || agent) {
-      setButtonLoading(false);
+      setGlobalLoading(false);
     }
   }
 
-  const handleDataResponse = (dataResponse, query, questionId, questionsAsked) => {
+  const handleDataResponse = (
+    dataResponse,
+    query,
+    questionId,
+    questionsAsked,
+  ) => {
     // remove rows for which every value is null
     const { newRows, newCols } = reFormatData(
       dataResponse?.data,
@@ -284,7 +306,7 @@ export function AskDefogChat({
     setForceReload(forceReload + 1);
 
     // update the last item in response array with the above data and columns
-    setButtonLoading(false);
+    setGlobalLoading(false);
 
     // scroll to the bottom of the results div
     setTimeout(() => {
@@ -361,8 +383,7 @@ export function AskDefogChat({
                       overflowX: "scroll",
                       paddingTop: 0,
                       paddingBottom: 0,
-                      display:
-                        questionsAsked.length === 0 ? "none" : "block",
+                      display: questionsAsked.length === 0 ? "none" : "block",
                     }}
                   >
                     <Answers
@@ -370,7 +391,7 @@ export function AskDefogChat({
                       debugMode={debugMode}
                       sqlOnly={sqlOnly}
                       handleSubmit={handleSubmit}
-                      buttonLoading={buttonLoading}
+                      globalLoading={globalLoading}
                       forceReload={forceReload}
                     />
                   </div>
@@ -379,7 +400,7 @@ export function AskDefogChat({
                   Hence it won't show up in the chat response array map above.
                   So render an extra layout + lottie loader for the most recently asked question.
                   */}
-                  {buttonLoading ? (
+                  {/* {globalLoading ? (
                     <div
                       style={{
                         background: theme.config.background2,
@@ -405,8 +426,8 @@ export function AskDefogChat({
                     </div>
                   ) : (
                     ""
-                  )}
-                  <SearchWrap $loading={buttonLoading} theme={theme.config}>
+                  )} */}
+                  <SearchWrap $loading={globalLoading} theme={theme.config}>
                     <AutoComplete
                       style={{ width: "100%" }}
                       options={predefinedQuestions.map((x) => ({
@@ -429,8 +450,8 @@ export function AskDefogChat({
                         onSearch={(query) => {
                           handleSubmit(query, null, []);
                         }}
-                        loading={buttonLoading}
-                        disabled={buttonLoading}
+                        loading={globalLoading}
+                        disabled={globalLoading}
                       />
                     </AutoComplete>
                   </SearchWrap>

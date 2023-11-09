@@ -1,4 +1,4 @@
-import React, { useState, useContext, Fragment } from "react";
+import React, { useState, useContext, Fragment, useEffect } from "react";
 import { Button, message, Modal, Input, ConfigProvider } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import { isEmpty } from "./common/utils";
@@ -22,12 +22,21 @@ const DefogDynamicViz = ({
   sqlOnly,
   questionId,
   followUpQuestion,
-  buttonLoading,
-  level
+  globalLoading,
+  level,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
+  const [followUpLoading, setFollowUpLoading] = useState(false);
+
+  useEffect(() => {
+    // if global loading goes to false, set button loading to false
+    // but not if global loading goes to true, because global loading could be true but this current answer might not be the one that fired it
+    if (globalLoading === false) {
+      setFollowUpLoading(false);
+    }
+  }, [globalLoading]);
 
   // if no response, return error
   if (!response || isEmpty(response)) {
@@ -89,22 +98,20 @@ const DefogDynamicViz = ({
     );
   }
 
-  let csvDownload;
-  const customButton = <Button>Ask Follow Up</Button>
-  
-  csvDownload = (
+  const customButton = <Button>Ask Follow Up</Button>;
+
+  const followUpSearch = (
     <Search
-      placeholder={
-        "Continue asking related questions"
-      }
+      placeholder={"Continue asking related questions"}
       enterButton={customButton}
       size="small"
       onSearch={(query) => {
+        setFollowUpLoading(true);
         followUpQuestion(query, questionId);
       }}
-      loading={buttonLoading}
-      disabled={buttonLoading}
-      style={{paddingBottom: "1em"}}
+      loading={followUpLoading}
+      disabled={followUpLoading}
+      style={{ paddingBottom: "1em" }}
     />
   );
 
@@ -149,11 +156,26 @@ const DefogDynamicViz = ({
           </FeedbackModalWrap>
         </Modal>
       </ConfigProvider>
-      <div style={{ paddingLeft: level*10, marginLeft: level*10, borderLeft: level > 0 ? "1px dashed #d3d3d3" : null }}>
+      <div
+        style={{
+          paddingLeft: level * 10,
+          marginLeft: level * 10,
+          borderLeft: level > 0 ? "1px dashed #d3d3d3" : null,
+        }}
+      >
         <ResultsWrap theme={theme.config}>
-          <p style={{ paddingTop: 15, paddingBottom: 15, paddingLeft: 10, backgroundColor: "#f3f3f3" }}>{response.question}</p>
+          <p
+            style={{
+              paddingTop: 15,
+              paddingBottom: 15,
+              paddingLeft: 10,
+              backgroundColor: "#f3f3f3",
+            }}
+          >
+            {response.question}
+          </p>
           {results && results}
-          {sqlOnly === false ? csvDownload : null}
+          {sqlOnly === false ? followUpSearch : null}
         </ResultsWrap>
         {debugMode && (
           <>
