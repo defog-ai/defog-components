@@ -1,12 +1,8 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
-import Lottie from "lottie-react";
 import { Collapse, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
-import SearchState from "./components/SearchState";
-import LoadingLottie from "./components/svg/loader.json";
 import Answers from "./components/Answers";
 import { questionModes, reFormatData } from "./components/common/utils";
-import QALayout from "./components/common/QALayout";
 import {
   ThemeContext,
   darkThemeColor,
@@ -401,38 +397,6 @@ export function AskDefogChat({
                       level0Loading={level0Loading}
                     />
                   </div>
-                  {/* 
-                  if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet for the most recently asked question, otherwise we'd have chatResponse and a missing dataResponse.
-                  Hence it won't show up in the chat response array map above.
-                  So render an extra layout + lottie loader for the most recently asked question.
-                  */}
-                  {/* {globalLoading ? (
-                    <div
-                      style={{
-                        background: theme.config.background2,
-                        borderRadius: "12px",
-                        padding: "20px",
-                      }}
-                    >
-                      <QALayout type={"Question"}>
-                        <p style={{ margin: 0 }}>{query}</p>
-                      </QALayout>
-
-                      <div
-                        className="data-loading-search-state"
-                        style={{ width: "50%", margin: "0 auto" }}
-                      >
-                        <SearchState
-                          message={loadingMessage}
-                          lottie={
-                            <Lottie animationData={LoadingLottie} loop={true} />
-                          }
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    ""
-                  )} */}
                   <SearchWrap $loading={globalLoading} theme={theme.config}>
                     <AutoComplete
                       style={{ width: "100%" }}

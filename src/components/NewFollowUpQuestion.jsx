@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { ThemeContext } from "../context/ThemeContext";
 import { Button } from "antd";
@@ -19,6 +19,7 @@ export default function NewFollowUpQuestion({
   const customButton = <Button>Ask Follow Up</Button>;
   const [followUpLoading, setFollowUpLoading] = useState(false);
 
+  const [followUpText, setFollowUpText] = useState("");
   useEffect(() => {
     // if global loading goes to false, set button loading to false
     // but not if global loading goes to true, because global loading could be true but this current answer might not be the one that fired it
@@ -50,8 +51,12 @@ export default function NewFollowUpQuestion({
                 followUpLoader
               ) : (
                 <Search
+                  value={followUpText}
                   autoFocus={true}
-                  onBlur={() => setShowNewFollowUp(false)}
+                  onChange={(e) => setFollowUpText(e.target.value)}
+                  onBlur={() => {
+                    setShowNewFollowUp(false);
+                  }}
                   className="follow-up-search"
                   placeholder={"Continue asking related questions"}
                   enterButton={customButton}

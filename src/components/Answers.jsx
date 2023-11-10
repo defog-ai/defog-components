@@ -6,7 +6,6 @@ import React, {
   useEffect,
 } from "react";
 import DefogDynamicViz from "./DefogDynamicViz";
-import Sidebar from "./Sidebar";
 import SearchState from "./SearchState";
 import Lottie from "lottie-react";
 import LoadingLottie from "./svg/loader.json";
