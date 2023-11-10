@@ -1,13 +1,14 @@
 import React, { useState, useContext, Fragment, useEffect } from "react";
-import { Button, message, Modal, Input, ConfigProvider } from "antd";
+import { Button, message, Modal, Input, ConfigProvider, Collapse } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
-import { isEmpty } from "./common/utils";
+import { isEmpty, sentenceCase } from "./common/utils";
 import { styled } from "styled-components";
 import ThumbsUp from "./svg/ThumbsUp";
 import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
 import { TableChart } from "./TableChart";
 import Search from "antd/lib/input/Search";
+import { BsPlusCircle } from "react-icons/bs";
 
 const errorMessages = {
   noReponse:
@@ -21,22 +22,11 @@ const DefogDynamicViz = ({
   apiKey,
   sqlOnly,
   questionId,
-  followUpQuestion,
-  globalLoading,
   level,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [modalVisible, setModalVisible] = useState(false);
   const { TextArea } = Input;
-  const [followUpLoading, setFollowUpLoading] = useState(false);
-
-  useEffect(() => {
-    // if global loading goes to false, set button loading to false
-    // but not if global loading goes to true, because global loading could be true but this current answer might not be the one that fired it
-    if (globalLoading === false) {
-      setFollowUpLoading(false);
-    }
-  }, [globalLoading]);
 
   // if no response, return error
   if (!response || isEmpty(response)) {
@@ -98,23 +88,6 @@ const DefogDynamicViz = ({
     );
   }
 
-  const customButton = <Button>Ask Follow Up</Button>;
-
-  const followUpSearch = (
-    <Search
-      placeholder={"Continue asking related questions"}
-      enterButton={customButton}
-      size="small"
-      onSearch={(query) => {
-        setFollowUpLoading(true);
-        followUpQuestion(query, questionId);
-      }}
-      loading={followUpLoading}
-      disabled={followUpLoading}
-      style={{ paddingBottom: "1em" }}
-    />
-  );
-
   return (
     <>
       <ConfigProvider
@@ -156,27 +129,27 @@ const DefogDynamicViz = ({
           </FeedbackModalWrap>
         </Modal>
       </ConfigProvider>
-      <div
-        style={{
-          paddingLeft: level * 10,
-          marginLeft: level * 10,
-          borderLeft: level > 0 ? "1px dashed #d3d3d3" : null,
-        }}
-      >
-        <ResultsWrap theme={theme.config}>
-          <p
-            style={{
-              paddingTop: 15,
-              paddingBottom: 15,
-              paddingLeft: 10,
-              backgroundColor: "#f3f3f3",
-            }}
-          >
-            {response.question}
-          </p>
-          {results && results}
-          {sqlOnly === false ? followUpSearch : null}
+      <AnswerWrap level={level} theme={theme}>
+        <ResultsWrap theme={theme.config} level={level}>
+          <Collapse
+            defaultActiveKey={[questionId]}
+            expandIconPosition="end"
+            expandIcon={({ isActive }) => (
+              <>{isActive ? "Click to hide table" : "Click to show table"}</>
+            )}
+            ghost
+            items={[
+              {
+                key: questionId,
+                label: sentenceCase(response.question),
+                children: results && results,
+              },
+            ]}
+          />
+          {/* <p>{response.question}</p>
+          {results && results} */}
         </ResultsWrap>
+
         {debugMode && (
           <>
             <RateQualityContainer theme={theme.config}>
@@ -199,7 +172,7 @@ const DefogDynamicViz = ({
             </FeedbackWrap>
           </>
         )}
-      </div>
+      </AnswerWrap>
     </>
   );
 };
@@ -209,6 +182,7 @@ export default React.memo(DefogDynamicViz);
 const ResultsWrap = styled.div`
   position: relative;
   width: 100%;
+  padding: 0.2em 0;
 
   .ant-tabs-nav {
     margin-bottom: 0;
@@ -222,20 +196,36 @@ const ResultsWrap = styled.div`
   .ant-tabs-content-holder {
     background: ${(props) =>
       props.theme ? props.theme.background2 : "#F8FAFB"};
-    padding: 12px;
+    padding: 12px 0px;
     border-radius: 0px 0px 7px 7px;
     overflow: hidden;
   }
+  .ant-collapse-expand-icon {
+    margin-inline-start: 0 !important;
+    padding-inline-start: 5px !important;
+    opacity: 0;
+    font-weight: normal;
+    font-size: 0.8em;
+    color: ${(props) => (props.theme ? props.theme.brandLight : "#0D0D0D")};
+  }
+  &:hover {
+    .ant-collapse-expand-icon {
+      opacity: 1;
+    }
+  }
   .ant-tabs-ink-bar.ant-tabs-ink-bar-animated {
-    background: ${(props) =>
-      props.theme ? props.theme.background2 : "#F8FAFB"};
-    height: 100%;
-    border-radius: 7px 7px 0px 0px;
+    background: transparent;
+    height: 2px;
+  }
+
+  .ant-tabs-top > .ant-tabs-nav::before {
+    border-bottom: none;
   }
   .ant-tabs-tab {
     background: ${(props) =>
       props.theme ? props.theme.background2 : "#F8FAFB"};
-    padding: 12px 20px;
+    padding: 12px 8px;
+    padding-right: 15px;
     border-radius: 7px 7px 0px 0px;
     opacity: 0.5;
     overflow: hidden;
@@ -254,76 +244,6 @@ const ResultsWrap = styled.div`
   }
   .ant-tabs .ant-tabs-tab + .ant-tabs-tab {
     margin: 0 0 0 2px;
-  }
-
-  .ant-table-wrapper .ant-table {
-    background: ${(props) =>
-      props.theme ? props.theme.background2 : "#F8FAFB"};
-    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
-  }
-  .ant-table-wrapper .ant-table-thead > tr > th,
-  .ant-table-wrapper .ant-table-thead > tr > td {
-    background: ${(props) =>
-      props.theme ? props.theme.background2 : "#F8FAFB"};
-    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
-  }
-  .ant-table-wrapper .ant-table-column-sorter {
-    color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
-  }
-  .ant-table-wrapper .ant-table-thead th.ant-table-column-has-sorters:hover {
-    background: ${(props) =>
-      props.theme ? props.theme.background1 : "#F8FAFB"};
-  }
-  .ant-table-wrapper .ant-table-column-sorter-up.active,
-  .ant-table-wrapper .ant-table-column-sorter-down.active {
-    color: ${(props) => (props.theme ? props.theme.brandColor : "#2B59FF")};
-  }
-
-  .ant-table-wrapper td.ant-table-column-sort {
-    background: ${(props) =>
-      props.theme ? props.theme.background3 : "#F8FAFB"};
-  }
-  .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
-  .ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
-    background: ${(props) =>
-      props.theme ? props.theme.background1 : "#F8FAFB"};
-  }
-
-  .ant-table-wrapper
-    .ant-table:not(.ant-table-bordered)
-    .ant-table-tbody
-    > tr.ant-table-row:hover
-    > td:first-child,
-  .ant-table:not(.ant-table-bordered)
-    .ant-table-tbody
-    > tr
-    > td.ant-table-cell-row-hover:first-child,
-  .ant-table-wrapper
-    .ant-table:not(.ant-table-bordered)
-    .ant-table-tbody
-    > tr.ant-table-row.ant-table-row-selected
-    > td:first-child {
-    border-start-start-radius: 2px;
-    border-end-start-radius: 2px;
-  }
-
-  .ant-table-wrapper
-    .ant-table:not(.ant-table-bordered)
-    .ant-table-tbody
-    > tr.ant-table-row:hover
-    > td:last-child,
-  .ant-table-wrapper
-    .ant-table:not(.ant-table-bordered)
-    .ant-table-tbody
-    > tr
-    > td.ant-table-cell-row-hover:last-child,
-  .ant-table-wrapper
-    .ant-table:not(.ant-table-bordered)
-    .ant-table-tbody
-    > tr.ant-table-row.ant-table-row-selected
-    > td:last-child {
-    border-start-end-radius: 2px;
-    border-end-end-radius: 2px;
   }
 
   .chart-container-select h4 {
@@ -434,6 +354,27 @@ const ResultsWrap = styled.div`
         border-radius: 7px;
         width: 100%;
       }
+    }
+  }
+
+  .ant-collapse {
+    .ant-collapse-header {
+      padding: 0 !important;
+
+      font-weight: bold;
+      margin-bottom: 0.4em;
+      background: transparent !important;
+      .ant-collapse-header-text {
+        flex: none !important;
+        margin: 0;
+        color: ${(props) => (props.theme ? props.theme.brandLight : "#F8FAFB")};
+      }
+    }
+
+    .ant-collapse-content-box {
+      background-color: #00000009;
+      padding: 10px 10px !important;
+      border-radius: 10px;
     }
   }
 `;
@@ -575,4 +516,18 @@ const ErrorMessageWrap = styled.div`
       }
     }
   }
+`;
+
+const AnswerWrap = styled.div`
+  margin-bottom: 12px;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  margin: 0.2em 0;
+  padding: 0.2em 0.4em;
+  padding-left: 10px;
+  // max-width: 40%;
+  background: ${(props) => props.theme.config.background2};
+
+  border-radius: 3px;
+  border-left: ${({ level, theme }) => `4px solid ${theme.config.brandLight}`};
 `;

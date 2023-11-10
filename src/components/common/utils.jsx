@@ -92,10 +92,10 @@ export function roundColumns(data, columns) {
 function isNumber(input) {
   // This regex matches a string that is a valid number with an optional % sign at the end.
   const regex = /^-?(0|[1-9]\d*)?(\.\d+)?%?$/;
-  
+
   // Check if the input ends with a digit or a % sign, ensuring it's a number or a percentage
   const endsWithDigitOrPercent = /\d%?$/.test(input);
-  
+
   return regex.test(input) && endsWithDigitOrPercent;
 }
 
@@ -340,8 +340,8 @@ export function sanitiseData(data, chart = false) {
   let cleanData;
   if (!chart) {
     cleanData = data
-    .filter((d) => d)
-    .filter((d) => !d.every((val) => val === null));
+      .filter((d) => d)
+      .filter((d) => !d.every((val) => val === null));
   } else {
     cleanData = data;
 
@@ -512,7 +512,7 @@ export const reFormatData = (data, columns) => {
 
   let validData = sanitiseData(data, false);
   let validColumns = sanitiseColumns(columns);
-  
+
   if (validColumns.length && validData.length) {
     const cols = columns;
     const rows = validData;
@@ -555,7 +555,7 @@ export const reFormatData = (data, columns) => {
 
       for (let j = 0; j < cols.length; j++) {
         if (numericAsString.indexOf(j) >= 0) {
-          row[cols[j]] = rows[i][j]
+          row[cols[j]] = rows[i][j];
           // convert rows[i][j] to number, while removing any commas or trailing % signs
           // row[cols[j]] = +rows[i][j].replace(/,/g, "").replace(/%$/, "");
         } else if (stringAsNumeric.indexOf(j) >= 0) {
@@ -586,4 +586,9 @@ export const reFormatData = (data, columns) => {
 
 export const chartNames = {
   kmc: "Kaplan-Meier Curves",
+};
+
+export const sentenceCase = (str) => {
+  if (!str) return "";
+  return str[0].toUpperCase() + str.slice(1);
 };

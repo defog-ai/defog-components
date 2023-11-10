@@ -1,17 +1,14 @@
-import React, {
-  useState,
-  useEffect,
-  Fragment,
-  useMemo,
-  useContext,
-} from "react";
+import React, { useState, Fragment, useMemo, useContext } from "react";
 import DefogDynamicViz from "./DefogDynamicViz";
 import Sidebar from "./Sidebar";
-import QALayout from "./common/QALayout";
 import SearchState from "./SearchState";
 import Lottie from "lottie-react";
 import LoadingLottie from "./svg/loader.json";
 import { ThemeContext } from "../context/ThemeContext";
+import NewFollowUpQuestion from "./NewFollowUpQuestion";
+import { Button } from "antd";
+import { BsPlusCircle } from "react-icons/bs";
+import styled from "styled-components";
 
 const Answers = ({
   questionsAsked,
@@ -24,19 +21,24 @@ const Answers = ({
   const { theme } = useContext(ThemeContext);
   const [followUpLoadingId, setFollowUpLoadingId] = useState(null);
   const [followUpQuestionText, setFollowUpQuestionText] = useState(null);
+  const [showNewFollowUp, setShowNewFollowUp] = useState(false);
 
-  let followUpQuestion = (query, parentQuestionId) => {
+  console.log(questionsAsked, 2);
+
+  let followUpQuestion = (query, parentQuestionId, parentQuestion) => {
+    console.log(parentQuestion, parentQuestion.key);
     setFollowUpLoadingId(parentQuestionId);
     setFollowUpQuestionText(query);
 
+    // go through all parents of this question and get their question and sql
     const previousQuestions = [];
-    let nextParent = parentQuestionId;
-    while (nextParent) {
-      const nextParentQuestion = questionsAsked[nextParent]["question"];
-      const nextParentSql = questionsAsked[nextParent]["sql"];
+    let obj = parentQuestion;
+    while (obj && !obj.root) {
+      const nextParentQuestion = obj.answer.question;
+      const nextParentSql = obj.answer.generatedSql;
       previousQuestions.push(nextParentQuestion);
       previousQuestions.push(nextParentSql);
-      nextParent = questionsAsked[nextParent]?.parentQuestionId;
+      obj = obj.parent;
     }
     handleSubmit(query, parentQuestionId, previousQuestions);
   };
@@ -125,9 +127,9 @@ const Answers = ({
         padding: "20px",
       }}
     >
-      <QALayout type={"Question"}>
-        <p style={{ margin: 0 }}>{followUpQuestionText}</p>
-      </QALayout>
+      {/* <QALayout type={"Question"}> */}
+      <p style={{ margin: 0 }}>{followUpQuestionText}</p>
+      {/* </QALayout> */}
 
       <div
         className="data-loading-search-state"
@@ -145,38 +147,77 @@ const Answers = ({
     const { answer, children } = obj;
 
     return (
-      <>
-        {answer ? (
-          <DefogDynamicViz
-            key={answer.questionId}
-            query={answer.question}
-            questionId={answer.questionId}
-            response={answer}
-            debugMode={debugMode}
-            sqlOnly={sqlOnly}
-            followUpQuestion={(query, parentQuestionId) =>
-              followUpQuestion(query, parentQuestionId, obj)
-            }
-            globalLoading={globalLoading}
-            level={answer.level}
-          />
-        ) : (
-          <> </>
-        )}
-        {children.map((child) => {
-          return createChildren(child);
-        })}
-        {answer && followUpLoadingId === answer.questionId && loader}
-      </>
+      <AnswerChildCtrWrap isRoot={!answer} key={obj.key}>
+        <div
+          className={answer ? "answer-child-ctr" : "answer-root"}
+          key={obj.key}
+          style={{
+            position: "relative",
+            // backgroundColor: theme.config.background2,
+            padding: answer ? "0.4em 0.2em 0.4em 1em" : "0",
+            borderLeft: answer?.level > 0 ? "2px solid #f4f4f4" : "none",
+          }}
+        >
+          {answer ? (
+            <DefogDynamicViz
+              key={answer.questionId}
+              query={answer.question}
+              questionId={answer.questionId}
+              response={answer}
+              debugMode={debugMode}
+              sqlOnly={sqlOnly}
+              level={answer.level}
+            />
+          ) : (
+            <> </>
+          )}
+          <div
+            className="answer-children-ctr"
+            style={{
+              margin: answer ? "1em 0.9em" : "0",
+              marginTop: answer && children?.length > 0 ? "1em" : "0.5em",
+            }}
+          >
+            {children.map((child) => {
+              return createChildren(child);
+            })}
+            {/* extra child for when follow up is clicked */}
+
+            <NewFollowUpQuestion
+              key={answer?.questionId + "-new"}
+              followUpLoader={
+                answer && followUpLoadingId === answer.questionId && loader
+              }
+              answer={answer}
+              parentLevel={answer?.level}
+              hasChildren={children.length > 0}
+              globalLoading={globalLoading}
+              onSearch={(query) =>
+                followUpQuestion(query, answer.questionId, obj)
+              }
+            />
+          </div>
+        </div>
+      </AnswerChildCtrWrap>
     );
   }
 
   return (
     <>
-      <Sidebar answers={answers.children} />
+      {/* <Sidebar answers={answers.children} /> */}
       <div>{createChildren(answers)}</div>
     </>
   );
 };
 
 export default React.memo(Answers);
+
+const AnswerChildCtrWrap = styled.div`
+  :hover {
+    > .answer-children-ctr {
+      .follow-up-indicator span {
+        opacity: ${(props) => (props.isRoot ? 0 : 1)};
+      }
+    }
+  }
+`;
