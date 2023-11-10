@@ -157,25 +157,25 @@ export function AskDefogChat({
       return;
     }
 
-    setTimeout(() => {
-      if (autoCompRef.current) {
-        autoCompRef.current.focus();
-        autoCompRef.current.blur();
-      }
-    }, 0);
+    // setTimeout(() => {
+    //   if (autoCompRef.current) {
+    //     autoCompRef.current.focus();
+    //     autoCompRef.current.blur();
+    //   }
+    // }, 0);
 
     setGlobalLoading(true);
     setQuery(query);
-    setTimeout(() => {
-      const divEl = document.getElementById("results");
-      {
-        divEl &&
-          divEl.scrollTo({
-            top: divRef.current.scrollHeight,
-            behavior: "smooth",
-          });
-      }
-    }, 100);
+    // setTimeout(() => {
+    //   const divEl = document.getElementById("results");
+    //   {
+    //     divEl &&
+    //       divEl.scrollTo({
+    //         top: divRef.current.scrollHeight,
+    //         behavior: "smooth",
+    //       });
+    //   }
+    // }, 100);
 
     if (mode === "websocket") {
       comms.current.send(
@@ -311,16 +311,16 @@ export function AskDefogChat({
     setGlobalLoading(false);
 
     // scroll to the bottom of the results div
-    setTimeout(() => {
-      const divEl = document.getElementById("answers");
-      {
-        divEl &&
-          divEl.scrollTo({
-            top: divEl.scrollHeight - 600,
-            behavior: "auto",
-          });
-      }
-    }, 200);
+    // setTimeout(() => {
+    //   const divEl = document.getElementById("answers");
+    //   {
+    //     divEl &&
+    //       divEl.scrollTo({
+    //         top: divEl.scrollHeight - 600,
+    //         behavior: "auto",
+    //       });
+    //   }
+    // }, 200);
   };
 
   const genExtra = () => (
