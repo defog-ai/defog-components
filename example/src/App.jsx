@@ -1,7 +1,6 @@
 import React from "react";
 import { AskDefogChat } from "../../src/index";
 
-
 const App = () => {
   return (
     <div

@@ -1,0 +1,206 @@
+{
+  "94b321d8-ed66-4ab7-b703-1a07ed54341a": {
+    "question": "how many users?",
+    "sql": "SELECT COUNT(DISTINCT users.userid) AS total_users\nFROM users;",
+    "parentQuestionId": null,
+    "level": 0,
+    "askedAt": "2023-11-09T11:07:36.596Z",
+    "data": [
+      {
+        "key": 0,
+        "index": 0,
+        "total_users": 49990
+      }
+    ],
+    "columns": [
+      {
+        "title": "total_users",
+        "dataIndex": "total_users",
+        "key": "total_users",
+        "simpleTypeOf": "number",
+        "numeric": true,
+        "variableType": "quantitative",
+        "colType": "integer"
+      },
+      {
+        "title": "index",
+        "dataIndex": "index",
+        "key": "index",
+        "colType": "integer",
+        "variableType": "integer",
+        "numeric": true,
+        "simpleTypeOf": "number"
+      }
+    ]
+  },
+  "cb74448e-0613-453c-9b1e-a4e4f98ba658": {
+    "question": "how many in california?",
+    "sql": "SELECT COUNT(*) AS user_count\nFROM users\nWHERE users.state = 'CA';",
+    "parentQuestionId": "94b321d8-ed66-4ab7-b703-1a07ed54341a",
+    "level": 1,
+    "askedAt": "2023-11-09T11:08:07.504Z",
+    "data": [
+      {
+        "key": 0,
+        "index": 0,
+        "user_count": 490
+      }
+    ],
+    "columns": [
+      {
+        "title": "user_count",
+        "dataIndex": "user_count",
+        "key": "user_count",
+        "simpleTypeOf": "number",
+        "numeric": true,
+        "variableType": "quantitative",
+        "colType": "integer"
+      },
+      {
+        "title": "index",
+        "dataIndex": "index",
+        "key": "index",
+        "colType": "integer",
+        "variableType": "integer",
+        "numeric": true,
+        "simpleTypeOf": "number"
+      }
+    ]
+  },
+  "cdd07c15-3dde-4634-a672-f54ea58bd3ae": {
+    "question": "how much revenue?",
+    "sql": "SELECT SUM(sales.commission) AS total_revenue\nFROM sales;",
+    "parentQuestionId": null,
+    "level": 0,
+    "askedAt": "2023-11-09T11:08:19.498Z",
+    "data": [
+      {
+        "key": 0,
+        "index": 0,
+        "total_revenue": "16614814.65"
+      }
+    ],
+    "columns": [
+      {
+        "title": "total_revenue",
+        "dataIndex": "total_revenue",
+        "key": "total_revenue",
+        "simpleTypeOf": "string",
+        "numeric": true,
+        "variableType": "quantitative",
+        "colType": "decimal"
+      },
+      {
+        "title": "index",
+        "dataIndex": "index",
+        "key": "index",
+        "colType": "integer",
+        "variableType": "integer",
+        "numeric": true,
+        "simpleTypeOf": "number"
+      }
+    ]
+  },
+  "c6ee4ea1-68dc-42bc-9dc7-de90650d0342": {
+    "question": "how many in south korea??",
+    "sql": "SELECT 'Sorry, I could not answer that. Could you please rephrase your question?' AS answer;",
+    "parentQuestionId": "94b321d8-ed66-4ab7-b703-1a07ed54341a",
+    "level": 1,
+    "askedAt": "2023-11-09T11:08:32.401Z",
+    "data": [
+      {
+        "key": 0,
+        "index": 0,
+        "answer": "Sorry, I could not answer that. Could you please rephrase your question?"
+      }
+    ],
+    "columns": [
+      {
+        "title": "answer",
+        "dataIndex": "answer",
+        "key": "answer",
+        "simpleTypeOf": "string",
+        "numeric": false,
+        "variableType": "categorical",
+        "colType": "string"
+      },
+      {
+        "title": "index",
+        "dataIndex": "index",
+        "key": "index",
+        "colType": "integer",
+        "variableType": "integer",
+        "numeric": true,
+        "simpleTypeOf": "number"
+      }
+    ]
+  },
+  "fd594f29-d823-4d6f-9b11-5b0b077a81c5": {
+    "question": "how much in california?",
+    "sql": "SELECT SUM(sales.commission) AS total_revenue\nFROM sales\nJOIN event ON sales.eventid = event.eventid\nJOIN venue ON event.venueid = venue.venueid\nWHERE venue.venuestate = 'CA';",
+    "parentQuestionId": "cdd07c15-3dde-4634-a672-f54ea58bd3ae",
+    "level": 1,
+    "askedAt": "2023-11-09T11:08:54.827Z",
+    "data": [
+      {
+        "key": 0,
+        "index": 0,
+        "total_revenue": "2296676.85"
+      }
+    ],
+    "columns": [
+      {
+        "title": "total_revenue",
+        "dataIndex": "total_revenue",
+        "key": "total_revenue",
+        "simpleTypeOf": "string",
+        "numeric": true,
+        "variableType": "quantitative",
+        "colType": "decimal"
+      },
+      {
+        "title": "index",
+        "dataIndex": "index",
+        "key": "index",
+        "colType": "integer",
+        "variableType": "integer",
+        "numeric": true,
+        "simpleTypeOf": "number"
+      }
+    ]
+  },
+  "808e95a4-6c7f-4267-9dad-aed8cd0a5d91": {
+    "question": "how much revenue in california?",
+    "sql": "SELECT SUM(sales.commission) AS total_revenue\nFROM sales\nJOIN event ON sales.eventid = event.eventid\nJOIN venue ON event.venueid = venue.venueid\nWHERE venue.venuestate = 'CA';",
+    "parentQuestionId": "cb74448e-0613-453c-9b1e-a4e4f98ba658",
+    "level": 2,
+    "askedAt": "2023-11-10T07:18:46.719Z",
+    "data": [
+      {
+        "key": 0,
+        "index": 0,
+        "total_revenue": "2296676.85"
+      }
+    ],
+    "columns": [
+      {
+        "title": "total_revenue",
+        "dataIndex": "total_revenue",
+        "key": "total_revenue",
+        "simpleTypeOf": "string",
+        "numeric": true,
+        "variableType": "quantitative",
+        "colType": "decimal"
+      },
+      {
+        "title": "index",
+        "dataIndex": "index",
+        "key": "index",
+        "colType": "integer",
+        "variableType": "integer",
+        "numeric": true,
+        "simpleTypeOf": "number"
+      }
+    ]
+  }
+}

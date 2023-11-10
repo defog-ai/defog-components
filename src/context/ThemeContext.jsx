@@ -13,6 +13,7 @@ export const lightThemeColor = {
   greyBorder: "#EFF1F5",
   questionBorder: "#EFF1F5",
   answerBorder: "#EFF1F5",
+  brandLight: "#9eb2fb",
 };
 
 export const darkThemeColor = {
@@ -27,6 +28,7 @@ export const darkThemeColor = {
   greyBorder: "#3C3C40",
   questionBorder: "#3D3D4B",
   answerBorder: "#2B59FF",
+  brandLight: "#9eb2fb",
 };
 
 export const chartColors = [
@@ -61,7 +63,7 @@ const ThemeContextProvider = ({ children }) => {
     setTheme(
       theme.type === "light"
         ? { type: "dark", config: darkThemeColor }
-        : { type: "light", config: lightThemeColor }
+        : { type: "light", config: lightThemeColor },
     );
   };
 

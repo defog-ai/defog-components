@@ -8,13 +8,16 @@
     "build": "vite build"
   },
   "dependencies": {
-    "defog-components": "file:../",
+    "defog-components": "file:..",
     "react": "file:../node_modules/react",
     "react-dom": "file:../node_modules/react-dom"
   },
   "devDependencies": {
     "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
-    "vite": "^4.4.4"
+    "process": "^0.11.10",
+    "vite": "^4.4.4",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
   },
   "eslintConfig": {
     "extends": "react-app"
