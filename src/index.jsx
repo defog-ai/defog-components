@@ -19,7 +19,7 @@ import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 import Search from "antd/lib/input/Search";
 
-import test from "./test.json";
+// import test from "./test.json";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -41,7 +41,8 @@ export function AskDefogChat({
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
-  const [questionsAsked, setQuestionsAsked] = useState(test);
+  // const [questionsAsked, setQuestionsAsked] = useState(test);
+  const [questionsAsked, setQuestionsAsked] = useState([]);
   const [forceReload, setForceReload] = useState(1);
   const questionMode = questionModes[agent ? 0 : 1];
 
