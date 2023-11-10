@@ -1,4 +1,10 @@
-import React, { useState, Fragment, useMemo, useContext } from "react";
+import React, {
+  useState,
+  Fragment,
+  useMemo,
+  useContext,
+  useEffect,
+} from "react";
 import DefogDynamicViz from "./DefogDynamicViz";
 import Sidebar from "./Sidebar";
 import SearchState from "./SearchState";
@@ -6,9 +12,8 @@ import Lottie from "lottie-react";
 import LoadingLottie from "./svg/loader.json";
 import { ThemeContext } from "../context/ThemeContext";
 import NewFollowUpQuestion from "./NewFollowUpQuestion";
-import { Button } from "antd";
-import { BsPlusCircle } from "react-icons/bs";
 import styled from "styled-components";
+import { AnswerWrap } from "./common/utils";
 
 const Answers = ({
   questionsAsked,
@@ -16,17 +21,14 @@ const Answers = ({
   sqlOnly,
   globalLoading,
   handleSubmit,
-  forceReload,
+  // level0Loading is used when a question is asked using the main search bar and not a follow up question
+  level0Loading,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [followUpLoadingId, setFollowUpLoadingId] = useState(null);
   const [followUpQuestionText, setFollowUpQuestionText] = useState(null);
-  const [showNewFollowUp, setShowNewFollowUp] = useState(false);
-
-  console.log(questionsAsked, 2);
 
   let followUpQuestion = (query, parentQuestionId, parentQuestion) => {
-    console.log(parentQuestion, parentQuestion.key);
     setFollowUpLoadingId(parentQuestionId);
     setFollowUpQuestionText(query);
 
@@ -43,7 +45,12 @@ const Answers = ({
     handleSubmit(query, parentQuestionId, previousQuestions);
   };
 
-  // useEffect(() => {
+  useEffect(() => {
+    // if level0Loading is true, scroll to the bottom of the page
+    if (level0Loading) {
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+  });
 
   const answers = useMemo(() => {
     // Convert questionsAsked object into an array of answer objects
@@ -119,29 +126,30 @@ const Answers = ({
     return root;
   }, [questionsAsked]);
 
-  const loader = followUpLoadingId ? (
-    <div
-      style={{
-        background: theme.config.background2,
-        borderRadius: "12px",
-        padding: "20px",
-      }}
-    >
-      {/* <QALayout type={"Question"}> */}
-      <p style={{ margin: 0 }}>{followUpQuestionText}</p>
-      {/* </QALayout> */}
-
+  const loader =
+    followUpLoadingId || level0Loading ? (
       <div
-        className="data-loading-search-state"
-        style={{ width: "50%", margin: "0 auto" }}
+        style={{
+          background: theme.config.background2,
+          borderRadius: "12px",
+          padding: "20px",
+        }}
       >
-        <SearchState
-          message={"Generating a query for your question..."}
-          lottie={<Lottie animationData={LoadingLottie} loop={true} />}
-        />
+        {/* <QALayout type={"Question"}> */}
+        <p style={{ margin: 0 }}>{level0Loading || followUpQuestionText}</p>
+        {/* </QALayout> */}
+
+        <div
+          className="data-loading-search-state"
+          style={{ width: "50%", margin: "0 auto" }}
+        >
+          <SearchState
+            message={"Generating a query for your question..."}
+            lottie={<Lottie animationData={LoadingLottie} loop={true} />}
+          />
+        </div>
       </div>
-    </div>
-  ) : null;
+    ) : null;
 
   function createChildren(obj) {
     const { answer, children } = obj;
@@ -169,7 +177,7 @@ const Answers = ({
               level={answer.level}
             />
           ) : (
-            <> </>
+            <></>
           )}
           <div
             className="answer-children-ctr"
@@ -182,20 +190,26 @@ const Answers = ({
               return createChildren(child);
             })}
             {/* extra child for when follow up is clicked */}
-
-            <NewFollowUpQuestion
-              key={answer?.questionId + "-new"}
-              followUpLoader={
-                answer && followUpLoadingId === answer.questionId && loader
-              }
-              answer={answer}
-              parentLevel={answer?.level}
-              hasChildren={children.length > 0}
-              globalLoading={globalLoading}
-              onSearch={(query) =>
-                followUpQuestion(query, answer.questionId, obj)
-              }
-            />
+            {answer ? (
+              <NewFollowUpQuestion
+                key={answer?.questionId + "-new"}
+                followUpLoader={
+                  answer && followUpLoadingId === answer.questionId && loader
+                }
+                answer={answer}
+                parentLevel={answer?.level}
+                hasChildren={children.length > 0}
+                globalLoading={globalLoading}
+                onSearch={(query) =>
+                  followUpQuestion(query, answer.questionId, obj)
+                }
+              />
+            ) : null}
+            {!answer && level0Loading && (
+              <AnswerWrap theme={theme.config} margin="0.4em 0.2em 1em 1em">
+                {loader}
+              </AnswerWrap>
+            )}
           </div>
         </div>
       </AnswerChildCtrWrap>

@@ -44,6 +44,7 @@ export function AskDefogChat({
   const [questionsAsked, setQuestionsAsked] = useState(test);
   const [forceReload, setForceReload] = useState(1);
   const questionMode = questionModes[agent ? 0 : 1];
+  const [level0Loading, setLevel0Loading] = useState(false);
 
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
@@ -228,6 +229,7 @@ export function AskDefogChat({
           );
         }
         setGlobalLoading(false);
+        setLevel0Loading(false);
       }
     }
   };
@@ -251,14 +253,13 @@ export function AskDefogChat({
           "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
         );
         setGlobalLoading(false);
+        setLevel0Loading(false);
       }
     }
 
     // set response array to have the latest everything except data and columns
     const questionId = uuidv4();
     const now = new Date();
-
-    console.log(questionsAsked);
     const updatedQuestions = {
       ...questionsAsked,
       [questionId]: {
@@ -286,6 +287,7 @@ export function AskDefogChat({
 
     if (sqlOnly === true || agent) {
       setGlobalLoading(false);
+      setLevel0Loading(false);
     }
   }
 
@@ -309,6 +311,7 @@ export function AskDefogChat({
 
     // update the last item in response array with the above data and columns
     setGlobalLoading(false);
+    setLevel0Loading(false);
 
     // scroll to the bottom of the results div
     // setTimeout(() => {
@@ -395,6 +398,7 @@ export function AskDefogChat({
                       handleSubmit={handleSubmit}
                       globalLoading={globalLoading}
                       forceReload={forceReload}
+                      level0Loading={level0Loading}
                     />
                   </div>
                   {/* 
@@ -451,6 +455,7 @@ export function AskDefogChat({
                         size="small"
                         onSearch={(query) => {
                           handleSubmit(query, null, []);
+                          setLevel0Loading(query);
                         }}
                         loading={globalLoading}
                         disabled={globalLoading}
