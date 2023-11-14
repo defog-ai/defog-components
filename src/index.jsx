@@ -385,7 +385,7 @@ export function AskDefogChat({
                       overflowX: "scroll",
                       paddingTop: 0,
                       paddingBottom: 0,
-                      display: questionsAsked?.length === 0 ? "none" : "block",
+                      // display: questionsAsked?.length === 0 ? "none" : "block",
                     }}
                   >
                     <Answers
