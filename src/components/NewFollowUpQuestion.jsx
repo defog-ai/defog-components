@@ -4,6 +4,7 @@ import { ThemeContext } from "../context/ThemeContext";
 import { Button } from "antd";
 import { BsPlusCircle } from "react-icons/bs";
 import Search from "antd/es/input/Search";
+import { AnswerWrap } from "./common/utils";
 
 export default function NewFollowUpQuestion({
   parentLevel,
@@ -18,6 +19,7 @@ export default function NewFollowUpQuestion({
   const customButton = <Button>Ask Follow Up</Button>;
   const [followUpLoading, setFollowUpLoading] = useState(false);
 
+  const [followUpText, setFollowUpText] = useState("");
   useEffect(() => {
     // if global loading goes to false, set button loading to false
     // but not if global loading goes to true, because global loading could be true but this current answer might not be the one that fired it
@@ -38,7 +40,7 @@ export default function NewFollowUpQuestion({
         style={{
           position: "relative",
           // backgroundColor: theme.config.background2,
-          padding: "0.4em 0.2em 0.4em 1em",
+          padding: "0em 0.2em 0em 1em",
           borderLeft: "2px solid #f4f4f4",
         }}
       >
@@ -49,6 +51,12 @@ export default function NewFollowUpQuestion({
                 followUpLoader
               ) : (
                 <Search
+                  value={followUpText}
+                  autoFocus={true}
+                  onChange={(e) => setFollowUpText(e.target.value)}
+                  onBlur={() => {
+                    setShowNewFollowUp(false);
+                  }}
                   className="follow-up-search"
                   placeholder={"Continue asking related questions"}
                   enterButton={customButton}
@@ -65,7 +73,9 @@ export default function NewFollowUpQuestion({
           ) : (
             <Button
               className="follow-up-indicator"
-              onClick={() => setShowNewFollowUp(true)}
+              onClick={() => {
+                setShowNewFollowUp(true);
+              }}
               size="small"
             >
               <BsPlusCircle />
@@ -84,9 +94,11 @@ export default function NewFollowUpQuestion({
 const NewFollowUpQuestionWrap = styled.div`
   margin-bottom: 12px;
   transition: all 0.2s ease-in-out;
+  min-height: 50px;
 
   .follow-up-search {
     max-width: 100%;
+    height: 50px;
   }
 
   .follow-up-indicator {
@@ -150,20 +162,4 @@ const NewFollowUpQuestionWrap = styled.div`
       }
     }
   }
-`;
-
-const AnswerWrap = styled.div`
-  margin-bottom: 12px;
-  margin-top: 1em;
-  position: relative;
-  transition: all 0.2s ease-in-out;
-  margin: 0.2em 0;
-  margin-left: 10px;
-  padding: 0.2em 0.4em;
-  padding-left: 10px;
-  // max-width: 40%;
-  background: ${(props) => props.theme.background2};
-
-  border-radius: 3px;
-  border-left: ${({ level, theme }) => `4px solid ${theme.brandLight}`};
 `;

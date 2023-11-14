@@ -1,12 +1,8 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
-import Lottie from "lottie-react";
 import { Collapse, AutoComplete, message } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
-import SearchState from "./components/SearchState";
-import LoadingLottie from "./components/svg/loader.json";
 import Answers from "./components/Answers";
 import { questionModes, reFormatData } from "./components/common/utils";
-import QALayout from "./components/common/QALayout";
 import {
   ThemeContext,
   darkThemeColor,
@@ -19,7 +15,7 @@ import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 import Search from "antd/lib/input/Search";
 
-// import test from "./test.json";
+import test from "./test.json";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -41,10 +37,10 @@ export function AskDefogChat({
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
-  // const [questionsAsked, setQuestionsAsked] = useState(test);
-  const [questionsAsked, setQuestionsAsked] = useState([]);
+  const [questionsAsked, setQuestionsAsked] = useState(test);
   const [forceReload, setForceReload] = useState(1);
   const questionMode = questionModes[agent ? 0 : 1];
+  const [level0Loading, setLevel0Loading] = useState(false);
 
   const [query, setQuery] = useState("");
   const divRef = useRef(null);
@@ -229,6 +225,7 @@ export function AskDefogChat({
           );
         }
         setGlobalLoading(false);
+        setLevel0Loading(false);
       }
     }
   };
@@ -252,14 +249,13 @@ export function AskDefogChat({
           "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
         );
         setGlobalLoading(false);
+        setLevel0Loading(false);
       }
     }
 
     // set response array to have the latest everything except data and columns
     const questionId = uuidv4();
     const now = new Date();
-
-    console.log(questionsAsked);
     const updatedQuestions = {
       ...questionsAsked,
       [questionId]: {
@@ -287,6 +283,7 @@ export function AskDefogChat({
 
     if (sqlOnly === true || agent) {
       setGlobalLoading(false);
+      setLevel0Loading(false);
     }
   }
 
@@ -310,6 +307,7 @@ export function AskDefogChat({
 
     // update the last item in response array with the above data and columns
     setGlobalLoading(false);
+    setLevel0Loading(false);
 
     // scroll to the bottom of the results div
     // setTimeout(() => {
@@ -396,40 +394,9 @@ export function AskDefogChat({
                       handleSubmit={handleSubmit}
                       globalLoading={globalLoading}
                       forceReload={forceReload}
+                      level0Loading={level0Loading}
                     />
                   </div>
-                  {/* 
-                  if button is loading + chat response and data response arrays are equal length, means the model hasn't returned the SQL query yet for the most recently asked question, otherwise we'd have chatResponse and a missing dataResponse.
-                  Hence it won't show up in the chat response array map above.
-                  So render an extra layout + lottie loader for the most recently asked question.
-                  */}
-                  {/* {globalLoading ? (
-                    <div
-                      style={{
-                        background: theme.config.background2,
-                        borderRadius: "12px",
-                        padding: "20px",
-                      }}
-                    >
-                      <QALayout type={"Question"}>
-                        <p style={{ margin: 0 }}>{query}</p>
-                      </QALayout>
-
-                      <div
-                        className="data-loading-search-state"
-                        style={{ width: "50%", margin: "0 auto" }}
-                      >
-                        <SearchState
-                          message={loadingMessage}
-                          lottie={
-                            <Lottie animationData={LoadingLottie} loop={true} />
-                          }
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    ""
-                  )} */}
                   <SearchWrap $loading={globalLoading} theme={theme.config}>
                     <AutoComplete
                       style={{ width: "100%" }}
@@ -452,6 +419,7 @@ export function AskDefogChat({
                         size="small"
                         onSearch={(query) => {
                           handleSubmit(query, null, []);
+                          setLevel0Loading(query);
                         }}
                         loading={globalLoading}
                         disabled={globalLoading}
