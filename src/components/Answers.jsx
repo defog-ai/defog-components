@@ -46,10 +46,11 @@ const Answers = ({
 
   useEffect(() => {
     // if level0Loading is true, scroll to the bottom of the page
+    console.log(level0Loading);
     if (level0Loading) {
       window.scrollTo(0, document.body.scrollHeight);
     }
-  });
+  }, [level0Loading]);
 
   const answers = useMemo(() => {
     // Convert questionsAsked object into an array of answer objects
@@ -197,7 +198,7 @@ const Answers = ({
                 }
                 answer={answer}
                 parentLevel={answer?.level}
-                hasChildren={children.length > 0}
+                haschildren={children.length > 0 ? 1 : 0}
                 globalLoading={globalLoading}
                 onSearch={(query) =>
                   followUpQuestion(query, answer.questionId, obj)
@@ -217,7 +218,6 @@ const Answers = ({
 
   return (
     <>
-      {/* <Sidebar answers={answers.children} /> */}
       <div>{createChildren(answers)}</div>
     </>
   );

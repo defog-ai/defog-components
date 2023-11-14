@@ -7,8 +7,8 @@ import ThumbsUp from "./svg/ThumbsUp";
 import ThumbsDown from "./svg/ThumbsDown";
 import { ThemeContext } from "../context/ThemeContext";
 import { TableChart } from "./TableChart";
-import Search from "antd/lib/input/Search";
-import { BsPlusCircle } from "react-icons/bs";
+// import Search from "antd/lib/input/Search";
+// import { BsPlusCircle } from "react-icons/bs";
 
 const errorMessages = {
   noReponse:
@@ -84,7 +84,31 @@ const DefogDynamicViz = ({
     results = null;
   } else {
     results = (
-      <TableChart response={response} query={query} vizType={"table"} />
+      <>
+        <TableChart response={response} query={query} vizType={"table"} />
+        {debugMode && (
+          <>
+            <RateQualityContainer theme={theme.config}>
+              {response.generatedSql && (
+                <>
+                  <p>The following query was generated:</p>
+                  <pre>{response.generatedSql}</pre>
+                </>
+              )}
+            </RateQualityContainer>
+
+            <FeedbackWrap theme={theme.config}>
+              <p>How did we do with is this query?</p>
+              <button onClick={() => uploadFeedback("Good")}>
+                <ThumbsUp />
+              </button>
+              <button onClick={() => setModalVisible(true)}>
+                <ThumbsDown />
+              </button>
+            </FeedbackWrap>
+          </>
+        )}
+      </>
     );
   }
 
@@ -149,29 +173,6 @@ const DefogDynamicViz = ({
           {/* <p>{response.question}</p>
           {results && results} */}
         </ResultsWrap>
-
-        {debugMode && (
-          <>
-            <RateQualityContainer theme={theme.config}>
-              {response.generatedSql && (
-                <>
-                  <p>The following query was generated:</p>
-                  <pre>{response.generatedSql}</pre>
-                </>
-              )}
-            </RateQualityContainer>
-
-            <FeedbackWrap theme={theme.config}>
-              <p>How did we do with is this query?</p>
-              <button onClick={() => uploadFeedback("Good")}>
-                <ThumbsUp />
-              </button>
-              <button onClick={() => setModalVisible(true)}>
-                <ThumbsDown />
-              </button>
-            </FeedbackWrap>
-          </>
-        )}
       </AnswerWrap>
     </>
   );
