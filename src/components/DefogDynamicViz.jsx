@@ -362,7 +362,9 @@ const ResultsWrap = styled.div`
       padding: 0 !important;
 
       font-weight: bold;
-      margin-bottom: 0.4em;
+      &[aria-expanded="true"] {
+        margin-bottom: 0.4em;
+      }
       background: transparent !important;
       .ant-collapse-header-text {
         flex: none !important;

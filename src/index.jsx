@@ -15,7 +15,7 @@ import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
 import Search from "antd/lib/input/Search";
 
-// import test from "./test.json";
+import test from "./test.json";
 
 export function AskDefogChat({
   apiEndpoint,
@@ -37,7 +37,7 @@ export function AskDefogChat({
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
-  const [questionsAsked, setQuestionsAsked] = useState();
+  const [questionsAsked, setQuestionsAsked] = useState(test);
   const [forceReload, setForceReload] = useState(1);
   const questionMode = questionModes[agent ? 0 : 1];
   const [level0Loading, setLevel0Loading] = useState(false);
@@ -410,6 +410,7 @@ export function AskDefogChat({
                           .indexOf(inputValue.toUpperCase()) !== -1
                       }
                       ref={autoCompRef}
+                      disabled={globalLoading}
                     >
                       <Search
                         placeholder={
@@ -422,7 +423,6 @@ export function AskDefogChat({
                           setLevel0Loading(query);
                         }}
                         loading={globalLoading}
-                        disabled={globalLoading}
                       />
                     </AutoComplete>
                   </SearchWrap>
@@ -468,19 +468,23 @@ const SearchWrap = styled.div`
   display: flex;
   background: ${(props) =>
     props.loading ? props.theme.disabledColor : props.theme.background2};
-  border-width: 1px;
-  border-style: solid;
-  border-color: ${(props) =>
-    props.loading ? props.theme.disabledColor : props.theme.brandColor};
-  border-radius: 8px;
-  padding: 6px;
+
   .question-mode-select {
     top: 2px;
   }
   .ant-input-group-wrapper {
+    border-radius: 8px;
+    padding: 6px;
+    border: 1px solid
+      ${(props) => (props.theme ? props.theme.brandColor : "#2B59FF")};
     width: 100%;
     .ant-input-wrapper {
       display: flex;
+    }
+
+    &.ant-input-group-wrapper-disabled {
+      background-color: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
     }
 
     .ant-input {
@@ -493,6 +497,15 @@ const SearchWrap = styled.div`
         color: ${(props) =>
           props.theme ? props.theme.primaryText : "#0D0D0D"};
         opacity: 0.7;
+      }
+      &.ant-input-disabled {
+        color: rgba(0, 0, 0, 0.25) !important;
+        &::placeholder {
+          color: rgba(0, 0, 0, 0.25) !important;
+        }
+
+        background-color: rgba(0, 0, 0, 0.04);
+        border-color: #d9d9d9 !important;
       }
     }
     .ant-input:focus,
@@ -509,6 +522,13 @@ const SearchWrap = styled.div`
         box-shadow: none !important;
         background: ${(props) =>
           props.theme ? props.theme.brandColor : "#2B59FF"};
+
+        &:disabled {
+          border: none !important;
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: rgba(0, 0, 0, 0.04);
+          box-shadow: none;
+        }
       }
     }
   }
