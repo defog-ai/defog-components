@@ -10,7 +10,7 @@ export default function NewFollowUpQuestion({
   parentLevel,
   onSearch,
   answer,
-  hasChildren,
+  haschildren,
   followUpLoader,
   globalLoading,
 }) {
@@ -29,7 +29,7 @@ export default function NewFollowUpQuestion({
 
   return (
     <NewFollowUpQuestionWrap
-      hasChildren={hasChildren}
+      haschildren={haschildren}
       level={parentLevel}
       theme={theme.config}
     >
@@ -78,7 +78,7 @@ export default function NewFollowUpQuestion({
             >
               <BsPlusCircle />
               <span className="follow-up-indicator-text">
-                {hasChildren
+                {haschildren
                   ? "Ask more related questions"
                   : "Ask related question"}
               </span>

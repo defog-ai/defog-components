@@ -154,7 +154,7 @@ const Answers = ({
     const { answer, children } = obj;
 
     return (
-      <AnswerChildCtrWrap isRoot={!answer} key={obj.key}>
+      <AnswerChildCtrWrap isroot={!answer ? 1 : 0} key={obj.key}>
         <div
           className={answer ? "answer-child-ctr" : "answer-root"}
           key={obj.key}
@@ -229,7 +229,7 @@ const AnswerChildCtrWrap = styled.div`
   :hover {
     > .answer-children-ctr {
       .follow-up-indicator span {
-        opacity: ${(props) => (props.isRoot ? 0 : 1)};
+        opacity: ${(props) => (props.isroot ? 0 : 1)};
       }
     }
   }
