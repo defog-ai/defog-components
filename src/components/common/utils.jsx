@@ -9,6 +9,7 @@ dayjs.extend(customParseFormat);
 
 import { chartColors } from "../../context/ThemeContext";
 import { Popover } from "antd";
+import styled from "styled-components";
 
 export const questionModes = [
   [
@@ -592,3 +593,18 @@ export const sentenceCase = (str) => {
   if (!str) return "";
   return str[0].toUpperCase() + str.slice(1);
 };
+
+export const AnswerWrap = styled.div`
+  margin-bottom: 12px;
+  margin-top: 1em;
+  position: relative;
+  transition: all 0.2s ease-in-out;
+  margin: ${({ margin }) => margin || "0.2em 0"};
+  padding: ${({ padding }) => padding || "0.2em 0.4em"};
+  padding-left: 10px;
+  // max-width: 40%;
+  background: ${(props) => props.theme.background2};
+
+  border-radius: 3px;
+  border-left: ${({ theme }) => `4px solid ${theme.brandLight}`};
+`;

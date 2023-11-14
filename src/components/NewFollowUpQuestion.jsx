@@ -4,6 +4,7 @@ import { ThemeContext } from "../context/ThemeContext";
 import { Button } from "antd";
 import { BsPlusCircle } from "react-icons/bs";
 import Search from "antd/es/input/Search";
+import { AnswerWrap } from "./common/utils";
 
 export default function NewFollowUpQuestion({
   parentLevel,
@@ -15,12 +16,11 @@ export default function NewFollowUpQuestion({
 }) {
   const { theme } = useContext(ThemeContext);
   const [showNewFollowUp, setShowNewFollowUp] = useState(false);
-  const customButton = <Button>Ask Follow Up</Button>;
   const [followUpLoading, setFollowUpLoading] = useState(false);
 
+  const [followUpText, setFollowUpText] = useState("");
   useEffect(() => {
-    // if global loading goes to false, set button loading to false
-    // but not if global loading goes to true, because global loading could be true but this current answer might not be the one that fired it
+    // if global loading goes to false, and we will set follow up loading to false
     if (globalLoading === false) {
       setFollowUpLoading(false);
       setShowNewFollowUp(false);
@@ -38,7 +38,7 @@ export default function NewFollowUpQuestion({
         style={{
           position: "relative",
           // backgroundColor: theme.config.background2,
-          padding: "0.4em 0.2em 0.4em 1em",
+          padding: "0em 0.2em 0em 1em",
           borderLeft: "2px solid #f4f4f4",
         }}
       >
@@ -49,23 +49,31 @@ export default function NewFollowUpQuestion({
                 followUpLoader
               ) : (
                 <Search
+                  value={followUpText}
+                  autoFocus={true}
+                  onChange={(e) => setFollowUpText(e.target.value)}
+                  onBlur={() => {
+                    setShowNewFollowUp(false);
+                  }}
                   className="follow-up-search"
                   placeholder={"Continue asking related questions"}
-                  enterButton={customButton}
+                  enterButton="Ask Follow Up"
                   size="small"
                   onSearch={(query) => {
                     setFollowUpLoading(true);
                     onSearch(query);
                   }}
                   loading={followUpLoading}
-                  disabled={followUpLoading}
+                  disabled={globalLoading}
                 />
               )}
             </AnswerWrap>
           ) : (
             <Button
               className="follow-up-indicator"
-              onClick={() => setShowNewFollowUp(true)}
+              onClick={() => {
+                setShowNewFollowUp(true);
+              }}
               size="small"
             >
               <BsPlusCircle />
@@ -84,9 +92,11 @@ export default function NewFollowUpQuestion({
 const NewFollowUpQuestionWrap = styled.div`
   margin-bottom: 12px;
   transition: all 0.2s ease-in-out;
+  min-height: 50px;
 
   .follow-up-search {
     max-width: 100%;
+    height: 50px;
   }
 
   .follow-up-indicator {
@@ -121,6 +131,11 @@ const NewFollowUpQuestionWrap = styled.div`
       display: flex;
     }
 
+    &.ant-input-group-wrapper-disabled {
+      background-color: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+
     .ant-input {
       border: none;
       width: calc(100% - 120px);
@@ -131,6 +146,15 @@ const NewFollowUpQuestionWrap = styled.div`
         color: ${(props) =>
           props.theme ? props.theme.primaryText : "#0D0D0D"};
         opacity: 0.7;
+      }
+      &.ant-input-disabled {
+        color: rgba(0, 0, 0, 0.25) !important;
+        &::placeholder {
+          color: rgba(0, 0, 0, 0.25) !important;
+        }
+
+        background-color: rgba(0, 0, 0, 0.04);
+        border-color: #d9d9d9;
       }
     }
     .ant-input:focus,
@@ -147,23 +171,14 @@ const NewFollowUpQuestionWrap = styled.div`
         box-shadow: none !important;
         background: ${(props) =>
           props.theme ? props.theme.brandColor : "#2B59FF"};
+
+        &:disabled {
+          border: none !important;
+          color: rgba(0, 0, 0, 0.25) !important;
+          background-color: rgba(0, 0, 0, 0.04);
+          box-shadow: none;
+        }
       }
     }
   }
-`;
-
-const AnswerWrap = styled.div`
-  margin-bottom: 12px;
-  margin-top: 1em;
-  position: relative;
-  transition: all 0.2s ease-in-out;
-  margin: 0.2em 0;
-  margin-left: 10px;
-  padding: 0.2em 0.4em;
-  padding-left: 10px;
-  // max-width: 40%;
-  background: ${(props) => props.theme.background2};
-
-  border-radius: 3px;
-  border-left: ${({ level, theme }) => `4px solid ${theme.brandLight}`};
 `;
