@@ -268,6 +268,8 @@ export function AskDefogChat({
           ? questionsAsked[parentQuestionId]?.level + 1
           : 0,
         askedAt: now.toISOString(),
+        analysis: queryChatResponse.analysis || null,
+        visualization: queryChatResponse.visualization || "table",
       },
     };
 

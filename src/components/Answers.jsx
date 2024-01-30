@@ -66,6 +66,8 @@ const Answers = ({
           askedAt,
           columns,
           data,
+          analysis,
+          visualization,
         } = questionsAsked[questionId];
         return {
           questionId,
@@ -76,6 +78,8 @@ const Answers = ({
           askedAt,
           columns,
           data,
+          analysis,
+          visualization,
         };
       },
     );
