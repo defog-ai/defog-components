@@ -1,4 +1,4 @@
-import React, { useState, useContext, Fragment, useEffect } from "react";
+import React, { useState, useContext, Fragment } from "react";
 import { Button, message, Modal, Input, ConfigProvider, Collapse } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import { isEmpty, sentenceCase } from "./common/utils";
@@ -21,6 +21,8 @@ const DefogDynamicViz = ({
   debugMode,
   apiKey,
   sqlOnly,
+  demoMode,
+  narrativeMode,
   questionId,
   level,
 }) => {
@@ -82,20 +84,46 @@ const DefogDynamicViz = ({
 
   if (sqlOnly === true) {
     results = null;
+  } else if (narrativeMode === true) {
+    // do something
+    console.log(response); //can basically ignore the query, it's just response.question
+    results = (<>
+        <p>Your top performing users are Chintu, Pintu, and Bablu.</p>
+        <TableChart response={response} query={query} vizType={response.visualization || "table"} />
+      </>
+    )
   } else {
     results = (
       <>
         <TableChart response={response} query={query} vizType={"table"} />
+        {demoMode && (
+          <Collapse accordion items={[
+            {
+              key: "1",
+              label: "Show SQL",
+              children: (
+              <SQLContainer theme={theme.config}>
+                {response.generatedSql && (
+                  <>
+                    <p>The following query was generated:</p>
+                    <pre>{response.generatedSql}</pre>
+                  </>
+                )}
+              </SQLContainer>
+              )
+            }
+          ]}/>
+        )}
         {debugMode && (
           <>
-            <RateQualityContainer theme={theme.config}>
+            <SQLContainer theme={theme.config}>
               {response.generatedSql && (
                 <>
                   <p>The following query was generated:</p>
                   <pre>{response.generatedSql}</pre>
                 </>
               )}
-            </RateQualityContainer>
+            </SQLContainer>
 
             <FeedbackWrap theme={theme.config}>
               <p>How did we do with is this query?</p>
@@ -382,7 +410,7 @@ const ResultsWrap = styled.div`
   }
 `;
 
-const RateQualityContainer = styled.div`
+const SQLContainer = styled.div`
   color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
   & > p:nth-of-type(1) {
     font-weight: 600;
@@ -532,5 +560,5 @@ const AnswerWrap = styled.div`
   background: ${(props) => props.theme.config.background2};
 
   border-radius: 3px;
-  border-left: ${({ level, theme }) => `4px solid ${theme.config.brandLight}`};
+  border-left: ${({ theme }) => `4px solid ${theme.config.brandLight}`};
 `;

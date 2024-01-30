@@ -17,6 +17,8 @@ import { AnswerWrap } from "./common/utils";
 const Answers = ({
   questionsAsked,
   debugMode,
+  demoMode,
+  narrativeMode,
   sqlOnly,
   globalLoading,
   handleSubmit,
@@ -173,6 +175,8 @@ const Answers = ({
               questionId={answer.questionId}
               response={answer}
               debugMode={debugMode}
+              demoMode={demoMode}
+              narrativeMode={narrativeMode}
               sqlOnly={sqlOnly}
               level={answer.level}
             />
