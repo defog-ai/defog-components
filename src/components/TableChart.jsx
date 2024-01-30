@@ -30,6 +30,7 @@ export function TableChart({
     extraTabs = [];
   }
 
+  // first add table to the results
   let results = [
     {
       component: (
@@ -50,6 +51,8 @@ export function TableChart({
       icon: <TableOutlined />,
     },
   ];
+  
+  // then add chart to the results
   if (!chartImages || chartImages.length <= 0) {
     const {
       xAxisColumns,
@@ -90,6 +93,7 @@ export function TableChart({
       tabLabel: chartNames[chartImages[0].type] || "Chart",
     });
   }
+  // finally, add sql to the results, if needed
   if (sql && sql.length > 0) {
     // show the sql query
     results.push({
@@ -111,7 +115,7 @@ export function TableChart({
   // convert to antd tabs
   results = (
     <Tabs
-      defaultActiveKey={!chartImages || !chartImages.length ? "0" : "1"}
+      defaultActiveKey={vizType === "table" ? "0" : "1"}
       items={results.map((d, i) => ({
         key: String(i),
         label: (
