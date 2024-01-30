@@ -87,9 +87,17 @@ const DefogDynamicViz = ({
   } else if (narrativeMode === true) {
     // do something
     console.log(response); //can basically ignore the query, it's just response.question
+    // response has the following fields that are relevant to us:
+    // columns, data, analysis, question, visualization
     results = (<>
-        <p>Your top performing users are Chintu, Pintu, and Bablu.</p>
-        <TableChart response={response} query={query} vizType={response.visualization || "table"} />
+        <div dangerouslySetInnerHTML={{ __html: response.analysis }}></div>
+        <div style={{paddingLeft: "2em"}}>
+        <TableChart 
+          response={response} 
+          query={query} 
+          vizType={response.visualization || "table"} 
+        />
+        </div>
       </>
     )
   } else {
