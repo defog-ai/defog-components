@@ -25,12 +25,13 @@ export function AskDefogChat({
   debugMode = false,
   apiKey = null,
   darkMode,
+  demoMode = false,
   additionalParams = {},
   additionalHeaders = {},
   sqlOnly = false,
   predefinedQuestions = [],
+  narrativeMode = false,
   mode = "http", // can be "websocket" or "http"
-  loadingMessage = "Generating a query for your question...",
   agent = false,
   placeholderText = "",
 }) {
@@ -392,6 +393,8 @@ export function AskDefogChat({
                       questionsAsked={questionsAsked}
                       debugMode={debugMode}
                       sqlOnly={sqlOnly}
+                      demoMode={demoMode}
+                      narrativeMode={narrativeMode}
                       handleSubmit={handleSubmit}
                       globalLoading={globalLoading}
                       forceReload={forceReload}
