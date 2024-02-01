@@ -98,9 +98,7 @@ const DefogDynamicViz = ({
             vizType={response.visualization || "table"} 
           />
         </div>
-        {response.followUpQuestions && (
-          <div dangerouslySetInnerHTML={{ __html: response.followUpQuestions }}></div>
-        )}
+        <div dangerouslySetInnerHTML={{ __html: response.followUpQuestions }} style={{paddingTop: "1em"}}></div>
       </>
     )
   } else {

@@ -270,6 +270,7 @@ export function AskDefogChat({
         askedAt: now.toISOString(),
         analysis: queryChatResponse.analysis || null,
         visualization: queryChatResponse.visualization || "table",
+        followUpQuestions: queryChatResponse.followUpQuestions || "",
       },
     };
 
