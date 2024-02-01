@@ -92,12 +92,15 @@ const DefogDynamicViz = ({
     results = (<>
         <div dangerouslySetInnerHTML={{ __html: response.analysis }}></div>
         <div style={{paddingLeft: "2em"}}>
-        <TableChart 
-          response={response} 
-          query={query} 
-          vizType={response.visualization || "table"} 
-        />
+          <TableChart 
+            response={response} 
+            query={query} 
+            vizType={response.visualization || "table"} 
+          />
         </div>
+        {response.followUpQuestions && (
+          <div dangerouslySetInnerHTML={{ __html: response.followUpQuestions }}></div>
+        )}
       </>
     )
   } else {
