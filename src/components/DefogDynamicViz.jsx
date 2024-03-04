@@ -134,7 +134,7 @@ const DefogDynamicViz = ({
                 {response.generatedSql && (
                   <>
                     <p>The following query was generated:</p>
-                    <pre>{response.generatedSql}</pre>
+                    <pre style={{whiteSpace: "pre-wrap"}}>{response.generatedSql}</pre>
                   </>
                 )}
               </SQLContainer>
@@ -148,7 +148,7 @@ const DefogDynamicViz = ({
               {response.generatedSql && (
                 <>
                   <p>The following query was generated:</p>
-                  <pre>{response.generatedSql}</pre>
+                  <pre style={{whiteSpace: "pre-wrap"}}>{response.generatedSql}</pre>
                 </>
               )}
             </SQLContainer>
