@@ -83,7 +83,26 @@ const DefogDynamicViz = ({
   let results;
 
   if (sqlOnly === true) {
-    results = null;
+    results = <>
+      <SQLContainer theme={theme.config}>
+        {response.generatedSql && (
+          <>
+            <p>The following query was generated:</p>
+            <pre style={{whiteSpace: "pre-wrap"}}>{response.generatedSql}</pre>
+          </>
+        )}
+      </SQLContainer>
+
+      <FeedbackWrap theme={theme.config}>
+        <p>How did we do with is this query?</p>
+        <button onClick={() => uploadFeedback("Good")}>
+          <ThumbsUp />
+        </button>
+        <button onClick={() => setModalVisible(true)}>
+          <ThumbsDown />
+        </button>
+      </FeedbackWrap>
+    </>
   } else if (narrativeMode === true) {
     // do something
     console.log(response); //can basically ignore the query, it's just response.question

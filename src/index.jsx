@@ -402,6 +402,7 @@ export function AskDefogChat({
                       globalLoading={globalLoading}
                       forceReload={forceReload}
                       level0Loading={level0Loading}
+                      apiKey={apiKey}
                     />
                   </div>
                   <SearchWrap $loading={globalLoading} theme={theme.config}>
