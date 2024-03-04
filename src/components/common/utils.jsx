@@ -281,12 +281,12 @@ export function processData(data, columns) {
   const dateColumns = columns?.filter((d) => d.colType === "date");
   // date comes in as categorical column, but we use that for the x axis, so filter that out also
   const categoricalColumns = columns?.filter(
-    (d) => d.variableType[0] === "c" && d.colType !== "date",
+    (d) => d?.variableType?.[0] === "c" && d.colType !== "date",
   );
 
   // y axis columns are only numeric non date columns
   const yAxisColumns = columns?.filter(
-    (d) => d.variableType[0] !== "c" && d.colType !== "date",
+    (d) => d?.variableType?.[0] !== "c" && d.colType !== "date",
   );
 
   const xAxisColumns = columns?.slice();
