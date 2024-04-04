@@ -19,8 +19,8 @@ const App = () => {
           demoMode={true}
           sqlOnly={false}
           dashboard={false}
-          // narrativeMode={true}
           darkMode={false}
+          clearOnAnswer={true}
           predefinedQuestions={[
             // "What are my sales by brand?",
             // "Which are my top performing accounts?",

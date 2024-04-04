@@ -20,7 +20,7 @@ function arrToAntD(arr, labelProp = "key", valueProp = "key") {
 }
 
 const nullChartConfig = { chartLabels: [], chartData: [] };
-const sizeThresh = 400;
+const sizeThresh = 1024;
 
 export default function ChartContainer({
   xAxisColumns,
@@ -70,7 +70,9 @@ export default function ChartContainer({
     arrToAntD([dateColumns.length > 0 ? dateColumns[0] : xAxisColumns[0]]),
   );
 
-  const [yAxis, setYAxis] = useState(arrToAntD([yAxisColumns[0]]));
+  const [yAxis, setYAxis] = useState(arrToAntD(
+    yAxisColumns.length > 1 ? yAxisColumns.filter((d) => d.key !== "index") : yAxisColumns,
+  ));
 
   const xAxisLabel = !xAxis.length
     ? undefined
