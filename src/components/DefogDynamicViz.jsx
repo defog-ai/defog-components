@@ -151,6 +151,15 @@ const DefogDynamicViz = ({
                   <pre style={{whiteSpace: "pre-wrap"}}>{response.generatedSql}</pre>
                 </>
               )}
+
+              {response.debugInfo && (
+                <>
+                  <hr/>
+                  <pre style={{whiteSpace: "pre-wrap"}}>
+                    {response.debugInfo}
+                  </pre>
+                </>
+              )}
             </SQLContainer>
 
             <FeedbackWrap theme={theme.config}>
