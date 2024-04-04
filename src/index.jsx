@@ -1,5 +1,9 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
-import { Collapse, AutoComplete, message } from "antd";
+import { 
+  Collapse,
+  // AutoComplete,
+  message
+} from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import Answers from "./components/Answers";
 import { questionModes, reFormatData } from "./components/common/utils";
@@ -29,11 +33,12 @@ export function AskDefogChat({
   additionalParams = {},
   additionalHeaders = {},
   sqlOnly = false,
-  predefinedQuestions = [],
+  // predefinedQuestions = [],
   narrativeMode = false,
   mode = "http", // can be "websocket" or "http"
   agent = false,
   placeholderText = "",
+  clearOnAnswer = false,
 }) {
   const { Panel } = Collapse;
   const [isActive, setIsActive] = useState(false);
@@ -44,9 +49,8 @@ export function AskDefogChat({
   const questionMode = questionModes[agent ? 0 : 1];
   const [level0Loading, setLevel0Loading] = useState(false);
 
-  const [query, setQuery] = useState("");
   const divRef = useRef(null);
-  const autoCompRef = useRef(null);
+  // const autoCompRef = useRef(null);
 
   const [theme, setTheme] = useState({
     type: darkMode === true ? "dark" : "light",
@@ -121,30 +125,7 @@ export function AskDefogChat({
     return apiEndpoint + urlPath;
   }
 
-  function setupWebsocket() {
-    comms.current = new WebSocket(apiEndpoint);
-  }
-
   var comms = useRef(null);
-
-  if (mode === "websocket") {
-    // if it's not open or not created yet, recreate
-    if (!comms.current || comms.current.readyState !== comms.current.OPEN) {
-      setupWebsocket();
-    }
-
-    // re declare this everytime, otherwise the handlers have closure over state values and never get updated state.
-    // we COULD use useCallback here but something for the future perhaps.
-    comms.current.onmessage = function (event) {
-      const response = JSON.parse(event.data);
-
-      if (response.response_type === "model-completion") {
-        handleChatResponse(response, query, agent, false);
-      } else if (response.response_type === "generated-data") {
-        handleDataResponse(response, query, null, {});
-      }
-    };
-  }
 
   const handleSubmit = async (
     query,
@@ -164,7 +145,6 @@ export function AskDefogChat({
     // }, 0);
 
     setGlobalLoading(true);
-    setQuery(query);
     // setTimeout(() => {
     //   const divEl = document.getElementById("results");
     //   {
@@ -277,7 +257,6 @@ export function AskDefogChat({
     if ((sqlOnly === false) & executeData) {
       handleDataResponse(
         queryChatResponse,
-        query,
         questionId,
         updatedQuestions,
       );
@@ -294,7 +273,6 @@ export function AskDefogChat({
 
   const handleDataResponse = (
     dataResponse,
-    query,
     questionId,
     questionsAsked,
   ) => {
@@ -314,17 +292,11 @@ export function AskDefogChat({
     setGlobalLoading(false);
     setLevel0Loading(false);
 
-    // scroll to the bottom of the results div
-    // setTimeout(() => {
-    //   const divEl = document.getElementById("answers");
-    //   {
-    //     divEl &&
-    //       divEl.scrollTo({
-    //         top: divEl.scrollHeight - 600,
-    //         behavior: "auto",
-    //       });
-    //   }
-    // }, 200);
+    if (clearOnAnswer) {
+      setTimeout(() => {
+        document.getElementById("defog_search").value = '';
+      }, 500);
+    }
   };
 
   const genExtra = () => (
@@ -339,7 +311,6 @@ export function AskDefogChat({
           apiKey,
           additionalHeaders,
           additionalParams,
-          query,
           apiEndpoint,
         }}
       >
@@ -406,7 +377,7 @@ export function AskDefogChat({
                     />
                   </div>
                   <SearchWrap $loading={globalLoading} theme={theme.config}>
-                    <AutoComplete
+                    {/* <AutoComplete
                       style={{ width: "100%" }}
                       options={predefinedQuestions.map((x) => ({
                         label: x,
@@ -419,20 +390,24 @@ export function AskDefogChat({
                       }
                       ref={autoCompRef}
                       disabled={globalLoading}
-                    >
+                    > */}
                       <Search
+                        id={"defog_search"}
                         placeholder={
                           placeholderText || questionMode.placeholder
                         }
                         enterButton={buttonText}
                         size="small"
-                        onSearch={(query) => {
-                          handleSubmit(query, null, []);
-                          setLevel0Loading(query);
+                        onSearch={(ques) => {
+                          if (ques.trim() === "") {
+                            return;
+                          }
+                          handleSubmit(ques, null, []);
+                          setLevel0Loading(ques);
                         }}
                         loading={globalLoading}
                       />
-                    </AutoComplete>
+                    {/* </AutoComplete> */}
                   </SearchWrap>
                 </Panel>
               </Collapse>
