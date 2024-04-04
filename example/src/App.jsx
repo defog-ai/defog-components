@@ -15,8 +15,8 @@ const App = () => {
           maxHeight={"100%"}
           apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
           buttonText={"Ask Defog"}
-          debugMode={false}
-          demoMode={true}
+          debugMode={true}
+          // demoMode={true}
           sqlOnly={false}
           dashboard={false}
           darkMode={false}
