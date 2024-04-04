@@ -62,6 +62,7 @@ const Answers = ({
         const {
           question,
           sql,
+          debugInfo,
           level,
           parentQuestionId,
           askedAt,
@@ -75,6 +76,7 @@ const Answers = ({
           questionId,
           question,
           generatedSql: sql,
+          debugInfo: debugInfo,
           level,
           parentQuestionId,
           askedAt,

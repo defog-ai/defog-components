@@ -252,6 +252,7 @@ export function AskDefogChat({
         analysis: queryChatResponse.analysis || null,
         visualization: queryChatResponse.visualization || "table",
         followUpQuestions: queryChatResponse.followUpQuestions || "",
+        debugInfo: queryChatResponse.debug_info || null,
       },
     };
 
