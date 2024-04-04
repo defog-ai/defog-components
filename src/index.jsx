@@ -41,6 +41,7 @@ export function AskDefogChat({
   clearOnAnswer = false,
 }) {
   const { Panel } = Collapse;
+  const [query, setQuery] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
   // const [questionsAsked, setQuestionsAsked] = useState(test);
@@ -291,12 +292,6 @@ export function AskDefogChat({
     // update the last item in response array with the above data and columns
     setGlobalLoading(false);
     setLevel0Loading(false);
-
-    if (clearOnAnswer) {
-      setTimeout(() => {
-        document.getElementById("defog_search").value = '';
-      }, 500);
-    }
   };
 
   const genExtra = () => (
@@ -399,13 +394,19 @@ export function AskDefogChat({
                         enterButton={buttonText}
                         size="small"
                         onSearch={(ques) => {
+                          if (clearOnAnswer) {
+                            setQuery("");
+                          }
                           if (ques.trim() === "") {
                             return;
                           }
                           handleSubmit(ques, null, []);
                           setLevel0Loading(ques);
+                          // clear this input
                         }}
                         loading={globalLoading}
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
                       />
                     {/* </AutoComplete> */}
                   </SearchWrap>
