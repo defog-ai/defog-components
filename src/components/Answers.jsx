@@ -25,6 +25,7 @@ const Answers = ({
   apiKey,
   // level0Loading is used when a question is asked using the main search bar and not a follow up question
   level0Loading,
+  guidedTeaching,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [followUpLoadingId, setFollowUpLoadingId] = useState(null);
@@ -189,6 +190,7 @@ const Answers = ({
               sqlOnly={sqlOnly}
               level={answer.level}
               apiKey={apiKey}
+              guidedTeaching={guidedTeaching}
             />
           ) : (
             <></>
