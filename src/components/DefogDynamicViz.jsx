@@ -25,6 +25,7 @@ const DefogDynamicViz = ({
   narrativeMode,
   questionId,
   level,
+  guidedTeaching,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [modalVisible, setModalVisible] = useState(false);
@@ -41,9 +42,9 @@ const DefogDynamicViz = ({
     );
   }
 
-  const uploadFeedback = (feedback, feedbackText = "") => {
+  const uploadFeedback = async (feedback, feedbackText = "") => {
     if (feedback === "Good") {
-      fetch(`https://api.defog.ai/feedback`, {
+      await fetch(`https://api.defog.ai/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,8 +55,11 @@ const DefogDynamicViz = ({
           feedback: feedback,
         }),
       });
+
+      message.info("Thank you for your feedback!");
     } else {
-      fetch(`https://api.defog.ai/feedback`, {
+      // send feedback over to the server
+      await fetch(`https://api.defog.ai/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,16 +72,27 @@ const DefogDynamicViz = ({
         }),
       });
 
-      setModalVisible(false);
-    }
+      if (guidedTeaching) {
+        // send the error to the reflect endpoint
+        const reflectResp = await fetch(`https://api.defog.ai/reflect_on_error`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            api_key: apiKey,
+            question: response.question, // verify that this is correct
+            sql_generated: response.generatedSql, // verify that this is correct
+            error: feedbackText,
+          }),
+        });
 
-    feedback === "Good"
-      ? message.success(
-          "We are glad that this was a good result. Thank you for the feedback!",
-        )
-      : message.info(
-          "Thank you for the feedback, we will use your feedback to make the results better!",
-        );
+        console.log(reflectResp);
+      }
+      else {
+        setModalVisible(false);
+      }
+    }
   };
 
   let results;
@@ -199,22 +214,24 @@ const DefogDynamicViz = ({
           }
         >
           <FeedbackModalWrap theme={theme.config}>
-            <TextArea
-              rows={4}
-              className="feedback-text"
-              placeholder="Optional"
-            />
-            <Button
-              onClick={() => {
-                uploadFeedback(
-                  "Bad",
-                  Array.from(document.querySelectorAll(".feedback-text")).pop()
-                    .value,
-                );
-              }}
-            >
-              Submit
-            </Button>
+            <>
+              <TextArea
+                rows={4}
+                className="feedback-text"
+                placeholder="Optional"
+              />
+              <Button
+                onClick={() => {
+                  uploadFeedback(
+                    "Bad",
+                    Array.from(document.querySelectorAll(".feedback-text")).pop()
+                      .value,
+                  );
+                }}
+              >
+                Submit
+              </Button>
+            </>
           </FeedbackModalWrap>
         </Modal>
       </ConfigProvider>
