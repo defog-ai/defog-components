@@ -33,8 +33,9 @@ const DefogDynamicViz = ({
   const [reflectionFeedback, setReflectionFeedback] = useState("");
   const [reflectionColDescriptions, setReflectionColDescriptions] = useState([]);
   const [reflectionRefQueries, setReflectionRefQueries] = useState([]);
-  const [reflectionInstructions, setReflectionInstructions] = useState("");
   const [reflectionLoading, setReflectionLoading] = useState(false);
+  const [glossary, setGlossary] = useState("");
+  const [postReflectionLoading, setPostReflectionLoading] = useState(false);
   const { TextArea } = Input;
 
   // if no response, return error
@@ -82,6 +83,20 @@ const DefogDynamicViz = ({
         // send the error to the reflect endpoint
         setReflectionLoading(true);
         message.info("Preparing improved instruction sets for the model. This can take up to 30 seconds. Thank you for your patience.")
+        
+        // first, get the metadata so that we can easily compare it against the reflection
+        const metadataResp = await fetch(`https://api.defog.ai/get_metadata`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            api_key: apiKey,
+          }),
+        });
+        const { table_metadata, glossary } = await metadataResp.json();
+        setGlossary(glossary);
+
         const reflectResp = await fetch(`https://api.defog.ai/reflect_on_error`, {
           method: "POST",
           headers: {
@@ -89,17 +104,46 @@ const DefogDynamicViz = ({
           },
           body: JSON.stringify({
             api_key: apiKey,
-            question: response.question, // verify that this is correct
-            sql_generated: response.generatedSql, // verify that this is correct
+            question: response.question,
+            sql_generated: response.generatedSql,
             error: feedbackText,
           }),
         });
 
         const { feedback, instruction_set, column_descriptions, reference_queries } = await reflectResp.json();
+
+        // table_metadata is currently an object in the form of {table_name: [{column_name: ..., description: ...}]}
+        // we need to convert it to an array of objects in the form of {table_name: ..., column_name: ..., description: ...}
+        const column_descriptions_array = [];
+        for (const table_name in table_metadata) {
+          const columns = table_metadata[table_name];
+          columns.forEach((column) => {
+            column_descriptions_array.push({
+              table_name: table_name,
+              column_name: column.column_name,
+              data_type: column.data_type,
+              original_description: column.column_description
+            });
+          });
+        }
+
+        // add a new key to each item in column_descriptions called "original description". this is the column description from the metadata
+        const updatedDescriptions = [];
+        
+        column_descriptions_array.forEach((item) => {
+          const found = column_descriptions.find((meta) => meta.table_name === item.table_name && meta.column_name === item.column_name);
+          if (found) {
+            updatedDescriptions.push({
+              ...item,
+              updated_description: found.description
+            });
+          }
+        });
+
         setHasReflected(true);
         setReflectionFeedback(feedback);
-        setReflectionInstructions(instruction_set);
-        setReflectionColDescriptions(column_descriptions);
+        setGlossary(glossary + "\n\n(new instructions)\n\n" + instruction_set);
+        setReflectionColDescriptions(updatedDescriptions);
         setReflectionRefQueries(reference_queries);
         setReflectionLoading(false);
       }
@@ -108,6 +152,50 @@ const DefogDynamicViz = ({
       }
     }
   };
+
+  const updateNewInstructions = async () => {
+    setPostReflectionLoading(true);
+    // update glossary
+    await fetch(`https://api.defog.ai/update_glossary`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        api_key: apiKey,
+        glossary: glossary,
+      }),
+    });
+
+    // update golden queries
+    await fetch(`https://api.defog.ai/update_golden_queries`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        api_key: apiKey,
+        golden_queries: reflectionRefQueries,
+        scrub: false,
+      }),
+    });
+
+    // update column descriptions
+    await fetch(`https://api.defog.ai/update_column_descriptions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        api_key: apiKey,
+        column_descriptions: reflectionColDescriptions,
+      }),
+    });
+
+    setPostReflectionLoading(false);
+    setModalVisible(false);
+    message.info("The model's instruction set has now been updated. Thank you for the feedback!");
+  }
 
   let results;
 
@@ -218,7 +306,7 @@ const DefogDynamicViz = ({
         }}
       >
         <Modal
-          title="To improve the model, could you please give more details about why this is a bad query? :)"
+          title="To improve the model, could you please give more details about why this is a bad query?"
           open={modalVisible}
           footer={null}
           onCancel={() => setModalVisible(false)}
@@ -226,6 +314,7 @@ const DefogDynamicViz = ({
           closeIcon={
             <CloseOutlined style={{ color: theme.config.brandColor }} />
           }
+          width={800}
         >
           <FeedbackModalWrap theme={theme.config}>
             <>
@@ -249,14 +338,36 @@ const DefogDynamicViz = ({
               </Button> :
               <>
                 <p>{reflectionFeedback}</p>
-                <p>{reflectionInstructions}</p>
+
+                <p>Instruction Set:</p>
+                <TextArea
+                  rows={8}
+                  value={glossary}
+                  onChange={(e) => setGlossary(e.target.value)}
+                  style={{
+                    marginTop: "1em",
+                    marginBottom: "1em",
+                  }}
+                />
                 <p>Column Descriptions:</p>
                 <ul>
                   {reflectionColDescriptions.map((item, idx) => {
                     return <li key={idx}>
                       Table Name: {item.table_name}<br/>
                       Column Name: {item.column_name}<br/>
-                      Description: {item.description}
+                      Original Description: {item.original_description}<br/>
+                      Suggested Description: <TextArea
+                        rows={2}
+                        value={item.updated_description}
+                        onChange={(e) => {
+                          const updatedDescriptions = [...reflectionColDescriptions];
+                          updatedDescriptions[idx].updated_description = e.target.value;
+                          setReflectionColDescriptions(updatedDescriptions);
+                        }}
+                        style={{
+                          marginBottom: "1em",
+                        }}
+                      />
                     </li>
                   })}
                 </ul>
@@ -265,10 +376,31 @@ const DefogDynamicViz = ({
                   {reflectionRefQueries.map((item, idx) => {
                     return <li key={idx}>
                       Question: {item.question}<br/>
-                      SQL: {item.sql}
+                      SQL: <TextArea
+                        rows={8}
+                        value={item.sql}
+                        onChange={(e) => {
+                          const updatedQueries = [...reflectionRefQueries];
+                          updatedQueries[idx].sql = e.target.value;
+                          setReflectionRefQueries(updatedQueries);
+                        }}
+                        style={{
+                          marginBottom: "1em",
+                        }}
+                      />
                     </li>
                   })}
                 </ul>
+
+                <Button
+                  onClick={() => {
+                    updateNewInstructions();
+                  }}
+                  loading={postReflectionLoading}
+                  disabled={postReflectionLoading}
+                >
+                  Update Instructions
+                </Button>
               </>}
             </>
           </FeedbackModalWrap>
