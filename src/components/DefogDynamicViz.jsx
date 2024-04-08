@@ -29,6 +29,12 @@ const DefogDynamicViz = ({
 }) => {
   const { theme } = useContext(ThemeContext);
   const [modalVisible, setModalVisible] = useState(false);
+  const [hasReflected, setHasReflected] = useState(false);
+  const [reflectionFeedback, setReflectionFeedback] = useState("");
+  const [reflectionColDescriptions, setReflectionColDescriptions] = useState([]);
+  const [reflectionRefQueries, setReflectionRefQueries] = useState([]);
+  const [reflectionInstructions, setReflectionInstructions] = useState("");
+  const [reflectionLoading, setReflectionLoading] = useState(false);
   const { TextArea } = Input;
 
   // if no response, return error
@@ -74,6 +80,8 @@ const DefogDynamicViz = ({
 
       if (guidedTeaching) {
         // send the error to the reflect endpoint
+        setReflectionLoading(true);
+        message.info("Preparing improved instruction sets for the model. This can take up to 30 seconds. Thank you for your patience.")
         const reflectResp = await fetch(`https://api.defog.ai/reflect_on_error`, {
           method: "POST",
           headers: {
@@ -87,7 +95,13 @@ const DefogDynamicViz = ({
           }),
         });
 
-        console.log(reflectResp);
+        const { feedback, instruction_set, column_descriptions, reference_queries } = await reflectResp.json();
+        setHasReflected(true);
+        setReflectionFeedback(feedback);
+        setReflectionInstructions(instruction_set);
+        setReflectionColDescriptions(column_descriptions);
+        setReflectionRefQueries(reference_queries);
+        setReflectionLoading(false);
       }
       else {
         setModalVisible(false);
@@ -220,7 +234,9 @@ const DefogDynamicViz = ({
                 className="feedback-text"
                 placeholder="Optional"
               />
-              <Button
+              {!hasReflected ? <Button
+                loading={reflectionLoading}
+                disabled={reflectionLoading}
                 onClick={() => {
                   uploadFeedback(
                     "Bad",
@@ -230,7 +246,30 @@ const DefogDynamicViz = ({
                 }}
               >
                 Submit
-              </Button>
+              </Button> :
+              <>
+                <p>{reflectionFeedback}</p>
+                <p>{reflectionInstructions}</p>
+                <p>Column Descriptions:</p>
+                <ul>
+                  {reflectionColDescriptions.map((item, idx) => {
+                    return <li key={idx}>
+                      Table Name: {item.table_name}<br/>
+                      Column Name: {item.column_name}<br/>
+                      Description: {item.description}
+                    </li>
+                  })}
+                </ul>
+                <p>Reference Queries:</p>
+                <ul>
+                  {reflectionRefQueries.map((item, idx) => {
+                    return <li key={idx}>
+                      Question: {item.question}<br/>
+                      SQL: {item.sql}
+                    </li>
+                  })}
+                </ul>
+              </>}
             </>
           </FeedbackModalWrap>
         </Modal>
