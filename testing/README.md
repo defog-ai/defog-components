@@ -84,7 +84,7 @@ function* noQuantitativeColumns() {
 }
 ```
 
-Then go inside testCases function in `mock-ask-data-responses.js`, and add your new test function to the tests array.
+Then go inside `testCases` function in `mock-ask-data-responses.js`, and add your new test function to the tests array.
 
 ```js
 export function* testCases() {
