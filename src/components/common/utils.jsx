@@ -47,9 +47,6 @@ const dateFormats = [
   "YYYY-MM-DD",
   "YYYY-MM",
   "YYYY-MMM",
-  "YYYY-M",
-  "MMM",
-  "MMMM",
 ];
 
 export function isDate(s, colName) {
@@ -203,10 +200,17 @@ function formatTime(val) {
 
   // convert all values to date
   val = toTitleCase(val);
-  return dayjs(val, [
-    ...dateFormats,
-    ["YYYY", "MM", "MMM", "M", "MMMM"],
-  ]).format("D MMM 'YY");
+  // check if it matches any of the date formats
+  const date = dayjs(val, dateFormats, true);
+  if (date.isValid()) {
+    return date.format("D MMM 'YY");
+  } else {
+    return val;
+  }
+
+  // dayjs(val, [...dateFormats, ["YYYY", "MM", "MMM", "M", "MMMM"]]).format(
+  //   "D MMM 'YY",
+  // );
 }
 
 export function setChartJSDefaults(
@@ -468,9 +472,11 @@ export function createChartConfig(
     );
   }
   if (xAxisIsDate) {
-    // sort the data according to the x axis column
+    // sort the data according to the x axis column?
     // dates are already coming in formatted in a sortable way
-    chartLabels?.sort();
+    // so we don't to do anything - since doing this can mess up the order
+    // specially for month data
+    console.log(chartLabels);
   }
 
   // convert filteredData to an array of objects
