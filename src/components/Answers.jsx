@@ -50,7 +50,6 @@ const Answers = ({
 
   useEffect(() => {
     // if level0Loading is true, scroll to the bottom of the page
-    console.log(level0Loading);
     if (level0Loading) {
       window.scrollTo(0, document.body.scrollHeight);
     }
@@ -85,7 +84,7 @@ const Answers = ({
           data,
           analysis,
           visualization,
-          followUpQuestions
+          followUpQuestions,
         };
       },
     );

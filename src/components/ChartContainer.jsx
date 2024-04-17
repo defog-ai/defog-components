@@ -70,9 +70,68 @@ export default function ChartContainer({
     arrToAntD([dateColumns.length > 0 ? dateColumns[0] : xAxisColumns[0]]),
   );
 
-  const [yAxis, setYAxis] = useState(arrToAntD(
-    yAxisColumns.length > 1 ? yAxisColumns.filter((d) => d.key !== "index") : yAxisColumns,
-  ));
+  let initialYAxisColumns = [];
+  // if there's only one column or the columns are all non numeric
+  if (
+    yAxisColumns.length === 1 ||
+    yAxisColumns.every((d) => d.variableType !== "quantitative")
+  ) {
+    initialYAxisColumns = yAxisColumns;
+  } else {
+    try {
+      // group the y axis columns into those with means within order of magnitude
+      const quantColumns = yAxisColumns.filter(
+        (d) => d.variableType === "quantitative" && Object.hasOwn(d, "mean"),
+      );
+
+      const means = quantColumns.map((d) => d.mean);
+      means.sort();
+      const groups = [];
+      const alreadyGrouped = [];
+      for (let i = 0; i < means.length; i++) {
+        if (alreadyGrouped.includes(i)) {
+          continue;
+        }
+        alreadyGrouped.push(i);
+        const thisCol = quantColumns[i];
+        let group = [thisCol];
+        const thisMean = Math.abs(thisCol.mean);
+
+        for (let j = i + 1; j < means.length; j++) {
+          if (alreadyGrouped.includes(j)) {
+            continue;
+          }
+          const thatCol = quantColumns[j];
+          const thatMean = Math.abs(thatCol.mean);
+          const larger = thisMean > thatMean ? thisMean : thatMean;
+          const smaller = thisMean < thatMean ? thisMean : thatMean;
+          if (larger / smaller < 10) {
+            group.push(thatCol);
+            alreadyGrouped.push(j);
+          }
+        }
+
+        groups.push(group);
+      }
+
+      // pick the group with the largest number of columns
+      const largestGroup = groups.reduce((a, b) =>
+        a.length > b.length ? a : b,
+      );
+      initialYAxisColumns = largestGroup;
+    } catch (err) {
+      console.log(err);
+      initialYAxisColumns = yAxisColumns.slice();
+    }
+  }
+
+  const [yAxis, setYAxis] = useState(
+    arrToAntD(
+      initialYAxisColumns.length > 1
+        ? initialYAxisColumns.filter((d) => d.key !== "index")
+        : initialYAxisColumns,
+    ),
+  );
 
   const xAxisLabel = !xAxis.length
     ? undefined
