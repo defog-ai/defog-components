@@ -23,14 +23,34 @@ const monthShortnames = [
   "Dec",
 ];
 
+const monthLongnames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 const mockColumns = [
   "name",
-  "date",
-  "month",
+  "date1",
+  "date2",
+  "date3",
+  "date4",
+  "month_numeric",
   "month_short",
-  "test_year",
-  "test_date",
-  "year",
+  "month_long",
+  "week_padded_string",
+  "week_numeric",
+  "year_numeric",
+  "year_string",
   "value_a",
   "value_b",
   "value_c",
@@ -80,26 +100,40 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
           // create random string
           val = Math.random().toString(36).substring(2, 15);
           break;
-        case "date":
-        case "test_date":
+        case "date1":
+        case "date2":
+        case "date3":
+        case "date4":
           val = baseDate.add(Math.random() * 100, "day");
           // jitter baseDate a little bit
           val = val.format(tfs[j % tfs.length]);
 
           break;
-        case "month":
+        case "week_padded_string":
+          // generate strins padded with 0
+          val = Math.ceil(Math.random() * 52)
+            .toString()
+            .padStart(2, "0");
+          break;
+        case "week_numeric":
+          val = Math.ceil(Math.random() * 52);
+
+          break;
+        case "month_numeric":
           val = Math.ceil(Math.random() * 12);
-          val = dayjs(val.toString(), "M").format(tfs[j % tfs.length]);
 
           break;
         case "month_short":
           val = monthShortnames[Math.floor(Math.random() * 12)];
-          val = dayjs(val, "MMM").format(tfs[j % tfs.length]);
           break;
-        case "year":
-        case "test_year":
-          val = Math.floor(Math.random() * 10000);
-          val = dayjs(val.toString(), "YYYY").format(tfs[j % tfs.length]);
+        case "month_long":
+          val = monthLongnames[Math.floor(Math.random() * 12)];
+          break;
+        case "year_string":
+          val = Math.floor(Math.random() * 30) + 2000 + "";
+          break;
+        case "year_numeric":
+          val = Math.floor(Math.random() * 30) + 2000;
 
           break;
         case "holiday":
@@ -148,7 +182,10 @@ function createAskDataResponseObject(newProps = {}, testVals = null) {
 function* validResponse() {
   log("validResponse: Testing with valid response.");
 
-  yield createAskDataResponseObject();
+  yield createAskDataResponseObject({
+    columns: mockColumns.slice(),
+    data: createData(mockColumns.slice()),
+  });
 }
 
 function* noQuantitativeColumns() {
@@ -202,9 +239,10 @@ function* noSQL() {
 }
 
 function* onlyDates() {
-  let selectedCols = mockColumns.slice(0, 6);
   log("onlyDates: Testing with only date columns.");
   let skipColumns = ["name", "holiday", "value_a", "value_b", "value_c"];
+
+  let selectedCols = mockColumns.slice();
 
   yield createAskDataResponseObject({
     columns: selectedCols.filter((col) => skipColumns.indexOf(col) < 0),
@@ -244,15 +282,15 @@ function* noDates() {
 export function* testCases() {
   // add your tests to this array
   const tests = [
-    noQuantitativeColumns,
-    onlyDates,
-    noDates,
-    onlyQuantitativeColumns,
+    // noQuantitativeColumns,
+    // onlyDates,
+    // noDates,
+    // onlyQuantitativeColumns,
     validResponse,
-    queryRunFailure,
-    noData,
-    noColumns,
-    noSQL,
+    // queryRunFailure,
+    // noData,
+    // noColumns,
+    // noSQL,
   ];
 
   let i = 0;

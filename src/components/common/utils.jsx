@@ -3,9 +3,11 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat.js";
 import weekOfYear from "dayjs/plugin/weekOfYear.js";
 import advancedFormat from "dayjs/plugin/advancedFormat.js";
+import isoWeek from "dayjs/plugin/isoWeek";
 dayjs.extend(advancedFormat);
 dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
+dayjs.extend(isoWeek);
 
 import { chartColors } from "../../context/ThemeContext";
 import { Popover } from "antd";
@@ -49,12 +51,12 @@ const dateFormats = [
   "YYYY-MMM",
 ];
 
-export function isDate(s, colName) {
+export function checkIfDate(s, colIdx, colName, rows) {
   // test if it's a date column
   // if it's == year or month or date
   // or if it contains year, month or date somewhere in the name
 
-  return (
+  let isDate =
     // either neat date
     dayjs(s, dateFormats, true).isValid() ||
     // or hacky date >.<
@@ -65,9 +67,88 @@ export function isDate(s, colName) {
     /year/gi.test(colName) ||
     /month/gi.test(colName) ||
     /date/gi.test(colName) ||
-    /week/gi.test(colName)
-  );
-  // return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
+    /week/gi.test(colName);
+
+  // now to actually guess the date format
+  let dateType, parseFormat;
+  let dateToUnix = (val) => val;
+
+  if (isDate) {
+    // find out what it matches
+    if (/^year$/gi.test(colName) || /year/gi.test(colName)) dateType = "year";
+    if (/^month$/gi.test(colName) || /month/gi.test(colName))
+      dateType = "month";
+    if (/^date$/gi.test(colName) || /date/gi.test(colName)) dateType = "date";
+    if (/^week$/gi.test(colName) || /week/gi.test(colName)) dateType = "week";
+
+    // if it matches something, find what is the format
+    if (dateType === "week") {
+      // week should mean it's a week of the year so it should be a number from 1->52
+      // it can either be integers or strings
+      dateToUnix = (val) => dayjs().week(+val).unix();
+      parseFormat = "W-YYYY";
+    }
+    if (dateType === "year") {
+      // year should be a 4 digit number
+      // first convert it to all numbers, and add month to it
+      dateToUnix = (val) => dayjs("1-" + +val, "M-YYYY").unix();
+
+      parseFormat = "M-YYYY";
+    }
+    if (dateType === "month") {
+      // month can either be a 1 or 2 digit number or a string of month name
+      // check from the rows which it is
+      for (let i = 0; i < rows.length; i++) {
+        let val = rows[i][colIdx];
+        if (!val) continue;
+
+        if (typeof val === "number") {
+          // add current year to it for parsing
+          dateToUnix = (val) =>
+            dayjs(val + "-" + new Date().getFullYear(), "M-YYYY").unix();
+          parseFormat = "M-YYYY";
+        } else {
+          // if it's a string
+          // then check if it has alphabets
+          const maybeMonthName = /[a-zA-Z]/.test(val);
+          if (maybeMonthName) {
+            // check length
+            if (val.length > 3) {
+              // if it's more than 3, it's a full month name
+              dateToUnix = (val) => dayjs(val, "MMMM").unix();
+              parseFormat = "MMMM";
+            } else {
+              // if it's less than equal to 3, it's probably a short month name
+              dateToUnix = (val) => dayjs(val, "MMM").unix();
+              parseFormat = "MMM";
+            }
+          } else {
+            // is just month number
+            // add current year to it for parsing
+            dateToUnix = (val) =>
+              dayjs(val + "-" + new Date().getFullYear(), "M-YYYY").unix();
+            parseFormat = "M-YYYY";
+          }
+        }
+
+        // only check the first non null value
+        break;
+      }
+    }
+
+    if (dateType === "date") {
+      // we assume dayjs will be able to parse it
+      dateToUnix = (val) => val;
+      parseFormat = null;
+    }
+  } else {
+    dateToUnix = (val) => val;
+    parseFormat = null;
+    dateType = null;
+    isDate = false;
+  }
+
+  return { isDate, dateType, parseFormat, dateToUnix };
 }
 
 export function cleanString(s) {
@@ -144,10 +225,16 @@ export function inferColumnType(rows, colIdx, colName) {
     for (let i = 0; i < rows.length; i++) {
       const val = rows[i][colIdx];
       if (val === null) continue;
-      else if (isDate(val, colName)) {
+
+      const dateCheck = checkIfDate(val, colIdx, colName, rows);
+      if (dateCheck.isDate) {
         res["colType"] = "date";
         res["variableType"] = "categorical";
         res["numeric"] = false;
+        res["parseFormat"] = dateCheck.parseFormat;
+        res["dateToUnix"] = dateCheck.dateToUnix;
+        res["dateType"] = dateCheck.dateType;
+        res["isDate"] = dateCheck.isDate;
       }
       // is a number and also has a decimal
       else if (isNumber(val) && val.toString().indexOf(".") >= 0) {
@@ -472,14 +559,25 @@ export function createChartConfig(
         filteredData[b][yAxisColumns[0].label] -
         filteredData[a][yAxisColumns[0].label],
     );
+  } else {
+    const colDetails = xAxisColumns[0].__data__;
+
+    // find if we have a parseFormat
+    const parseFormat = colDetails?.parseFormat;
+    const dateToUnix = colDetails?.dateToUnix || ((d) => d);
+
+    // if we don't, then just have dayjs parse these
+    if (!parseFormat) {
+      chartLabels.sort(
+        (a, b) => dayjs(dateToUnix(a)).unix() - dayjs(dateToUnix(b)).unix(),
+      );
+    } else {
+      // if we do, then run the dateToUnix function on each label
+      chartLabels.sort((a, b) => dateToUnix(a) - dateToUnix(b));
+    }
   }
-  if (xAxisIsDate) {
-    // sort the data according to the x axis column?
-    // dates are already coming in formatted in a sortable way
-    // so we don't to do anything - since doing this can mess up the order
-    // specially for month data
-    console.log(chartLabels);
-  }
+
+  console.log(chartLabels);
 
   // convert filteredData to an array of objects
   // this is the format that chartjs expects
@@ -616,8 +714,6 @@ export const reFormatData = (data, columns) => {
       for (let j = 0; j < cols.length; j++) {
         if (numericAsString.indexOf(j) >= 0) {
           row[cols[j]] = rows[i][j];
-          // convert rows[i][j] to number, while removing any commas or trailing % signs
-          // row[cols[j]] = +rows[i][j].replace(/,/g, "").replace(/%$/, "");
         } else if (stringAsNumeric.indexOf(j) >= 0) {
           row[cols[j]] = "" + rows[i][j];
         } else row[cols[j]] = rows[i][j];
