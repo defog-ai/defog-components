@@ -61,9 +61,11 @@ export function isDate(s, colName) {
     /^year$/gi.test(colName) ||
     /^month$/gi.test(colName) ||
     /^date$/gi.test(colName) ||
+    /^week$/gi.test(colName) ||
     /year/gi.test(colName) ||
     /month/gi.test(colName) ||
-    /date/gi.test(colName)
+    /date/gi.test(colName) ||
+    /week/gi.test(colName)
   );
   // return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
 }
