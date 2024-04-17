@@ -10,6 +10,7 @@ dayjs.extend(customParseFormat);
 import { chartColors } from "../../context/ThemeContext";
 import { Popover } from "antd";
 import styled from "styled-components";
+import { mean } from "d3-array";
 
 export const questionModes = [
   [
@@ -124,6 +125,7 @@ export function inferColumnType(rows, colIdx, colName) {
   const res = {};
   res["numeric"] = false;
   res["variableType"] = "quantitative";
+
   if (
     colName.endsWith("_id") ||
     colName.startsWith("id_") ||
@@ -149,6 +151,12 @@ export function inferColumnType(rows, colIdx, colName) {
         res["colType"] = "decimal";
         res["numeric"] = true;
         res["variableType"] = "quantitative";
+        try {
+          // get the mean of this column
+          res["mean"] = mean(rows, (d) => d[colIdx]);
+        } catch (e) {
+          // do nothing
+        }
       }
       // if number but no decimal
       // or is exponential value
@@ -156,11 +164,23 @@ export function inferColumnType(rows, colIdx, colName) {
         res["colType"] = "integer";
         res["numeric"] = true;
         res["variableType"] = "quantitative";
+        // get the mean of this column
+        res["mean"] = mean(rows, (d) => d[colIdx]);
       } else {
         res["colType"] = typeof val;
         res["numeric"] = res["colType"] === "number";
         res["variableType"] =
           res["colType"] === "number" ? "quantitative" : "categorical";
+
+        // if it's a number, get the mean
+        if (res["numeric"]) {
+          try {
+            // get the mean of this column
+            res["mean"] = mean(rows, (d) => d[colIdx]);
+          } catch (e) {
+            // do nothing
+          }
+        }
       }
 
       res["simpleTypeOf"] = typeof val;
@@ -595,16 +615,12 @@ export const reFormatData = (data, columns) => {
       variableType: "integer",
       numeric: true,
       simpleTypeOf: "number",
+      mean: (newRows?.length + 1) / 2 || null,
     });
   } else {
     newCols = [];
     newRows = [];
   }
-
-  console.log(
-    "Date columns: ",
-    newCols.filter((d) => d.colType === "date"),
-  );
 
   return { newCols, newRows };
 };
