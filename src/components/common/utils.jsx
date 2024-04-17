@@ -46,6 +46,10 @@ const dateFormats = [
   "YYYY-MM-DDTHH:mm:ss",
   "YYYY-MM-DD",
   "YYYY-MM",
+  "YYYY-MMM",
+  "YYYY-M",
+  "MMM",
+  "MMMM",
 ];
 
 export function isDate(s, colName) {
@@ -191,6 +195,14 @@ export function inferColumnType(rows, colIdx, colName) {
 }
 
 function formatTime(val) {
+  const toTitleCase = (str) => {
+    return str.replace(/\w\S*/g, function (txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  };
+
+  // convert all values to date
+  val = toTitleCase(val);
   return dayjs(val, [
     ...dateFormats,
     ["YYYY", "MM", "MMM", "M", "MMMM"],
