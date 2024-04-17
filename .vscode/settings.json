@@ -1,4 +1,10 @@
 {
   "window.title": "${activeEditorMedium}${separator}${rootName}${separator}${profileName}",
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

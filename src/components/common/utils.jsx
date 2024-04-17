@@ -47,8 +47,22 @@ const dateFormats = [
   "YYYY-MM",
 ];
 
-export function isDate(s) {
-  return dayjs(s, dateFormats, true).isValid();
+export function isDate(s, colName) {
+  // test if it's a date column
+  // if it's == year or month or date
+  // or if it contains year, month or date somewhere in the name
+
+  return (
+    // either neat date
+    dayjs(s, dateFormats, true).isValid() ||
+    // or hacky date >.<
+    /^year$/gi.test(colName) ||
+    /^month$/gi.test(colName) ||
+    /^date$/gi.test(colName) ||
+    /year/gi.test(colName) ||
+    /month/gi.test(colName) ||
+    /date/gi.test(colName)
+  );
   // return /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$/gi.test(s);
 }
 
@@ -120,17 +134,12 @@ export function inferColumnType(rows, colIdx, colName) {
     res["numeric"] = false;
     res["simpleTypeOf"] = "string";
     return res;
-  } else if (/^year$/gi.test(colName) || /^month$/gi.test(colName)) {
-    res["colType"] = "date";
-    res["variableType"] = "categorical";
-    res["numeric"] = false;
-    res["simpleTypeOf"] = "string";
-    return res;
   } else {
+    // look at the first non-null row and guess the type
     for (let i = 0; i < rows.length; i++) {
       const val = rows[i][colIdx];
       if (val === null) continue;
-      else if (isDate(val)) {
+      else if (isDate(val, colName)) {
         res["colType"] = "date";
         res["variableType"] = "categorical";
         res["numeric"] = false;
@@ -155,6 +164,7 @@ export function inferColumnType(rows, colIdx, colName) {
       }
 
       res["simpleTypeOf"] = typeof val;
+      // just return. so we don't look at any further than the first non-null row
       return res;
     }
   }
@@ -235,6 +245,10 @@ export function setChartJSDefaults(
   }
 }
 
+// converts a Map into an Object.
+// recursive function that can handle nested Maps as well.
+// processValue is a function that can be used to process the value of each value in the resulting object
+// hook is a function that can be used to do extra computation before we process a key, value pair
 export const mapToObject = (
   map = new Map(),
   parentNestLocation = [],
@@ -421,6 +435,11 @@ export function createChartConfig(
         filteredData[a][yAxisColumns[0].label],
     );
   }
+  if (xAxisIsDate) {
+    // sort the data according to the x axis column
+    // dates are already coming in formatted in a sortable way
+    chartLabels?.sort();
+  }
 
   // convert filteredData to an array of objects
   // this is the format that chartjs expects
@@ -581,6 +600,11 @@ export const reFormatData = (data, columns) => {
     newCols = [];
     newRows = [];
   }
+
+  console.log(
+    "Date columns: ",
+    newCols.filter((d) => d.colType === "date"),
+  );
 
   return { newCols, newRows };
 };
