@@ -47,29 +47,15 @@ const App = () => {
           }}
         >
           <Button
-            key={key + "-next"}
-            className="next-test-btn"
-            onClick={() => {
-              if (!window.autoTesting) window.nextRes = window.testCases.next();
-              setKey(key + 1);
-            }}
-            disabled={window.testsFinished}
-            style={{
-              opacity: window.autoTesting ? 0 : 1,
-              height: window.autoTesting ? 0 : "auto",
-              marginRight: window.autoTesting ? 0 : "20px",
-              width: window.autoTesting ? 0 : "auto",
-              pointerEvents: window.autoTesting ? "none" : "auto",
-            }}
-          >
-            Next test
-          </Button>
-          <Button
             key={key + "-prvs"}
             className="next-test-btn"
             onClick={() => {
-              if (!window.autoTesting)
+              if (!window.autoTesting) {
+                // hacky, but need to do this to get the parameterpassed to the next next() call
+                // to allow the previous button to work
+                window.testCases.next();
                 window.nextRes = window.testCases.next("prev");
+              }
               setKey(key + 1);
             }}
             disabled={window.testsFinished}
@@ -82,6 +68,29 @@ const App = () => {
             }}
           >
             Previous test
+          </Button>
+          <Button
+            key={key + "-next"}
+            className="next-test-btn"
+            onClick={() => {
+              if (!window.autoTesting) {
+                // hacky, but need to do this to get the parameterpassed to the next next() call
+                // to allow the previous button to work
+                window.testCases.next();
+                window.nextRes = window.testCases.next();
+              }
+              setKey(key + 1);
+            }}
+            disabled={window.testsFinished}
+            style={{
+              opacity: window.autoTesting ? 0 : 1,
+              height: window.autoTesting ? 0 : "auto",
+              marginRight: window.autoTesting ? 0 : "20px",
+              width: window.autoTesting ? 0 : "auto",
+              pointerEvents: window.autoTesting ? "none" : "auto",
+            }}
+          >
+            Next test
           </Button>
 
           <Button
