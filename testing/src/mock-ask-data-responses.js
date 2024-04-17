@@ -260,12 +260,17 @@ function* queryRunFailure() {
 
 function* noDates() {
   let skipColumns = [
-    "date",
-    "month",
-    "year",
-    "test_year",
-    "test_date",
+    "date1",
+    "date2",
+    "date3",
+    "date4",
+    "month_numeric",
     "month_short",
+    "month_long",
+    "week_padded_string",
+    "week_numeric",
+    "year_numeric",
+    "year_string",
   ];
 
   log(`noDates: Testing with no date columns.`);
@@ -282,10 +287,10 @@ function* noDates() {
 export function* testCases() {
   // add your tests to this array
   const tests = [
-    // noQuantitativeColumns,
-    // onlyDates,
-    // noDates,
-    // onlyQuantitativeColumns,
+    noQuantitativeColumns,
+    onlyDates,
+    noDates,
+    onlyQuantitativeColumns,
     validResponse,
     // queryRunFailure,
     // noData,
