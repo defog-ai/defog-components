@@ -14,8 +14,7 @@ The tests can also be made to run automatically in a loop (just click the "Resum
 There's two sets of functions, both generators:
 
 1. One is the `testCases` function inside `mock-ask-data-responses.js`. This goes through all your tests, and yields each one in turn. It also simulates a click on the "Next Test" button in the test controller UI.
-2. If you simultaneously want to test all chart types, you can choose to iterate over the `chartTypes` array inside your test.
-3. The other type are the test functions itself. These are individual tests you want to run. For example, you might want to test missing data, or missing columns, or a query that fails. These are also generator functions that create a response object (mimicking what we get from the defog api), which are then are yielded from the `testCases` function, which sends it to the UI.
+2. The other type are the test functions itself. These are individual tests you want to run. For example, you might want to test missing data, or missing columns, or a query that fails. These are also generator functions that create a response object (mimicking what we get from the defog api), which are then are yielded from the `testCases` function, which sends it to the UI.
 
 # How to add your own tests
 
@@ -27,6 +26,7 @@ The columns by default are:
 // date, month, month_short, test_year, test_date, year will be parsed as dates
 // value_a, value_b, value_c will be parsed as numbers
 // name and holiday will be parsed as a string
+// to add new columns, add them here + inside switch/case in the createData function
 const mockColumns = [
   "name",
   "date",
@@ -48,7 +48,7 @@ The major workhorse of this is the `createData` function, that takes in some par
 function createData(
     // the columns you want to create data for
     // if any of these don't exist in the mock columns above, they will be created with data type numbers
-    // if you want to handle a new column type, add it in two places:
+    // if you want to handle a new column, add it in two places:
     // 1. in the mockColumns array above
     // 2. inside the switch case within this function which will handle your new column
     // decimalColumns: if you want any columns to be decimals, add them here
@@ -81,6 +81,19 @@ function* noQuantitativeColumns() {
     columns: selectedCols,
     data: createData(selectedCols),
   });
+}
+```
+
+Then go inside testCases function in `mock-ask-data-responses.js`, and add your new test function to the tests array.
+
+```js
+export function* testCases() {
+  // add your tests to this array
+  const tests = [
+    ...
+    noQuantitativeColumns,
+  ];
+  ...
 }
 ```
 
