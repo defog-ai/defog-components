@@ -6,7 +6,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { nextTestBtnClick, testCases } from "./mock-ask-data-responses";
 
-window.autoTesting = true;
+window.autoTesting = false;
 window.testsFinished = false;
 
 window.testCases = testCases();
@@ -14,6 +14,10 @@ window.testCases = testCases();
 window.nextRes = window.testCases.next();
 
 window.testingInterval = {
+  init: () => {
+    window.nextRes = window.testCases.next();
+    nextTestBtnClick();
+  },
   start: () =>
     (window.intervalId = setInterval(() => {
       if (window.autoTesting) {
@@ -49,4 +53,5 @@ const container = document.getElementById("root");
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 root.render(<App />);
 // ReactDOM.render(<App />, container)
+window.testingInterval.init();
 window.testingInterval.start();

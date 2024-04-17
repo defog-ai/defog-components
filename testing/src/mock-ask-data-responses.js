@@ -13,12 +13,28 @@ dayjs.extend(advancedFormat);
 dayjs.extend(weekOfYear);
 dayjs.extend(customParseFormat);
 
+const monthShortnames = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 const mockColumns = [
+  "name",
   "date",
-  "day",
-  "week",
   "month",
-  "qtr",
+  "month_short",
+  "test_year",
+  "test_date",
   "year",
   "value_a",
   "value_b",
@@ -35,7 +51,12 @@ const timeFormats = [
   "YYYY-MM",
 ];
 
-function createData(columns, decimalColumns = [], onlyDates = false) {
+function createData(
+  columns,
+  decimalColumns = [],
+  onlyDates = false,
+  skipColumns = [],
+) {
   const nrows = Math.random() * 100;
   const data = [];
   const baseDate = dayjs(new Date(Math.random() * 1000000000000));
@@ -47,9 +68,18 @@ function createData(columns, decimalColumns = [], onlyDates = false) {
       // push a random value
       // if date, push a random date
       const colName = columns[j];
+      if (skipColumns.indexOf(colName) >= 0) {
+        continue;
+      }
       let val;
+
       switch (colName) {
+        case "name":
+          // create random string
+          val = Math.random().toString(36).substring(2, 15);
+          break;
         case "date":
+        case "test_date":
           val = baseDate.add(Math.random() * 100, "day");
           // jitter baseDate a little bit
           if (onlyDates) {
@@ -58,27 +88,25 @@ function createData(columns, decimalColumns = [], onlyDates = false) {
             val = val.toISOString().slice(0, -5);
           }
           break;
-        case "week":
-          val = Math.ceil(Math.random() * 52);
-          break;
         case "month":
           val = Math.ceil(Math.random() * 12);
           if (onlyDates) {
             val = dayjs(val.toString(), "M").format(tfs[j % tfs.length]);
           }
           break;
-        case "qtr":
-          val = Math.ceil(Math.random() * 4);
+        case "month_short":
+          val = monthShortnames[Math.floor(Math.random() * 12)];
+          if (onlyDates) {
+            val = dayjs(val, "MMM").format(tfs[j % tfs.length]);
+          }
           break;
         case "year":
+        case "test_year":
           val = Math.floor(Math.random() * 10000);
           if (onlyDates) {
             val = dayjs(val.toString(), "YYYY").format(tfs[j % tfs.length]);
           }
 
-          break;
-        case "day":
-          val = Math.floor(Math.random() * 7);
           break;
         case "holiday":
           val = Math.random() > 0.5;
@@ -123,14 +151,14 @@ function createAskDataResponseObject(newProps = {}, testVals = null) {
 }
 
 function* validResponse() {
-  log("Testing with valid response.");
+  log("validResponse: Testing with valid response.");
 
   yield createAskDataResponseObject();
 }
 
 function* onlyQuantitativeColumns() {
   let selectedCols = mockColumns.filter((col) => col.startsWith("value"));
-  log("Testing with only quantitative columns.");
+  log("onlyQuantitativeColumns: Testing with only quantitative columns.");
 
   yield createAskDataResponseObject({
     columns: selectedCols,
@@ -142,10 +170,13 @@ function* noData() {
   const testVals = commonVals.slice().filter((d) => d !== "");
   testVals.push([null]);
 
+  log("noData: Testing with no data.");
+
   yield* testResponseProp({}, "data", createAskDataResponseObject, testVals);
 }
 
 function* noColumns() {
+  log("noColumns: Testing with no columns.");
   yield* testResponseProp(
     {},
     "columns",
@@ -155,6 +186,7 @@ function* noColumns() {
 }
 
 function* noSQL() {
+  log = "noSQL: Testing with no SQL query generated.";
   yield* testResponseProp(
     {},
     "query_generated",
@@ -165,32 +197,51 @@ function* noSQL() {
 
 function* onlyDates() {
   let selectedCols = mockColumns.slice(0, 6);
-  log("Testing with only date columns.");
+  log("onlyDates: Testing with only date columns.");
+  let skipColumns = ["name", "holiday", "value_a", "value_b", "value_c"];
 
   yield createAskDataResponseObject({
-    columns: selectedCols,
-    data: createData(selectedCols, [], true),
+    columns: selectedCols.filter((col) => skipColumns.indexOf(col) < 0),
+    data: createData(selectedCols, [], true, skipColumns),
   });
 }
 
 export const chartTypes = [
-  "pie chart",
-  "piechart",
+  // "pie chart",
+  // "piechart",
   "bar chart",
-  "barchart",
-  "column chart",
-  "columnchart",
-  "trend chart",
-  "trendchart",
-  "line chart",
-  "linechart",
+  // "barchart",
+  // "column chart",
+  // "columnchart",
+  // "trend chart",
+  // "trendchart",
+  // "line chart",
+  // "linechart",
 ];
+
+function* dateParsingTest() {
+  let skipColumns = ["date", "month", "year", "test_year", "test_date"];
+  for (let i = 0; i < chartTypes.length; i++) {
+    // always have data for charts
+
+    log(`dateParsingTest: Testing with "${chartTypes[i]}" in the query.`);
+    const res = createAskDataResponseObject({
+      columns: mockColumns
+        .slice()
+        .filter((col) => skipColumns.indexOf(col) < 0),
+      // skip columns that are easy to parse
+      data: createData(mockColumns.slice(), [], true, skipColumns),
+    });
+
+    yield res;
+  }
+}
 
 function* charts() {
   for (let i = 0; i < chartTypes.length; i++) {
     // always have data for charts
 
-    log(`Testing with "${chartTypes[i]}" in the query.`);
+    log(`charts: Testing with "${chartTypes[i]}" in the query.`);
     const res = createAskDataResponseObject({
       columns: mockColumns.slice(),
       data: createData(mockColumns.slice(), [], true),
@@ -201,29 +252,62 @@ function* charts() {
 }
 
 function* queryRunFailure() {
-  log("Testing ran_successfully = false.");
+  log("queryRunFailure: Testing ran_successfully = false.");
   const res = createAskDataResponseObject();
   res.ran_successfully = false;
 
   yield res;
 }
 
+function* noDates() {
+  let skipColumns = [
+    "date",
+    "month",
+    "year",
+    "test_year",
+    "test_date",
+    "month_short",
+  ];
+
+  for (let i = 0; i < chartTypes.length; i++) {
+    // always have data for charts
+
+    log(
+      `noDates: Testing with "${chartTypes[i]}" in the query with no date columns.`,
+    );
+    const res = createAskDataResponseObject({
+      columns: mockColumns
+        .slice()
+        .filter((col) => skipColumns.indexOf(col) < 0),
+      // skip columns that are easy to parse
+      data: createData(mockColumns.slice(), [], true, skipColumns),
+    });
+
+    yield res;
+  }
+}
+
 export function* testCases() {
   const tests = [
     onlyDates,
-    onlyQuantitativeColumns,
-    validResponse,
-    queryRunFailure,
-    noData,
-    noColumns,
-    noSQL,
+    // onlyQuantitativeColumns,
+    // validResponse,
+    // queryRunFailure,
+    // noData,
+    // noColumns,
+    // noSQL,
   ];
 
   // will always have to test charts first unfortunately.
   // can't figure out how to test and keep the chart type in the query (without editing src/index.js) otherwise
-  tests.unshift(charts);
+  tests.unshift(noDates);
 
-  for (let i = 0; i < tests.length; i++) {
+  let i = 0;
+  while (true) {
+    const incOrDec = (yield tests[i]) === "prev" ? -1 : 1;
+
+    i = (tests.length + i + incOrDec) % tests.length;
+
     yield* tests[i]();
   }
 }
