@@ -114,10 +114,14 @@ export default function ChartContainer({
         groups.push(group);
       }
 
-      // pick the group with the largest number of columns
-      const largestGroup = groups.reduce((a, b) =>
-        a.length > b.length ? a : b,
+      // calculate the mean of each group
+      const groupMeans = groups.map(
+        (group) => group.reduce((acc, d) => acc + d.mean, 0) / group.length,
       );
+
+      // find the group with the largest mean
+      const largestGroup = groups[groupMeans.indexOf(Math.max(...groupMeans))];
+
       initialYAxisColumns = largestGroup;
     } catch (err) {
       console.log(err);
