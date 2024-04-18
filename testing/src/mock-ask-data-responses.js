@@ -229,7 +229,7 @@ function* noColumns() {
 }
 
 function* noSQL() {
-  log = "noSQL: Testing with no SQL query generated.";
+  log("noSQL: Testing with no SQL query generated.");
   yield* testResponseProp(
     {},
     "query_generated",
@@ -293,7 +293,7 @@ export function* testCases() {
     onlyQuantitativeColumns,
     validResponse,
     // queryRunFailure,
-    // noData,
+    noData,
     // noColumns,
     // noSQL,
   ];

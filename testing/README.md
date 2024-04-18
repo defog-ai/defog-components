@@ -1,11 +1,11 @@
 # testing
 
-This folder lets us conduct various tests for the UI. How to use:
+This folder lets us conduct various tests for the UI. From _within_ the `testing/` folder, run:
 
-1. Run `npm install`
-2. Run `npm run start`
+1. `npm install`
+2. `npm run start`
 
-This will start a live reload server, that serves the UI directly from defog-components. Your changes to the defog-components will auto reload the page.
+This will start a live reload server, that serves the UI directly from defog-components (using relative import in `package.json`). Your changes to the defog-components will auto reload the page.
 
 The tests can also be made to run automatically in a loop (just click the "Resume auto testing" button).
 

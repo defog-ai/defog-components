@@ -138,7 +138,7 @@ export function checkIfDate(s, colIdx, colName, rows) {
 
     if (dateType === "date") {
       // we assume dayjs will be able to parse it
-      dateToUnix = (val) => val;
+      dateToUnix = (val) => dayjs(val).unix();
       parseFormat = null;
     }
   } else {
@@ -562,22 +562,10 @@ export function createChartConfig(
   } else {
     const colDetails = xAxisColumns[0].__data__;
 
-    // find if we have a parseFormat
-    const parseFormat = colDetails?.parseFormat;
     const dateToUnix = colDetails?.dateToUnix || ((d) => d);
-
-    // if we don't, then just have dayjs parse these
-    if (!parseFormat) {
-      chartLabels.sort(
-        (a, b) => dayjs(dateToUnix(a)).unix() - dayjs(dateToUnix(b)).unix(),
-      );
-    } else {
-      // if we do, then run the dateToUnix function on each label
-      chartLabels.sort((a, b) => dateToUnix(a) - dateToUnix(b));
-    }
+    // if we do, then run the dateToUnix function on each label
+    chartLabels.sort((a, b) => dateToUnix(a) - dateToUnix(b));
   }
-
-  console.log(chartLabels);
 
   // convert filteredData to an array of objects
   // this is the format that chartjs expects
@@ -588,6 +576,17 @@ export function createChartConfig(
     });
     return obj;
   });
+
+  if (xAxisIsDate) {
+    // sort filtered data according to the labels
+    filteredData.sort((a, b) => {
+      if (xAxisIsDate) {
+        return (
+          chartLabels.indexOf(a.__xLab__) - chartLabels.indexOf(b.__xLab__)
+        );
+      }
+    });
+  }
 
   // use chartjs parsing to create chartData
   // for each yAxisColumn, there is a chartjs "dataset"
@@ -602,6 +601,9 @@ export function createChartConfig(
       key: col.label,
     },
   }));
+
+  console.log(chartData);
+
   return { chartData, chartLabels };
 }
 
