@@ -1,5 +1,13 @@
 import React, { useState, useContext, Fragment } from "react";
-import { Button, message, Modal, Input, ConfigProvider, Collapse } from "antd";
+import {
+  Button,
+  message,
+  Modal,
+  Input,
+  ConfigProvider,
+  Collapse,
+  Alert,
+} from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import { isEmpty, sentenceCase } from "./common/utils";
 import { styled } from "styled-components";
@@ -11,8 +19,7 @@ import { TableChart } from "./TableChart";
 // import { BsPlusCircle } from "react-icons/bs";
 
 const errorMessages = {
-  noReponse:
-    "There seems to be no response from our servers. Please try again.",
+  noResponse: "There was no response from our servers. Please try again.",
 };
 
 const DefogDynamicViz = ({
@@ -31,19 +38,30 @@ const DefogDynamicViz = ({
   const [modalVisible, setModalVisible] = useState(false);
   const [hasReflected, setHasReflected] = useState(false);
   const [reflectionFeedback, setReflectionFeedback] = useState("");
-  const [reflectionColDescriptions, setReflectionColDescriptions] = useState([]);
+  const [reflectionColDescriptions, setReflectionColDescriptions] = useState(
+    [],
+  );
   const [reflectionRefQueries, setReflectionRefQueries] = useState([]);
   const [reflectionLoading, setReflectionLoading] = useState(false);
   const [glossary, setGlossary] = useState("");
   const [postReflectionLoading, setPostReflectionLoading] = useState(false);
   const { TextArea } = Input;
 
+  const warningMessage = (
+    <Alert
+      message="The question asked is quite different from the kinds of questions we saw in training. We have generated what we think is the right SQL query to answer this question, but please take it with a grain of salt."
+      type="warning"
+      closable
+      showIcon
+    />
+  );
+
   // if no response, return error
   if (!response || isEmpty(response)) {
     return (
       <ErrorMessageWrap>
         <div className="defog-viz-error">
-          <span>{errorMessages.noReponse}</span>
+          <span>{errorMessages.noResponse}</span>
         </div>
       </ErrorMessageWrap>
     );
@@ -82,8 +100,10 @@ const DefogDynamicViz = ({
       if (guidedTeaching) {
         // send the error to the reflect endpoint
         setReflectionLoading(true);
-        message.info("Preparing improved instruction sets for the model. This can take up to 30 seconds. Thank you for your patience.")
-        
+        message.info(
+          "Preparing improved instruction sets for the model. This can take up to 30 seconds. Thank you for your patience.",
+        );
+
         // first, get the metadata so that we can easily compare it against the reflection
         const metadataResp = await fetch(`https://api.defog.ai/get_metadata`, {
           method: "POST",
@@ -97,20 +117,28 @@ const DefogDynamicViz = ({
         const { table_metadata, glossary } = await metadataResp.json();
         setGlossary(glossary);
 
-        const reflectResp = await fetch(`https://api.defog.ai/reflect_on_error`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const reflectResp = await fetch(
+          `https://api.defog.ai/reflect_on_error`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              api_key: apiKey,
+              question: response.question,
+              sql_generated: response.generatedSql,
+              error: feedbackText,
+            }),
           },
-          body: JSON.stringify({
-            api_key: apiKey,
-            question: response.question,
-            sql_generated: response.generatedSql,
-            error: feedbackText,
-          }),
-        });
+        );
 
-        const { feedback, instruction_set, column_descriptions, reference_queries } = await reflectResp.json();
+        const {
+          feedback,
+          instruction_set,
+          column_descriptions,
+          reference_queries,
+        } = await reflectResp.json();
 
         // table_metadata is currently an object in the form of {table_name: [{column_name: ..., description: ...}]}
         // we need to convert it to an array of objects in the form of {table_name: ..., column_name: ..., description: ...}
@@ -122,20 +150,24 @@ const DefogDynamicViz = ({
               table_name: table_name,
               column_name: column.column_name,
               data_type: column.data_type,
-              original_description: column.column_description
+              original_description: column.column_description,
             });
           });
         }
 
         // add a new key to each item in column_descriptions called "original description". this is the column description from the metadata
         const updatedDescriptions = [];
-        
+
         column_descriptions_array.forEach((item) => {
-          const found = column_descriptions.find((meta) => meta.table_name === item.table_name && meta.column_name === item.column_name);
+          const found = column_descriptions.find(
+            (meta) =>
+              meta.table_name === item.table_name &&
+              meta.column_name === item.column_name,
+          );
           if (found) {
             updatedDescriptions.push({
               ...item,
-              updated_description: found.description
+              updated_description: found.description,
             });
           }
         });
@@ -146,8 +178,7 @@ const DefogDynamicViz = ({
         setReflectionColDescriptions(updatedDescriptions);
         setReflectionRefQueries(reference_queries);
         setReflectionLoading(false);
-      }
-      else {
+      } else {
         setModalVisible(false);
       }
     }
@@ -194,70 +225,85 @@ const DefogDynamicViz = ({
 
     setPostReflectionLoading(false);
     setModalVisible(false);
-    message.info("The model's instruction set has now been updated. Thank you for the feedback!");
-  }
+    message.info(
+      "The model's instruction set has now been updated. Thank you for the feedback!",
+    );
+  };
 
   let results;
 
   if (sqlOnly === true) {
-    results = <>
-      <SQLContainer theme={theme.config}>
-        {response.generatedSql && (
-          <>
-            <p>The following query was generated:</p>
-            <pre style={{whiteSpace: "pre-wrap"}}>{response.generatedSql}</pre>
-          </>
-        )}
-      </SQLContainer>
+    results = (
+      <>
+        <SQLContainer theme={theme.config}>
+          {response.generatedSql && (
+            <>
+              <p>The following query was generated:</p>
+              <pre style={{ whiteSpace: "pre-wrap" }}>
+                {response.generatedSql}
+              </pre>
+            </>
+          )}
+        </SQLContainer>
 
-      <FeedbackWrap theme={theme.config}>
-        <p>How did we do with is this query?</p>
-        <button onClick={() => uploadFeedback("Good")}>
-          <ThumbsUp />
-        </button>
-        <button onClick={() => setModalVisible(true)}>
-          <ThumbsDown />
-        </button>
-      </FeedbackWrap>
-    </>
+        <FeedbackWrap theme={theme.config}>
+          <p>How did we do with is this query?</p>
+          <button onClick={() => uploadFeedback("Good")}>
+            <ThumbsUp />
+          </button>
+          <button onClick={() => setModalVisible(true)}>
+            <ThumbsDown />
+          </button>
+        </FeedbackWrap>
+      </>
+    );
   } else if (narrativeMode === true) {
     // do something
     console.log(response); //can basically ignore the query, it's just response.question
     // response has the following fields that are relevant to us:
     // columns, data, analysis, question, visualization
-    results = (<>
+    results = (
+      <>
         <div dangerouslySetInnerHTML={{ __html: response.analysis }}></div>
-        <div style={{paddingLeft: "2em"}}>
-          <TableChart 
-            response={response} 
-            query={query} 
-            vizType={response.visualization || "table"} 
+        <div style={{ paddingLeft: "2em" }}>
+          <TableChart
+            response={response}
+            query={query}
+            vizType={response.visualization || "table"}
           />
         </div>
-        <div dangerouslySetInnerHTML={{ __html: response.followUpQuestions }} style={{paddingTop: "1em"}}></div>
+        <div
+          dangerouslySetInnerHTML={{ __html: response.followUpQuestions }}
+          style={{ paddingTop: "1em" }}
+        ></div>
       </>
-    )
+    );
   } else {
     results = (
       <>
         <TableChart response={response} query={query} vizType={"table"} />
         {demoMode && (
-          <Collapse accordion items={[
-            {
-              key: "1",
-              label: "Show SQL",
-              children: (
-              <SQLContainer theme={theme.config}>
-                {response.generatedSql && (
-                  <>
-                    <p>The following query was generated:</p>
-                    <pre style={{whiteSpace: "pre-wrap"}}>{response.generatedSql}</pre>
-                  </>
-                )}
-              </SQLContainer>
-              )
-            }
-          ]}/>
+          <Collapse
+            accordion
+            items={[
+              {
+                key: "1",
+                label: "Show SQL",
+                children: (
+                  <SQLContainer theme={theme.config}>
+                    {response.generatedSql && (
+                      <>
+                        <p>The following query was generated:</p>
+                        <pre style={{ whiteSpace: "pre-wrap" }}>
+                          {response.generatedSql}
+                        </pre>
+                      </>
+                    )}
+                  </SQLContainer>
+                ),
+              },
+            ]}
+          />
         )}
         {debugMode && (
           <>
@@ -265,14 +311,16 @@ const DefogDynamicViz = ({
               {response.generatedSql && (
                 <>
                   <p>The following query was generated:</p>
-                  <pre style={{whiteSpace: "pre-wrap"}}>{response.generatedSql}</pre>
+                  <pre style={{ whiteSpace: "pre-wrap" }}>
+                    {response.generatedSql}
+                  </pre>
                 </>
               )}
 
               {response.debugInfo && (
                 <>
-                  <hr/>
-                  <pre style={{whiteSpace: "pre-wrap"}}>
+                  <hr />
+                  <pre style={{ whiteSpace: "pre-wrap" }}>
                     {response.debugInfo}
                   </pre>
                 </>
@@ -323,90 +371,108 @@ const DefogDynamicViz = ({
                 className="feedback-text"
                 placeholder="Optional"
               />
-              {!hasReflected ? <Button
-                loading={reflectionLoading}
-                disabled={reflectionLoading}
-                onClick={() => {
-                  uploadFeedback(
-                    "Bad",
-                    Array.from(document.querySelectorAll(".feedback-text")).pop()
-                      .value,
-                  );
-                }}
-              >
-                Submit
-              </Button> :
-              <>
-                <p>{reflectionFeedback}</p>
-
-                <p>Instruction Set:</p>
-                <TextArea
-                  rows={8}
-                  value={glossary}
-                  onChange={(e) => setGlossary(e.target.value)}
-                  style={{
-                    marginTop: "1em",
-                    marginBottom: "1em",
-                  }}
-                />
-                <p>Column Descriptions:</p>
-                <ul>
-                  {reflectionColDescriptions.map((item, idx) => {
-                    return <li key={idx}>
-                      Table Name: {item.table_name}<br/>
-                      Column Name: {item.column_name}<br/>
-                      Original Description: {item.original_description}<br/>
-                      Suggested Description: <TextArea
-                        rows={2}
-                        value={item.updated_description}
-                        onChange={(e) => {
-                          const updatedDescriptions = [...reflectionColDescriptions];
-                          updatedDescriptions[idx].updated_description = e.target.value;
-                          setReflectionColDescriptions(updatedDescriptions);
-                        }}
-                        style={{
-                          marginBottom: "1em",
-                        }}
-                      />
-                    </li>
-                  })}
-                </ul>
-                <p>Reference Queries:</p>
-                <ul>
-                  {reflectionRefQueries.map((item, idx) => {
-                    return <li key={idx}>
-                      Question: {item.question}<br/>
-                      SQL: <TextArea
-                        rows={8}
-                        value={item.sql}
-                        onChange={(e) => {
-                          const updatedQueries = [...reflectionRefQueries];
-                          updatedQueries[idx].sql = e.target.value;
-                          setReflectionRefQueries(updatedQueries);
-                        }}
-                        style={{
-                          marginBottom: "1em",
-                        }}
-                      />
-                    </li>
-                  })}
-                </ul>
-
+              {!hasReflected ? (
                 <Button
+                  loading={reflectionLoading}
+                  disabled={reflectionLoading}
                   onClick={() => {
-                    updateNewInstructions();
+                    uploadFeedback(
+                      "Bad",
+                      Array.from(
+                        document.querySelectorAll(".feedback-text"),
+                      ).pop().value,
+                    );
                   }}
-                  loading={postReflectionLoading}
-                  disabled={postReflectionLoading}
                 >
-                  Update Instructions
+                  Submit
                 </Button>
-              </>}
+              ) : (
+                <>
+                  <p>{reflectionFeedback}</p>
+
+                  <p>Instruction Set:</p>
+                  <TextArea
+                    rows={8}
+                    value={glossary}
+                    onChange={(e) => setGlossary(e.target.value)}
+                    style={{
+                      marginTop: "1em",
+                      marginBottom: "1em",
+                    }}
+                  />
+                  <p>Column Descriptions:</p>
+                  <ul>
+                    {reflectionColDescriptions.map((item, idx) => {
+                      return (
+                        <li key={idx}>
+                          Table Name: {item.table_name}
+                          <br />
+                          Column Name: {item.column_name}
+                          <br />
+                          Original Description: {item.original_description}
+                          <br />
+                          Suggested Description:{" "}
+                          <TextArea
+                            rows={2}
+                            value={item.updated_description}
+                            onChange={(e) => {
+                              const updatedDescriptions = [
+                                ...reflectionColDescriptions,
+                              ];
+                              updatedDescriptions[idx].updated_description =
+                                e.target.value;
+                              setReflectionColDescriptions(updatedDescriptions);
+                            }}
+                            style={{
+                              marginBottom: "1em",
+                            }}
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p>Reference Queries:</p>
+                  <ul>
+                    {reflectionRefQueries.map((item, idx) => {
+                      return (
+                        <li key={idx}>
+                          Question: {item.question}
+                          <br />
+                          SQL:{" "}
+                          <TextArea
+                            rows={8}
+                            value={item.sql}
+                            onChange={(e) => {
+                              const updatedQueries = [...reflectionRefQueries];
+                              updatedQueries[idx].sql = e.target.value;
+                              setReflectionRefQueries(updatedQueries);
+                            }}
+                            style={{
+                              marginBottom: "1em",
+                            }}
+                          />
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  <Button
+                    onClick={() => {
+                      updateNewInstructions();
+                    }}
+                    loading={postReflectionLoading}
+                    disabled={postReflectionLoading}
+                  >
+                    Update Instructions
+                  </Button>
+                </>
+              )}
             </>
           </FeedbackModalWrap>
         </Modal>
       </ConfigProvider>
       <AnswerWrap level={level} theme={theme}>
+        {response.warnUsers ? warningMessage : null}
         <ResultsWrap theme={theme.config} level={level}>
           <Collapse
             defaultActiveKey={[questionId]}
