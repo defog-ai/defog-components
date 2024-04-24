@@ -122,6 +122,9 @@ export default function ChartContainer({
       // find the group with the largest mean
       const largestGroup = groups[groupMeans.indexOf(Math.max(...groupMeans))];
 
+      // sort the largestGroup array by mean, so that the largest mean is first
+      largestGroup.sort((a, b) => b.mean - a.mean);
+
       initialYAxisColumns = largestGroup;
     } catch (err) {
       console.log(err);
