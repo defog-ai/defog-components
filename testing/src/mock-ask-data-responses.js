@@ -54,6 +54,8 @@ const mockColumns = [
   "value_a",
   "value_b",
   "value_c",
+  "value_a_string",
+  "value_b_string",
   "holiday",
 ];
 
@@ -74,12 +76,19 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
 
   // randomly create integer column
   const numericRanges = [10, 1000, 100000, -1000, -10];
-  let _r = numericRanges.slice();
 
   // pre-pick indexes in numericRanges for value_a, value_b and value_c
   const _r_idx = {};
   ["value_a", "value_b", "value_c"].forEach((col) => {
-    const idx = Math.floor(Math.random() * _r.length);
+    const idx = Math.floor(Math.random() * numericRanges.length);
+
+    _r_idx[col] = idx;
+  });
+
+  const numericCommaRanges = [1000, 10000, 100000, 1000000, 10000000];
+  ["value_a_string", "value_b_string", "value_c_string"].forEach((col) => {
+    // we're testing for commas in numbers in these columns, so start from at least 1000 hence + 1
+    const idx = Math.floor(Math.random() * numericCommaRanges.length) + 1;
 
     _r_idx[col] = idx;
   });
@@ -93,7 +102,7 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
       if (skipColumns.indexOf(colName) >= 0) {
         continue;
       }
-      let val;
+      let val, max;
 
       switch (colName) {
         case "name":
@@ -139,16 +148,28 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
         case "holiday":
           val = Math.random() > 0.5 ? "yes" : "no";
           break;
+        case "value_a_string":
+        case "value_b_string":
+        case "value_c_string":
+          max = _r_idx[colName] ? numericCommaRanges[_r_idx[colName]] : 1000;
+
+          val = (
+            decimalColumns.indexOf(colName) >= 0
+              ? Math.random() * max
+              : Math.floor(max * Math.random())
+          ).toString();
+          break;
         case "value_a":
         case "value_b":
         case "value_c":
         default:
-          const max = _r_idx[colName] ? _r[_r_idx[colName]] : 1000;
+          max = _r_idx[colName] ? numericRanges[_r_idx[colName]] : 1000;
 
           val =
             decimalColumns.indexOf(colName) >= 0
               ? Math.random() * max
               : Math.floor(max * Math.random());
+          break;
       }
 
       row.push(val);

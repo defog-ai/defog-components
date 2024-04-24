@@ -169,16 +169,13 @@ export function roundColumns(data, columns) {
     decimalCols?.forEach((colName) => {
       let x = roundedData[i][colName];
       // try to convert to a number
-      if (+x || x === 0) {
-        try {
-          // round to two decimals
-          return x.toFixed(2);
-        } catch (e) {
-          // set to null
-          return null;
-        }
-      } else {
-        return null;
+      try {
+        // round to two decimals
+        roundedData[i][colName] = Math.round(x * 1e2) / 1e2;
+      } catch (e) {
+        // set to null
+        console.log(e);
+        roundedData[i][colName] = x;
       }
     });
   });
@@ -690,8 +687,22 @@ export const reFormatData = (data, columns) => {
             sorter:
               rows.length > 0 && typeof rows[0][i] === "number"
                 ? (a, b) => a[cols[i]] - b[cols[i]]
+                : rows.length > 0 && !isNaN(rows[0][i])
+                ? (a, b) => Number(a[cols[i]]) - Number(b[cols[i]])
                 : (a, b) =>
                     String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+            render: (value) => {
+              if (typeof value === "number" || !isNaN(value)) {
+                // ugly hack for year
+                if (Number(value) > 1900 && Number(value) < 2100) {
+                  return value;
+                } else {
+                  return Number(value).toLocaleString();
+                }
+              } else {
+                return value;
+              }
+            },
           },
           inferColumnType(rows, i, cols[i]),
         ),

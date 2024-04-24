@@ -44,14 +44,18 @@ export function TableChart({
             maxHeight: 300,
           }}
           size="small"
-          pagination={{ pageSize: 5, showSizeChanger: false, hideOnSinglePage: true }}
+          pagination={{
+            pageSize: 5,
+            showSizeChanger: false,
+            hideOnSinglePage: true,
+          }}
         />
       ),
       tabLabel: "Table",
       icon: <TableOutlined />,
     },
   ];
-  
+
   // then add chart to the results
   if (!chartImages || chartImages.length <= 0) {
     const {
