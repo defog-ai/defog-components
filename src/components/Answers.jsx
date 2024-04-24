@@ -71,6 +71,7 @@ const Answers = ({
           analysis,
           visualization,
           followUpQuestions,
+          warnUsers,
         } = questionsAsked[questionId];
         return {
           questionId,
@@ -85,6 +86,7 @@ const Answers = ({
           analysis,
           visualization,
           followUpQuestions,
+          warnUsers,
         };
       },
     );

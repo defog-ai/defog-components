@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
-import { 
+import {
   Collapse,
   // AutoComplete,
-  message
+  message,
 } from "antd";
 import { CaretRightOutlined } from "@ant-design/icons";
 import Answers from "./components/Answers";
@@ -254,15 +254,12 @@ export function AskDefogChat({
         visualization: queryChatResponse.visualization || "table",
         followUpQuestions: queryChatResponse.followUpQuestions || "",
         debugInfo: queryChatResponse.debug_info || null,
+        warnUsers: queryChatResponse.warn_users || null,
       },
     };
 
     if ((sqlOnly === false) & executeData) {
-      handleDataResponse(
-        queryChatResponse,
-        questionId,
-        updatedQuestions,
-      );
+      handleDataResponse(queryChatResponse, questionId, updatedQuestions);
     } else {
       setQuestionsAsked({ ...updatedQuestions });
       setForceReload(forceReload + 1);
@@ -274,11 +271,7 @@ export function AskDefogChat({
     }
   }
 
-  const handleDataResponse = (
-    dataResponse,
-    questionId,
-    questionsAsked,
-  ) => {
+  const handleDataResponse = (dataResponse, questionId, questionsAsked) => {
     // remove rows for which every value is null
     const { newRows, newCols } = reFormatData(
       dataResponse?.data,
@@ -389,28 +382,26 @@ export function AskDefogChat({
                       ref={autoCompRef}
                       disabled={globalLoading}
                     > */}
-                      <Search
-                        id={"defog_search"}
-                        placeholder={
-                          placeholderText || questionMode.placeholder
+                    <Search
+                      id={"defog_search"}
+                      placeholder={placeholderText || questionMode.placeholder}
+                      enterButton={buttonText}
+                      size="small"
+                      onSearch={(ques) => {
+                        if (clearOnAnswer) {
+                          setQuery("");
                         }
-                        enterButton={buttonText}
-                        size="small"
-                        onSearch={(ques) => {
-                          if (clearOnAnswer) {
-                            setQuery("");
-                          }
-                          if (ques.trim() === "") {
-                            return;
-                          }
-                          handleSubmit(ques, null, []);
-                          setLevel0Loading(ques);
-                          // clear this input
-                        }}
-                        loading={globalLoading}
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                      />
+                        if (ques.trim() === "") {
+                          return;
+                        }
+                        handleSubmit(ques, null, []);
+                        setLevel0Loading(ques);
+                        // clear this input
+                      }}
+                      loading={globalLoading}
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                    />
                     {/* </AutoComplete> */}
                   </SearchWrap>
                 </Panel>
