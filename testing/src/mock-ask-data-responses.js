@@ -56,6 +56,7 @@ const mockColumns = [
   "value_c",
   "value_a_string",
   "value_b_string",
+  "value_c_string",
   "holiday",
 ];
 
@@ -78,20 +79,25 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
   const numericRanges = [10, 1000, 100000, -1000, -10];
 
   // pre-pick indexes in numericRanges for value_a, value_b and value_c
-  const _r_idx = {};
+  const numericColMax = {};
   ["value_a", "value_b", "value_c"].forEach((col) => {
     const idx = Math.floor(Math.random() * numericRanges.length);
 
-    _r_idx[col] = idx;
+    numericColMax[col] = numericRanges[idx];
   });
 
-  const numericCommaRanges = [1000, 10000, 100000, 1000000, 10000000];
-  ["value_a_string", "value_b_string", "value_c_string"].forEach((col) => {
+  const numericCommaRanges = [3000, 10000, 100000, 1000000, 10000000];
+  ["value_a_string", "value_b_string"].forEach((col) => {
     // we're testing for commas in numbers in these columns, so start from at least 1000 hence + 1
-    const idx = Math.floor(Math.random() * numericCommaRanges.length) + 1;
+    // choose a random index between 1 and numericCommaRanges.length
+    const idx = Math.floor(Math.random() * (numericCommaRanges.length - 1)) + 1;
 
-    _r_idx[col] = idx;
+    numericColMax[col] = numericCommaRanges[idx];
   });
+
+  // force value_c_string to be range = 3000 to test for year vs number comma
+
+  numericColMax["value_c_string"] = numericCommaRanges[0];
 
   for (let i = 0; i < nrows; i++) {
     const row = [];
@@ -151,7 +157,9 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
         case "value_a_string":
         case "value_b_string":
         case "value_c_string":
-          max = _r_idx[colName] ? numericCommaRanges[_r_idx[colName]] : 1000;
+          max = numericColMax[colName] || 1000;
+
+          console.log(max);
 
           val = (
             decimalColumns.indexOf(colName) >= 0
@@ -163,7 +171,7 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
         case "value_b":
         case "value_c":
         default:
-          max = _r_idx[colName] ? numericRanges[_r_idx[colName]] : 1000;
+          max = numericColMax[colName] || 1000;
 
           val =
             decimalColumns.indexOf(colName) >= 0

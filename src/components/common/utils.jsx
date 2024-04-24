@@ -676,37 +676,35 @@ export const reFormatData = (data, columns) => {
     newCols = [];
     newRows = [];
     for (let i = 0; i < cols.length; i++) {
-      newCols.push(
-        Object.assign(
-          {
-            title: cols[i],
-            dataIndex: cols[i],
-            key: cols[i],
-            // simple typeof. if a number is coming in as string, this will be string.
-            simpleTypeOf: typeof rows[0][i],
-            sorter:
-              rows.length > 0 && typeof rows[0][i] === "number"
-                ? (a, b) => a[cols[i]] - b[cols[i]]
-                : rows.length > 0 && !isNaN(rows[0][i])
-                ? (a, b) => Number(a[cols[i]]) - Number(b[cols[i]])
-                : (a, b) =>
-                    String(a[cols[i]]).localeCompare(String(b[cols[i]])),
-            render: (value) => {
-              if (typeof value === "number" || !isNaN(value)) {
-                // ugly hack for year
-                if (Number(value) > 1900 && Number(value) < 2100) {
-                  return value;
-                } else {
-                  return Number(value).toLocaleString();
-                }
-              } else {
-                return value;
-              }
-            },
-          },
-          inferColumnType(rows, i, cols[i]),
-        ),
-      );
+      let inferredColumnType = inferColumnType(rows, i, cols[i]);
+      let newCol = Object.assign({
+        title: cols[i],
+        dataIndex: cols[i],
+        key: cols[i],
+        // simple typeof. if a number is coming in as string, this will be string.
+        simpleTypeOf: typeof rows[0][i],
+        sorter:
+          rows.length > 0 && typeof rows[0][i] === "number"
+            ? (a, b) => a[cols[i]] - b[cols[i]]
+            : rows.length > 0 && !isNaN(rows[0][i])
+            ? (a, b) => Number(a[cols[i]]) - Number(b[cols[i]])
+            : (a, b) => String(a[cols[i]]).localeCompare(String(b[cols[i]])),
+        render: (value) => {
+          if (typeof value === "number" || !isNaN(value)) {
+            // don't add commas in dates (years can be 2020, 2021 etc.)
+            if (inferredColumnType.isDate) {
+              return value;
+            } else {
+              return Number(value).toLocaleString();
+            }
+          } else {
+            return value;
+          }
+        },
+        ...inferredColumnType,
+      });
+
+      newCols.push(newCol);
       if (newCols[i].numeric && newCols[i].simpleTypeOf === "string") {
         numericAsString.push(i);
       }
