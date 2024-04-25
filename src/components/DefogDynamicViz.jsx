@@ -276,6 +276,29 @@ const DefogDynamicViz = ({
           dangerouslySetInnerHTML={{ __html: response.followUpQuestions }}
           style={{ paddingTop: "1em" }}
         ></div>
+        {debugMode && (
+          <Collapse
+            accordion
+            items={[
+              {
+                key: "1",
+                label: "Show SQL",
+                children: (
+                  <SQLContainer theme={theme.config}>
+                    {response.generatedSql && (
+                      <>
+                        <p>The following query was generated:</p>
+                        <pre style={{ whiteSpace: "pre-wrap" }}>
+                          {response.generatedSql}
+                        </pre>
+                      </>
+                    )}
+                  </SQLContainer>
+                ),
+              },
+            ]}
+          />
+        )}
       </>
     );
   } else {
