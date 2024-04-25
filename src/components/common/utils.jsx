@@ -170,8 +170,12 @@ export function roundColumns(data, columns) {
       let x = roundedData[i][colName];
       // try to convert to a number
       try {
-        // round to two decimals
-        roundedData[i][colName] = Math.round(x * 1e2) / 1e2;
+        // round to two decimals if number is greater than 1e-2, if not round to up to 6 decimal places
+        if (Math.abs(x) > 1e-2) {
+          roundedData[i][colName] = Math.round(x * 1e2) / 1e2;
+        } else {
+          roundedData[i][colName] = Math.round(x * 1e6) / 1e6;
+        }
       } catch (e) {
         // set to null
         console.log(e);

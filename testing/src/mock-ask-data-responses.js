@@ -58,6 +58,8 @@ const mockColumns = [
   "value_b_string",
   "value_c_string",
   "holiday",
+  "fraction_small",
+  "fraction_tiny",
 ];
 
 const commonVals = ["", [], null, undefined, "delete"];
@@ -153,6 +155,12 @@ function createData(columns, decimalColumns = [], skipColumns = []) {
           break;
         case "holiday":
           val = Math.random() > 0.5 ? "yes" : "no";
+          break;
+        case "fraction_small":
+          val = Math.random();
+          break;
+        case "fraction_tiny":
+          val = Math.random() / 100;
           break;
         case "value_a_string":
         case "value_b_string":
