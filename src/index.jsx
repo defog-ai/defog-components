@@ -40,6 +40,7 @@ export function AskDefogChat({
   placeholderText = "",
   clearOnAnswer = false,
   guidedTeaching = false,
+  dev = false,
 }) {
   const { Panel } = Collapse;
   const [query, setQuery] = useState("");
@@ -365,6 +366,7 @@ export function AskDefogChat({
                       level0Loading={level0Loading}
                       apiKey={apiKey}
                       guidedTeaching={guidedTeaching}
+                      dev={dev}
                     />
                   </div>
                   <SearchWrap $loading={globalLoading} theme={theme.config}>
