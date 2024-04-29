@@ -26,6 +26,7 @@ const Answers = ({
   // level0Loading is used when a question is asked using the main search bar and not a follow up question
   level0Loading,
   guidedTeaching,
+  dev,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [followUpLoadingId, setFollowUpLoadingId] = useState(null);
@@ -72,6 +73,7 @@ const Answers = ({
           visualization,
           followUpQuestions,
           warnUsers,
+          dev,
         } = questionsAsked[questionId];
         return {
           questionId,
@@ -87,6 +89,7 @@ const Answers = ({
           visualization,
           followUpQuestions,
           warnUsers,
+          dev,
         };
       },
     );
@@ -192,6 +195,7 @@ const Answers = ({
               level={answer.level}
               apiKey={apiKey}
               guidedTeaching={guidedTeaching}
+              dev={dev}
             />
           ) : (
             <></>

@@ -33,6 +33,7 @@ const DefogDynamicViz = ({
   questionId,
   level,
   guidedTeaching,
+  dev,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [modalVisible, setModalVisible] = useState(false);
@@ -78,6 +79,7 @@ const DefogDynamicViz = ({
           apiKey: apiKey,
           response: response,
           feedback: feedback,
+          dev: dev,
         }),
       });
 
@@ -94,6 +96,7 @@ const DefogDynamicViz = ({
           response: response,
           feedback: feedback,
           text: feedbackText,
+          dev: dev,
         }),
       });
 
@@ -112,6 +115,7 @@ const DefogDynamicViz = ({
           },
           body: JSON.stringify({
             api_key: apiKey,
+            dev: dev,
           }),
         });
         const { table_metadata, glossary } = await metadataResp.json();
@@ -129,6 +133,7 @@ const DefogDynamicViz = ({
               question: response.question,
               sql_generated: response.generatedSql,
               error: feedbackText,
+              dev: dev,
             }),
           },
         );
@@ -195,6 +200,7 @@ const DefogDynamicViz = ({
       body: JSON.stringify({
         api_key: apiKey,
         glossary: glossary,
+        dev: dev,
       }),
     });
 
@@ -208,6 +214,7 @@ const DefogDynamicViz = ({
         api_key: apiKey,
         golden_queries: reflectionRefQueries,
         scrub: false,
+        dev: dev,
       }),
     });
 
@@ -220,6 +227,7 @@ const DefogDynamicViz = ({
       body: JSON.stringify({
         api_key: apiKey,
         column_descriptions: reflectionColDescriptions,
+        dev: dev,
       }),
     });
 
