@@ -68,7 +68,11 @@ const DefogDynamicViz = ({
     );
   }
 
-  const uploadFeedback = async (feedback, feedbackText = "") => {
+  const uploadFeedback = async (
+    feedback,
+    feedbackText = "",
+    giveSuggestions = guidedTeaching,
+  ) => {
     if (feedback === "Good") {
       await fetch(`https://api.defog.ai/feedback`, {
         method: "POST",
@@ -100,7 +104,7 @@ const DefogDynamicViz = ({
         }),
       });
 
-      if (guidedTeaching) {
+      if (giveSuggestions) {
         // send the error to the reflect endpoint
         setReflectionLoading(true);
         message.info(
@@ -401,22 +405,39 @@ const DefogDynamicViz = ({
                 rows={4}
                 className="feedback-text"
                 placeholder="Optional"
+                id={"feedback-text-" + questionId}
               />
               {!hasReflected ? (
-                <Button
-                  loading={reflectionLoading}
-                  disabled={reflectionLoading}
-                  onClick={() => {
-                    uploadFeedback(
-                      "Bad",
-                      Array.from(
-                        document.querySelectorAll(".feedback-text"),
-                      ).pop().value,
-                    );
-                  }}
-                >
-                  Submit
-                </Button>
+                <>
+                  <Button
+                    loading={reflectionLoading}
+                    disabled={reflectionLoading}
+                    onClick={() => {
+                      // upload feedback, based on the value of the text area
+                      const feedbackText = document.getElementById(
+                        "feedback-text-" + questionId,
+                      ).value;
+                      uploadFeedback("Bad", feedbackText, false);
+                    }}
+                  >
+                    Submit
+                  </Button>
+                  {guidedTeaching ? (
+                    <Button
+                      loading={reflectionLoading}
+                      disabled={reflectionLoading}
+                      onClick={() => {
+                        // upload feedback, based on the value of the text area
+                        const feedbackText = document.getElementById(
+                          "feedback-text-" + questionId,
+                        ).value;
+                        uploadFeedback("Bad", feedbackText, guidedTeaching);
+                      }}
+                    >
+                      Submit and get suggestions for improvement
+                    </Button>
+                  ) : null}
+                </>
               ) : (
                 <>
                   <p>{reflectionFeedback}</p>
