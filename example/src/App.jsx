@@ -21,13 +21,6 @@ const App = () => {
           dashboard={false}
           darkMode={false}
           clearOnAnswer={true}
-          predefinedQuestions={[
-            // "What are my sales by brand?",
-            // "Which are my top performing accounts?",
-            // "Where am I lagging behind my targets",
-            // "Which products have had the highest increase in sales over the last 3 months in my area?",
-            // "Which of my accounts have reduced their spend the most over the last 3 months?",
-          ]}
         />
       </div>
     </div>
