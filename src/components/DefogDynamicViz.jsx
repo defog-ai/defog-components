@@ -42,6 +42,7 @@ const DefogDynamicViz = ({
   const [reflectionColDescriptions, setReflectionColDescriptions] = useState(
     [],
   );
+  const [feedbackType, setFeedbackType] = useState(null);
   const [reflectionRefQueries, setReflectionRefQueries] = useState([]);
   const [reflectionLoading, setReflectionLoading] = useState(false);
   const [glossary, setGlossary] = useState("");
@@ -74,6 +75,7 @@ const DefogDynamicViz = ({
     giveSuggestions = guidedTeaching,
   ) => {
     if (feedback === "Good") {
+      setFeedbackType("Good");
       await fetch(`https://api.defog.ai/feedback`, {
         method: "POST",
         headers: {
@@ -89,6 +91,7 @@ const DefogDynamicViz = ({
 
       message.info("Thank you for your feedback!");
     } else {
+      setFeedbackType("Bad");
       // send feedback over to the server
       await fetch(`https://api.defog.ai/feedback`, {
         method: "POST",
@@ -523,7 +526,25 @@ const DefogDynamicViz = ({
           </FeedbackModalWrap>
         </Modal>
       </ConfigProvider>
-      <AnswerWrap level={level} theme={theme}>
+      <AnswerWrap
+        level={level}
+        theme={theme}
+        style={{
+          // should glow green if feedback is good, red if feedback is bad, and no glow if no feedback
+          border:
+            feedbackType === "Good"
+              ? `2px solid #2ca25f`
+              : feedbackType === "Bad"
+              ? `2px solid #FF4D4F`
+              : null,
+          boxShadow:
+            feedbackType === "Good"
+              ? `0px 0px 10px 5px rgba(44, 162, 95, 0.5)`
+              : feedbackType === "Bad"
+              ? `0px 0px 10px 5px rgba(255, 77, 79, 0.5)`
+              : null,
+        }}
+      >
         {response.warnUsers ? warningMessage : null}
         <ResultsWrap theme={theme.config} level={level}>
           <Collapse
