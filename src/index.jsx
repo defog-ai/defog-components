@@ -140,24 +140,10 @@ export function AskDefogChat({
       return;
     }
 
-    // setTimeout(() => {
-    //   if (autoCompRef.current) {
-    //     autoCompRef.current.focus();
-    //     autoCompRef.current.blur();
-    //   }
-    // }, 0);
+    // Retrieve the OpenAI token from environment variables
+    const openAIToken = import.meta.env.VITE_OPENAI_TOKEN;
 
     setGlobalLoading(true);
-    // setTimeout(() => {
-    //   const divEl = document.getElementById("results");
-    //   {
-    //     divEl &&
-    //       divEl.scrollTo({
-    //         top: divRef.current.scrollHeight,
-    //         behavior: "smooth",
-    //       });
-    //   }
-    // }, 100);
 
     if (mode === "websocket") {
       comms.current.send(
@@ -198,6 +184,7 @@ export function AskDefogChat({
           agent,
           !agent,
           parentQuestionId,
+          openAIToken,
         );
       } catch (e) {
         // from agents
@@ -221,6 +208,7 @@ export function AskDefogChat({
     agent = false,
     executeData = true,
     parentQuestionId = null,
+    openAIToken,
   ) {
     // parse agent sub_qns in case string
     if (agent && typeof queryChatResponse.sub_qns === "string") {
@@ -260,7 +248,7 @@ export function AskDefogChat({
     };
 
     if ((sqlOnly === false) & executeData) {
-      handleDataResponse(queryChatResponse, questionId, updatedQuestions);
+      handleDataResponse(queryChatResponse, questionId, updatedQuestions, openAIToken);
     } else {
       setQuestionsAsked({ ...updatedQuestions });
       setForceReload(forceReload + 1);
@@ -272,7 +260,7 @@ export function AskDefogChat({
     }
   }
 
-  const handleDataResponse = (dataResponse, questionId, questionsAsked) => {
+  const handleDataResponse = async (dataResponse, questionId, questionsAsked, openAIToken) => {
     // remove rows for which every value is null
     const { newRows, newCols } = reFormatData(
       dataResponse?.data,
@@ -285,9 +273,56 @@ export function AskDefogChat({
     setQuestionsAsked({ ...newQuestionsAsked });
     setForceReload(forceReload + 1);
 
+    // Call determineChartType function to get chart recommendations from OpenAI
+    const chartRecommendations = await determineChartType(newCols.map(col => col.dataIndex), query, openAIToken);
+
+    // Update the state with the recommended chart type and axis columns
+    newQuestionsAsked[questionId].vizType = chartRecommendations.chartType;
+    newQuestionsAsked[questionId].xAxisColumns = chartRecommendations.xAxisColumns;
+    newQuestionsAsked[questionId].yAxisColumns = chartRecommendations.yAxisColumns;
+    setQuestionsAsked({ ...newQuestionsAsked });
+    setForceReload(forceReload + 1);
+
     // update the last item in response array with the above data and columns
     setGlobalLoading(false);
     setLevel0Loading(false);
+  };
+
+  const determineChartType = async (columns, question, openAIToken) => {
+    try {
+      const response = await fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openAIToken}`
+        },
+        body: JSON.stringify({
+          prompt: `Determine the best chart type for the following data columns and question:\nColumns: ${columns.join(', ')}\nQuestion: ${question}\n`,
+          max_tokens: 50,
+          n: 1,
+          stop: null,
+          temperature: 0
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get chart type from OpenAI');
+      }
+
+      const openAIResponse = await response.json();
+      const responseText = openAIResponse.choices[0].text.trim();
+      const responseParts = responseText.split(';').map(part => part.trim());
+      const validChartTypes = ['Bar Chart', 'Pie Chart', 'Line Chart'];
+      let chartType = validChartTypes.includes(responseParts[0]) ? responseParts[0] : 'Bar Chart';
+      let xAxisColumns = responseParts[1] ? responseParts[1].split(',').map(s => s.trim()) : [];
+      let yAxisColumns = responseParts[2] ? responseParts[2].split(',').map(s => s.trim()) : [];
+
+      return { chartType, xAxisColumns, yAxisColumns };
+    } catch (error) {
+      console.error('Error determining chart type:', error);
+      // Default to 'Bar Chart' if there is an error
+      return { chartType: 'Bar Chart', xAxisColumns: [], yAxisColumns: [] };
+    }
   };
 
   const genExtra = () => (
