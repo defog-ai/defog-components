@@ -163,7 +163,7 @@ export default function ChartContainer({
           [xAxisLabel]:
             xAxisColumnValues[xAxisLabel]?.length > sizeThresh
               ? [xAxisOpts.current[xAxisLabel]?.[1]]
-              : xAxisOpts.current[xAxisLabel].length === 0
+              : xAxisOpts.current[xAxisLabel]?.length === 0
               ? []
               : [{ label: "All", value: "all-selected" }],
         },
