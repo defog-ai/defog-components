@@ -41,6 +41,8 @@ export function AskDefogChat({
   clearOnAnswer = false,
   guidedTeaching = false,
   dev = false,
+  chartTypeEndpoint = null,
+  feedbackEndpoint = null,
 }) {
   const { Panel } = Collapse;
   const [query, setQuery] = useState("");
@@ -140,9 +142,6 @@ export function AskDefogChat({
       return;
     }
 
-    // Retrieve the OpenAI token from environment variables
-    const openAIToken = import.meta.env.VITE_OPENAI_TOKEN;
-
     setGlobalLoading(true);
 
     if (mode === "websocket") {
@@ -184,7 +183,6 @@ export function AskDefogChat({
           agent,
           !agent,
           parentQuestionId,
-          openAIToken,
         );
       } catch (e) {
         // from agents
@@ -208,7 +206,6 @@ export function AskDefogChat({
     agent = false,
     executeData = true,
     parentQuestionId = null,
-    openAIToken,
   ) {
     // parse agent sub_qns in case string
     if (agent && typeof queryChatResponse.sub_qns === "string") {
@@ -248,7 +245,7 @@ export function AskDefogChat({
     };
 
     if ((sqlOnly === false) & executeData) {
-      handleDataResponse(queryChatResponse, questionId, updatedQuestions, openAIToken);
+      handleDataResponse(queryChatResponse, questionId, updatedQuestions);
     } else {
       setQuestionsAsked({ ...updatedQuestions });
       setForceReload(forceReload + 1);
@@ -260,7 +257,11 @@ export function AskDefogChat({
     }
   }
 
-  const handleDataResponse = async (dataResponse, questionId, questionsAsked, openAIToken) => {
+  const handleDataResponse = async (
+    dataResponse,
+    questionId,
+    questionsAsked,
+  ) => {
     // remove rows for which every value is null
     const { newRows, newCols } = reFormatData(
       dataResponse?.data,
@@ -273,55 +274,69 @@ export function AskDefogChat({
     setQuestionsAsked({ ...newQuestionsAsked });
     setForceReload(forceReload + 1);
 
-    // Call determineChartType function to get chart recommendations from OpenAI
-    const chartRecommendations = await determineChartType(newCols.map(col => col.dataIndex), query, openAIToken);
-
-    // Update the state with the recommended chart type and axis columns
-    newQuestionsAsked[questionId].vizType = chartRecommendations.chartType;
-    newQuestionsAsked[questionId].xAxisColumns = chartRecommendations.xAxisColumns;
-    newQuestionsAsked[questionId].yAxisColumns = chartRecommendations.yAxisColumns;
-    setQuestionsAsked({ ...newQuestionsAsked });
-    setForceReload(forceReload + 1);
-
     // update the last item in response array with the above data and columns
     setGlobalLoading(false);
     setLevel0Loading(false);
+
+    // call determineChartType function to get chart recommendations
+    // this happens in the background and doesn't block the UI
+    const chartRecommendations = await determineChartType(
+      newCols.map((col) => col.dataIndex),
+      query,
+    );
+
+    // Update the state with the recommended chart type and axis columns
+    newQuestionsAsked[questionId].visualization =
+      chartRecommendations.chartType;
+    newQuestionsAsked[questionId].xAxisColumns =
+      chartRecommendations.xAxisColumns;
+    newQuestionsAsked[questionId].yAxisColumns =
+      chartRecommendations.yAxisColumns;
+    setQuestionsAsked({ ...newQuestionsAsked });
+    setForceReload(forceReload + 1);
   };
 
-  const determineChartType = async (columns, question, openAIToken) => {
+  const determineChartType = async (columns, question) => {
+    let response;
+    let chartConfig;
+
+    if (!chartTypeEndpoint) {
+      return { chartType: "Table", xAxisColumns: [], yAxisColumns: [] };
+    }
+
     try {
-      const response = await fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
-        method: 'POST',
+      response = await fetch(chartTypeEndpoint, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openAIToken}`
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: `Determine the best chart type for the following data columns and question:\nColumns: ${columns.join(', ')}\nQuestion: ${question}\n`,
-          max_tokens: 50,
-          n: 1,
-          stop: null,
-          temperature: 0
-        })
+          question: question,
+          columns: columns,
+        }),
       });
+      chartConfig = await response.json();
 
       if (!response.ok) {
-        throw new Error('Failed to get chart type from OpenAI');
+        chartConfig = {
+          vizType: "table",
+          xAxisColumns: [],
+          yAxisColumns: [],
+        };
       }
 
-      const openAIResponse = await response.json();
-      const responseText = openAIResponse.choices[0].text.trim();
-      const responseParts = responseText.split(';').map(part => part.trim());
-      const validChartTypes = ['Bar Chart', 'Pie Chart', 'Line Chart'];
-      let chartType = validChartTypes.includes(responseParts[0]) ? responseParts[0] : 'Bar Chart';
-      let xAxisColumns = responseParts[1] ? responseParts[1].split(',').map(s => s.trim()) : [];
-      let yAxisColumns = responseParts[2] ? responseParts[2].split(',').map(s => s.trim()) : [];
+      const validChartTypes = ["Bar Chart", "Pie Chart", "Line Chart"];
+      let chartType = validChartTypes.includes(chartConfig.vizType)
+        ? chartConfig.vizType
+        : "Bar Chart";
+      let xAxisColumns = chartConfig?.xAxisColumns || [];
+      let yAxisColumns = chartConfig?.yAxisColumns || [];
 
       return { chartType, xAxisColumns, yAxisColumns };
     } catch (error) {
-      console.error('Error determining chart type:', error);
+      console.error("Error determining chart type:", error);
       // Default to 'Bar Chart' if there is an error
-      return { chartType: 'Bar Chart', xAxisColumns: [], yAxisColumns: [] };
+      return { chartType: "Bar Chart", xAxisColumns: [], yAxisColumns: [] };
     }
   };
 
