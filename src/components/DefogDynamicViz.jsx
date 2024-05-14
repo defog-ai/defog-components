@@ -274,7 +274,7 @@ const DefogDynamicViz = ({
     );
   } else if (narrativeMode === true) {
     // do something
-    console.log(response); //can basically ignore the query, it's just response.question
+    //can basically ignore the query, it's just response.question
     // response has the following fields that are relevant to us:
     // columns, data, analysis, question, visualization
     results = (
@@ -285,6 +285,8 @@ const DefogDynamicViz = ({
             response={response}
             query={query}
             vizType={response.visualization || "table"}
+            recommendedXAxisColumns={response.xAxisColumns}
+            recommendedYAxisColumns={response.yAxisColumns}
           />
         </div>
         <div
@@ -319,7 +321,13 @@ const DefogDynamicViz = ({
   } else {
     results = (
       <>
-        <TableChart response={response} query={query} vizType={"table"} />
+        <TableChart
+          response={response}
+          query={query}
+          vizType={response.visualization || "table"}
+          recommendedXAxisColumns={response.xAxisColumns}
+          recommendedYAxisColumns={response.yAxisColumns}
+        />
         {demoMode && (
           <Collapse
             accordion

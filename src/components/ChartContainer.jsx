@@ -31,6 +31,8 @@ export default function ChartContainer({
   title,
   vizType,
   theme,
+  recommendedXAxisColumns,
+  recommendedYAxisColumns,
 }) {
   function createColumnValueOpts(col) {
     const colName = col.key;
@@ -67,7 +69,11 @@ export default function ChartContainer({
   // Other dropdowns based on the X axis selection. Using categorical columns xAxisOpts above.
 
   const [xAxis, setXAxis] = useState(
-    arrToAntD([dateColumns.length > 0 ? dateColumns[0] : xAxisColumns[0]]),
+    arrToAntD(
+      recommendedXAxisColumns.length > 0
+        ? xAxisColumns.filter((d) => recommendedXAxisColumns.includes(d.key))
+        : [dateColumns.length > 0 ? dateColumns[0] : xAxisColumns[0]],
+    ),
   );
 
   let initialYAxisColumns = [];
@@ -77,6 +83,10 @@ export default function ChartContainer({
     yAxisColumns.every((d) => d.variableType !== "quantitative")
   ) {
     initialYAxisColumns = yAxisColumns;
+  } else if (recommendedYAxisColumns.length > 0) {
+    initialYAxisColumns = yAxisColumns.filter((d) =>
+      recommendedYAxisColumns.includes(d.key),
+    );
   } else {
     try {
       // group the y axis columns into those with means within order of magnitude

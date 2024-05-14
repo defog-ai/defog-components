@@ -74,6 +74,8 @@ const Answers = ({
           followUpQuestions,
           warnUsers,
           dev,
+          xAxisColumns,
+          yAxisColumns,
         } = questionsAsked[questionId];
         return {
           questionId,
@@ -90,6 +92,8 @@ const Answers = ({
           followUpQuestions,
           warnUsers,
           dev,
+          xAxisColumns,
+          yAxisColumns,
         };
       },
     );
@@ -196,6 +200,8 @@ const Answers = ({
               apiKey={apiKey}
               guidedTeaching={guidedTeaching}
               dev={dev}
+              xAxisColumns={answer.xAxisColumns}
+              yAxisColumns={answer.yAxisColumns}
             />
           ) : (
             <></>
@@ -250,7 +256,7 @@ const AnswerChildCtrWrap = styled.div`
   :hover {
     > .answer-children-ctr {
       .follow-up-indicator span {
-        opacity: ${(props) => (props['data-isroot'] ? 0 : 1)};
+        opacity: ${(props) => (props["data-isroot"] ? 0 : 1)};
       }
     }
   }

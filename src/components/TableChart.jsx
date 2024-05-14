@@ -15,6 +15,8 @@ export function TableChart({
   // 2d array of {component: ReactComponent, tabLabel: string]
   // both component and tabLabel are mandatory fields
   extraTabs = [],
+  recommendedXAxisColumns = [],
+  recommendedYAxisColumns = [],
 }) {
   // always have a table
   // round decimal cols to 2 decimal places
@@ -80,6 +82,8 @@ export function TableChart({
             title={query}
             key="1"
             vizType={vizType === "table" ? "Bar Chart" : vizType}
+            recommendedXAxisColumns={recommendedXAxisColumns}
+            recommendedYAxisColumns={recommendedYAxisColumns}
           ></ChartContainer>
         </ErrorBoundary>
       ),
