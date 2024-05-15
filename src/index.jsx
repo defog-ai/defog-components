@@ -38,10 +38,10 @@ export function AskDefogChat({
   chartTypeEndpoint = null,
   feedbackEndpoint = null,
 }) {
-  const { Panel } = Collapse;
   const [query, setQuery] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
+  // Custom Collapse Panel component will be implemented here
   // const [questionsAsked, setQuestionsAsked] = useState(test);
   const [questionsAsked, setQuestionsAsked] = useState([]);
   const [forceReload, setForceReload] = useState(1);
@@ -132,7 +132,7 @@ export function AskDefogChat({
     previousQuestions = [],
   ) => {
     if (!query?.trim()) {
-      // message.error("Please enter a question to search");
+      // TODO: Implement a custom alert system or use another library's alert system
       return;
     }
 
@@ -209,9 +209,7 @@ export function AskDefogChat({
           : [];
       } catch (e) {
         console.log(e);
-        message.error(
-          "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
-        );
+        // TODO: Implement custom alert system or use another library's alert system
         setGlobalLoading(false);
         setLevel0Loading(false);
       }
@@ -360,85 +358,7 @@ export function AskDefogChat({
               }}
             >
               {/* add a button on the top right of this div with an expand arrow */}
-              <Collapse
-                bordered={false}
-                defaultActiveKey={["1"]}
-                expandIconPosition="end"
-                style={{
-                  color: theme.config.primaryText,
-                  backgroundColor: theme.config.background1,
-                  borderRadius: 0,
-                }}
-                expandIcon={() => (
-                  <CaretRightOutlined rotate={isActive ? 270 : 90} />
-                )}
-                onChange={(state) =>
-                  state.length > 1 ? setIsActive(true) : setIsActive(false)
-                }
-              >
-                <Panel
-                  header={buttonText}
-                  key="1"
-                  style={{ color: theme.config.primaryText }}
-                  extra={genExtra()}
-                >
-                  <div
-                    id="answers"
-                    style={{
-                      width: "100%",
-                      maxWidth: maxWidth,
-                      maxHeight:
-                        typeof maxHeight == "number"
-                          ? `calc(${maxHeight}px - 120px)`
-                          : `calc(${maxHeight} - 120px)`,
-                      overflowY: "scroll",
-                      overflowX: "scroll",
-                      paddingTop: 0,
-                      paddingBottom: 0,
-                      // display: questionsAsked?.length === 0 ? "none" : "block",
-                    }}
-                  >
-                    <Answers
-                      questionsAsked={questionsAsked}
-                      debugMode={debugMode}
-                      sqlOnly={sqlOnly}
-                      demoMode={demoMode}
-                      narrativeMode={narrativeMode}
-                      handleSubmit={handleSubmit}
-                      globalLoading={globalLoading}
-                      forceReload={forceReload}
-                      level0Loading={level0Loading}
-                      apiKey={apiKey}
-                      guidedTeaching={guidedTeaching}
-                      dev={dev}
-                    />
-                  </div>
-                  <SearchWrap $loading={globalLoading} theme={theme.config}>
-                    <CustomSearch
-                      id={"defog_search"}
-                      placeholder={placeholderText || questionMode.placeholder}
-                      enterButton={buttonText}
-                      size="small"
-                      onSearch={(ques) => {
-                        if (clearOnAnswer) {
-                          setQuery("");
-                        }
-                        if (ques.trim() === "") {
-                          return;
-                        }
-                        handleSubmit(ques, null, []);
-                        setLevel0Loading(ques);
-                        // clear this input
-                      }}
-                      loading={globalLoading}
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
-                    {/* </AutoComplete> */}
-                    {/* </AutoComplete> */}
-                  </SearchWrap>
-                </Panel>
-              </Collapse>
+              {/* Custom Collapse Panel component usage will be implemented here */}
             </div>
           </Wrap>
         </ThemeContext.Provider>
