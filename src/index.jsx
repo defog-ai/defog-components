@@ -41,15 +41,13 @@ export function AskDefogChat({
   const [query, setQuery] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
-  // Custom Collapse Panel component will be implemented here
-  // const [questionsAsked, setQuestionsAsked] = useState(test);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [questionsAsked, setQuestionsAsked] = useState([]);
   const [forceReload, setForceReload] = useState(1);
   const questionMode = questionModes[agent ? 0 : 1];
   const [level0Loading, setLevel0Loading] = useState(false);
 
   const divRef = useRef(null);
-  // const autoCompRef = useRef(null);
 
   const [theme, setTheme] = useState({
     type: darkMode === true ? "dark" : "light",
@@ -357,8 +355,14 @@ export function AskDefogChat({
                 maxHeight: maxHeight,
               }}
             >
-              {/* add a button on the top right of this div with an expand arrow */}
-              {/* Custom Collapse Panel component usage will be implemented here */}
+              <button onClick={() => setIsCollapsed(!isCollapsed)}>
+                {isCollapsed ? 'Show More' : 'Show Less'}
+              </button>
+              {!isCollapsed && (
+                <div>
+                  {/* Content to be shown when expanded */}
+                </div>
+              )}
             </div>
           </Wrap>
         </ThemeContext.Provider>
