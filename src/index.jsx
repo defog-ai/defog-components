@@ -1,10 +1,4 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
-import {
-  Collapse,
-  // AutoComplete,
-  message,
-} from "antd";
-import { CaretRightOutlined } from "@ant-design/icons";
 import Answers from "./components/Answers";
 import { questionModes, reFormatData } from "./components/common/utils";
 import {
@@ -14,10 +8,10 @@ import {
 } from "./context/ThemeContext";
 import { styled } from "styled-components";
 import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
+import CustomSearch from "./components/CustomSearch";
 
 import { createGlobalStyle } from "styled-components";
 import { UtilsContext } from "./context/UtilsContext";
-import Search from "antd/lib/input/Search";
 
 // import test from "./test.json";
 
@@ -420,21 +414,7 @@ export function AskDefogChat({
                     />
                   </div>
                   <SearchWrap $loading={globalLoading} theme={theme.config}>
-                    {/* <AutoComplete
-                      style={{ width: "100%" }}
-                      options={predefinedQuestions.map((x) => ({
-                        label: x,
-                        value: x,
-                      }))}
-                      filterOption={(inputValue, option) =>
-                        option?.value
-                          .toUpperCase()
-                          .indexOf(inputValue.toUpperCase()) !== -1
-                      }
-                      ref={autoCompRef}
-                      disabled={globalLoading}
-                    > */}
-                    <Search
+                    <CustomSearch
                       id={"defog_search"}
                       placeholder={placeholderText || questionMode.placeholder}
                       enterButton={buttonText}
@@ -454,6 +434,7 @@ export function AskDefogChat({
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
+                    {/* </AutoComplete> */}
                     {/* </AutoComplete> */}
                   </SearchWrap>
                 </Panel>
