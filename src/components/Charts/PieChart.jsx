@@ -1,5 +1,4 @@
 import React from "react";
-import { Row, Col } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
@@ -15,13 +14,12 @@ const PieChart = React.memo(
 
     return (
       <ErrorBoundary>
-        <Row justify={"center"}>
+        <div className="flex justify-center">
           {/* don't nest pie charts */}
           {chartData.map((d) => {
             return (
-              <Col
-                md={{ span: 24 }}
-                lg={12}
+              <div
+                className="w-full lg:w-1/2"
                 key={d.label + d.data.map((_) => _[d.parsing.key]).join("__")}
               >
                 <div
@@ -50,10 +48,10 @@ const PieChart = React.memo(
                     }}
                   ></Pie>
                 </div>
-              </Col>
+              </div>
             );
           })}
-        </Row>
+        </div>
       </ErrorBoundary>
     );
   },

@@ -1,6 +1,5 @@
 import React from "react";
 import ErrorBoundary from "../common/ErrorBoundary";
-import { Row, Col } from "antd";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -27,11 +26,11 @@ const ColumnChart = React.memo(
   ({ chartConfig, title, height, xAxisIsDate, theme }) => {
     const { chartLabels, chartData } = chartConfig;
     setChartJSDefaults(ChartJS, title, xAxisIsDate, theme);
-    
+
     return (
       <ErrorBoundary>
-        <Row justify={"center"}>
-          <Col md={{ span: 24 }} lg={12}>
+        <div className="flex justify-center">
+          <div className="w-full lg:w-1/2">
             <div className="column-chart-ctr" style={{ height: height + "px" }}>
               <Bar
                 data={{
@@ -42,8 +41,8 @@ const ColumnChart = React.memo(
                 }}
               ></Bar>
             </div>
-          </Col>
-        </Row>
+          </div>
+        </div>
       </ErrorBoundary>
     );
   },

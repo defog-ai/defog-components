@@ -10,8 +10,6 @@ dayjs.extend(customParseFormat);
 dayjs.extend(isoWeek);
 
 import { chartColors } from "../../context/ThemeContext";
-import { Popover } from "antd";
-import styled from "styled-components";
 import { mean } from "d3-array";
 
 export const questionModes = [
@@ -28,17 +26,7 @@ export const questionModes = [
 ].map((d) => ({
   value: d[0],
   label: (
-    <Popover
-      overlayClassName="agent-popover"
-      overlayInnerStyle={{
-        backgroundColor: "black",
-      }}
-      align={{ offset: [15, 0] }}
-      content={<div style={{ width: "200px", color: "white" }}>{d[2]}</div>}
-      placement="right"
-    >
-      <div className="agent-tool-option">{d[0]}</div>
-    </Popover>
+    <div className="agent-tool-option" title={d[2]}>{d[0]}</div>
   ),
   placeholder: d[1],
 }));
@@ -765,17 +753,10 @@ export const sentenceCase = (str) => {
   return str[0].toUpperCase() + str.slice(1);
 };
 
-export const AnswerWrap = styled.div`
-  margin-bottom: 12px;
-  margin-top: 1em;
-  position: relative;
-  transition: all 0.2s ease-in-out;
-  margin: ${({ margin }) => margin || "0.2em 0"};
-  padding: ${({ padding }) => padding || "0.2em 0.4em"};
-  padding-left: 10px;
-  // max-width: 40%;
-  background: ${(props) => props.theme.background2};
-
-  border-radius: 3px;
-  border-left: ${({ theme }) => `4px solid ${theme.brandLight}`};
-`;
+export const AnswerWrap = ({ children, customBorderColorClass }) => (
+  <div className={`mb-3 mt-4 relative transition mx-1 px-2 pl-2 rounded ${customBorderColorClass}`}>
+    {children}
+  </div>
+);
+// Tailwind CSS classes used above may need to be adjusted to match the original styling
+// The theme-based background color will need to be handled by defining a custom class in the Tailwind config.

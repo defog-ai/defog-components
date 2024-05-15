@@ -1,5 +1,4 @@
 import React from "react";
-import { Row, Col } from "antd";
 import ErrorBoundary from "../common/ErrorBoundary";
 import {
   Chart as ChartJS,
@@ -39,8 +38,8 @@ const TrendChart = React.memo(
     if (chartData instanceof Array) {
       return (
         <ErrorBoundary>
-          <Row justify={"center"}>
-            <Col md={{ span: 24 }} lg={12}>
+          <div className="flex justify-center">
+            <div className="w-full lg:w-1/2">
               <div className="pie-chart-ctr" style={{ height: height + "px" }}>
                 <Line
                   data={{
@@ -52,8 +51,8 @@ const TrendChart = React.memo(
                   }}
                 ></Line>
               </div>
-            </Col>
-          </Row>
+            </div>
+          </div>
         </ErrorBoundary>
       );
     } else {
