@@ -1,9 +1,10 @@
-import React, { isValidElement, Fragment } from "react";
+import React, { useState } from "react";
 import ChartContainer from "./ChartContainer";
 import { chartNames, processData, roundColumns } from "./common/utils";
 import ErrorBoundary from "./common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 import CustomTable from "./CustomTable";
+import CustomTabs from "./CustomTabs";
 
 export function TableChart({
   response,
@@ -15,19 +16,20 @@ export function TableChart({
   recommendedXAxisColumns = [],
   recommendedYAxisColumns = [],
 }) {
+  const [activeTab, setActiveTab] = useState(0);
   const roundedData = roundColumns(response.data, response.columns);
 
   if (
     !extraTabs ||
     !Array.isArray(extraTabs) ||
-    !extraTabs.every((d) => d.component && d.tabLabel) ||
-    !extraTabs.every((d) => isValidElement(d.component))
+    !extraTabs.every((d) => d.component && d.tabLabel)
   ) {
     extraTabs = [];
   }
 
-  let results = [
+  let tabsContent = [
     {
+      key: 'table',
       component: (
         <CustomTable
           columns={response.columns.map((col) => ({
@@ -52,7 +54,8 @@ export function TableChart({
       dateColumns,
     } = processData(response.data, response.columns);
 
-    results.push({
+    tabsContent.push({
+      key: 'chart',
       component: (
         <ErrorBoundary>
           <ChartContainer
@@ -74,7 +77,8 @@ export function TableChart({
       tabLabel: "Chart",
     });
   } else {
-    results.push({
+    tabsContent.push({
+      key: 'chartImage',
       component: (
         <ErrorBoundary>
           <ChartImage images={chartImages} />
@@ -85,7 +89,8 @@ export function TableChart({
   }
 
   if (sql && sql.length > 0) {
-    results.push({
+    tabsContent.push({
+      key: 'code',
       component: (
         <ErrorBoundary>
           <>
@@ -98,20 +103,20 @@ export function TableChart({
     });
   }
 
-  results = results.concat(extraTabs);
+  tabsContent = tabsContent.concat(extraTabs.map((tab, index) => ({
+    ...tab,
+    key: `extraTab-${index}`,
+  })));
 
-  // TODO: Replace with custom tabs component once implemented
-  results = (
-    <div>
-      {/* Custom tabs implementation */}
-      {results.map((result, index) => (
-        <Fragment key={index}>
-          <div>{result.tabLabel}</div>
-          <div>{result.component}</div>
-        </Fragment>
-      ))}
-    </div>
+  const handleTabChange = (index) => {
+    setActiveTab(index);
+  };
+
+  return (
+    <CustomTabs
+      tabs={tabsContent}
+      activeTab={activeTab}
+      onTabChange={handleTabChange}
+    />
   );
-
-  return results;
 }

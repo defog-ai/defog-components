@@ -8,7 +8,6 @@
 // eventually there should be a way to cache "where" the user was in a report generation process. And just have them continue.
 // perhaps have a "save as draft" option for reports
 
-import { Tabs, message } from "antd";
 import React, { useMemo, useRef, useState, Fragment, useContext } from "react";
 import ReportGen from "../report-gen/ReportGen";
 import { ReportDisplay } from "../report/ReportDisplay";
@@ -81,9 +80,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
           if (!event.data) {
             setStageDone(false);
             setGlobalLoading(false);
-            message.error(
-              "Something went wrong. Please try again or contact us if this persists.",
-            );
+            // TODO: Replace message.error with a state-based message display system
           }
 
           const response = JSON.parse(event.data);
@@ -190,9 +187,6 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
       console.log(err);
       setStageDone(false);
       setGlobalLoading(false);
-      message.error(
-        "Something went wrong. Please try again or contact us if this persists.",
-      );
       console.log(err);
       return false;
     }
@@ -241,9 +235,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
       }).then((d) => d.json());
 
       if (!res.success) {
-        message.error(
-          "Something went wrong. Please try again or contact us if this persists.",
-        );
+        // TODO: Replace with a state-based message display system
         return;
       }
 
@@ -288,9 +280,7 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
       }).then((d) => d.json());
 
       if (!res.success) {
-        message.error(
-          "Something went wrong. Please try again or contact us if this persists.",
-        );
+        // TODO: Replace message.error with custom error handling
         return;
       }
 
@@ -374,17 +364,13 @@ export default function AgentMain({ initialReportData, agentsEndpoint }) {
 
   return (
     <ReportPageWrap>
+      {/* CustomTabs component will be created to replace antd Tabs */}
+      {/* Placeholder for CustomTabs component */}
+      {/* TODO: Implement CustomTabs with Tailwind CSS */}
       {reportData ? (
         <>
           <GlobalStyle />
-          <Tabs
-            activeKey={activeTab}
-            onTabClick={(key) => {
-              setActiveTab(key);
-            }}
-            centered
-            items={items}
-          ></Tabs>
+          {/* CustomTabs component usage will go here */}
         </>
       ) : (
         <></>

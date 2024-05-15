@@ -6,7 +6,7 @@ import {
   lightThemeColor,
 } from "./context/ThemeContext";
 // Removed styled-components imports as we are transitioning to Tailwind CSS
-import CustomSearch from "./components/CustomSearch";
+import { TableChart } from "./components/TableChart";
 
 // import test from "./test.json";
 
@@ -117,7 +117,6 @@ export function AskDefogChat({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...additionalHeaders,
           },
           body: JSON.stringify({
             question: query,
@@ -298,43 +297,39 @@ export function AskDefogChat({
     }
   };
 
-  const genExtra = () => (
-    <ThemeSwitchButton mode={theme.type} handleMode={toggleTheme} />
-  );
-
   return (
     <>
-      <UtilsContext.Provider
-        value={{
-          apiKey,
-          additionalHeaders,
-          additionalParams,
-          apiEndpoint,
-        }}
-      >
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
-          <Wrap theme={theme.config}>
-            <div
-              ref={divRef}
-              id="results"
-              style={{
-                overflow: "hidden",
-                maxHeight: maxHeight,
-              }}
-            >
-              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => setIsCollapsed(!isCollapsed)}>
-                {isCollapsed ? 'Show More' : 'Show Less'}
-              </button>
-              {!isCollapsed && (
-                <div>
-                  {/* Example content to be shown when expanded */}
-                  <p className="text-gray-700">This is the expanded content!</p>
-                </div>
-              )}
-            </div>
-          </Wrap>
-        </ThemeContext.Provider>
-      </UtilsContext.Provider>
+      <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <Wrap theme={theme.config}>
+          <div
+            ref={divRef}
+            id="results"
+            style={{
+              overflow: "hidden",
+              maxHeight: "500px", // Set a fixed maxHeight for demonstration purposes
+            }}
+          >
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => setIsCollapsed(!isCollapsed)}>
+              {isCollapsed ? 'Show More' : 'Show Less'}
+            </button>
+            {!isCollapsed && (
+              <TableChart
+                response={{
+                  data: [], // Mock data array
+                  columns: [], // Mock columns array
+                }}
+                query={query}
+                vizType={"table"} // Default vizType for demonstration purposes
+                chartImages={[]}
+                sql={""}
+                extraTabs={[]}
+                recommendedXAxisColumns={[]}
+                recommendedYAxisColumns={[]}
+              />
+            )}
+          </div>
+        </Wrap>
+      </ThemeContext.Provider>
     </>
   );
 }
