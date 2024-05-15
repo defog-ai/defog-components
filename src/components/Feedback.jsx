@@ -354,6 +354,17 @@ const Feedback = ({
           >
             Update Instructions
           </Button>
+
+          {/* close modal button */}
+          <Button
+            onClick={() => {
+              setModalVisible(false);
+            }}
+            danger
+            type="primary"
+          >
+            Close Modal
+          </Button>
         </>
       )}
     </div>
