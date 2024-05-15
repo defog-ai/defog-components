@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, Fragment } from "react";
-import Answers from "./components/Answers";
 import { questionModes, reFormatData } from "./components/common/utils";
 import {
   ThemeContext,
@@ -7,25 +6,18 @@ import {
   lightThemeColor,
 } from "./context/ThemeContext";
 import { styled } from "styled-components";
-import ThemeSwitchButton from "./components/common/ThemeSwitchButton";
 import CustomSearch from "./components/CustomSearch";
 
 import { createGlobalStyle } from "styled-components";
-import { UtilsContext } from "./context/UtilsContext";
-
 // import test from "./test.json";
 
 export function AskDefogChat({
   apiEndpoint,
-  maxHeight = "100%",
-  maxWidth = "100%",
-  buttonText = "Ask Defog",
-  debugMode = false,
   apiKey = null,
+  debugMode = false,
   darkMode,
   demoMode = false,
   additionalParams = {},
-  additionalHeaders = {},
   sqlOnly = false,
   // predefinedQuestions = [],
   narrativeMode = false,
@@ -179,10 +171,12 @@ export function AskDefogChat({
       } catch (e) {
         // from agents
         if (queryChatResponse?.error_message) {
-          message.error(queryChatResponse.error_message);
+          // TODO: Replace with a custom alert system or another library's alert system
+          console.error(queryChatResponse.error_message);
         } else {
           console.log(e);
-          message.error(
+          // TODO: Replace with a custom alert system or another library's alert system
+          console.error(
             "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
           );
         }
@@ -355,12 +349,13 @@ export function AskDefogChat({
                 maxHeight: maxHeight,
               }}
             >
-              <button onClick={() => setIsCollapsed(!isCollapsed)}>
+              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onClick={() => setIsCollapsed(!isCollapsed)}>
                 {isCollapsed ? 'Show More' : 'Show Less'}
               </button>
               {!isCollapsed && (
                 <div>
-                  {/* Content to be shown when expanded */}
+                  {/* Example content to be shown when expanded */}
+                  <p className="text-gray-700">This is the expanded content!</p>
                 </div>
               )}
             </div>

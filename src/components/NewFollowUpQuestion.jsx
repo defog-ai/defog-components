@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { ThemeContext } from "../context/ThemeContext";
 import CustomButton from './CustomButton';
 import { BsPlusCircle } from "react-icons/bs";
-import Search from "antd/es/input/Search";
 import { AnswerWrap } from "./common/utils";
 
 export default function NewFollowUpQuestion({
@@ -48,17 +47,13 @@ export default function NewFollowUpQuestion({
               {followUpLoading ? (
                 followUpLoader
               ) : (
-                <Search
+                <CustomSearch
                   value={followUpText}
                   autoFocus={true}
                   onChange={(e) => setFollowUpText(e.target.value)}
                   onBlur={() => {
                     setShowNewFollowUp(false);
                   }}
-                  className="follow-up-search"
-                  placeholder={"Continue asking related questions"}
-                  enterButton="Ask Follow Up"
-                  size="small"
                   onSearch={(query) => {
                     setFollowUpLoading(true);
                     onSearch(query);
