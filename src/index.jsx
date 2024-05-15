@@ -301,7 +301,7 @@ export function AskDefogChat({
     let chartConfig;
 
     if (!chartTypeEndpoint) {
-      return { chartType: "Table", xAxisColumns: [], yAxisColumns: [] };
+      return { chartType: "table", xAxisColumns: [], yAxisColumns: [] };
     }
 
     try {
