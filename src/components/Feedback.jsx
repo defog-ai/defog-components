@@ -17,6 +17,7 @@ const Feedback = ({
   const [reflectionRefQueries, setReflectionRefQueries] = useState([]);
   const [reflectionLoading, setReflectionLoading] = useState(false);
   const [glossary, setGlossary] = useState("");
+  const [newGlossary, setNewGlossary] = useState("");
   const [postReflectionLoading, setPostReflectionLoading] = useState(false);
   const { TextArea } = Input;
 
@@ -24,6 +25,11 @@ const Feedback = ({
     feedbackText = "",
     giveSuggestions = guidedTeaching,
   ) => {
+    if (giveSuggestions) {
+      message.info(
+        "Preparing improved instruction sets for the model. This can take up to 30 seconds. Thank you for your patience.",
+      );
+    }
     // send feedback over to the server
     await fetch(`https://api.defog.ai/feedback`, {
       method: "POST",
@@ -42,9 +48,6 @@ const Feedback = ({
     if (giveSuggestions) {
       // send the error to the reflect endpoint
       setReflectionLoading(true);
-      message.info(
-        "Preparing improved instruction sets for the model. This can take up to 30 seconds. Thank you for your patience.",
-      );
 
       // first, get the metadata so that we can easily compare it against the reflection
       const metadataResp = await fetch(`https://api.defog.ai/get_metadata`, {
@@ -115,7 +118,8 @@ const Feedback = ({
 
       setHasReflected(true);
       setReflectionFeedback(feedback);
-      setGlossary(glossary + "\n\n(new instructions)\n\n" + instruction_set);
+      // setGlossary(glossary + "\n\n(new instructions)\n\n" + instruction_set);
+      setNewGlossary(instruction_set);
       setReflectionColDescriptions(updatedDescriptions);
       setReflectionRefQueries(reference_queries);
       setReflectionLoading(false);
@@ -124,7 +128,7 @@ const Feedback = ({
     }
   };
 
-  const updateNewInstructions = async () => {
+  const updateGlossary = async () => {
     setPostReflectionLoading(true);
     // update glossary
     await fetch(`https://api.defog.ai/update_glossary`, {
@@ -138,8 +142,15 @@ const Feedback = ({
         dev: dev,
       }),
     });
+    setPostReflectionLoading(false);
+    message.info(
+      "The model's instruction set has now been updated. You can choose to update the column descriptions and reference queries as well.",
+    );
+  };
 
+  const updateGoldenQueries = async () => {
     // update golden queries
+    setPostReflectionLoading(true);
     await fetch(`https://api.defog.ai/update_golden_queries`, {
       method: "POST",
       headers: {
@@ -152,8 +163,15 @@ const Feedback = ({
         dev: dev,
       }),
     });
+    setPostReflectionLoading(false);
+    message.info(
+      "The model's reference queries have now been updated. You can choose to update the column descriptions and instruct set as well.",
+    );
+  };
 
+  const updateColumnDescriptions = async () => {
     // update column descriptions
+    setPostReflectionLoading(true);
     await fetch(`https://api.defog.ai/update_column_descriptions`, {
       method: "POST",
       headers: {
@@ -165,12 +183,8 @@ const Feedback = ({
         dev: dev,
       }),
     });
-
     setPostReflectionLoading(false);
-    setModalVisible(false);
-    message.info(
-      "The model's instruction set has now been updated. Thank you for the feedback!",
-    );
+    message.info("The model's column descriptions have now been updated.");
   };
 
   return (
@@ -216,16 +230,57 @@ const Feedback = ({
         <>
           <p>{reflectionFeedback}</p>
 
-          <p>Instruction Set:</p>
-          <TextArea
-            rows={8}
-            value={glossary}
-            onChange={(e) => setGlossary(e.target.value)}
-            style={{
-              marginTop: "1em",
-              marginBottom: "1em",
-            }}
-          />
+          <h2>Instruction Set (Existing and Updates):</h2>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div style={{ width: "50%" }}>
+              <h3>Existing</h3>
+              <TextArea
+                id={"current-glossary-" + questionId}
+                rows={8}
+                value={glossary}
+                style={{
+                  marginBottom: "1em",
+                }}
+                onChange={(e) => {
+                  setGlossary(e.target.value);
+                }}
+              />
+            </div>
+            <div style={{ width: "50%" }}>
+              <h3>Suggested updates</h3>
+              <TextArea
+                rows={8}
+                value={newGlossary}
+                style={{
+                  marginBottom: "1em",
+                }}
+                onChange={(e) => {
+                  setNewGlossary(e.target.value);
+                }}
+              />
+            </div>
+          </div>
+          <div>
+            <Button
+              onClick={() => {
+                setGlossary(glossary + "\n" + newGlossary);
+                // scroll the glossary to the bottom
+                const glossaryElement = document.querySelector(
+                  "#current-glossary-" + questionId,
+                );
+                setTimeout(() => {
+                  glossaryElement.scrollTop = glossaryElement.scrollHeight;
+                  setNewGlossary("");
+                  updateGlossary();
+                }, 100);
+              }}
+              style={{ marginRight: "1em" }}
+              loading={postReflectionLoading}
+              disabled={postReflectionLoading}
+            >
+              Update Glossary
+            </Button>
+          </div>
           <p>Column Descriptions:</p>
           <ul>
             {reflectionColDescriptions.map((item, idx) => {
@@ -256,6 +311,13 @@ const Feedback = ({
                 </li>
               );
             })}
+            <Button
+              onClick={() => updateColumnDescriptions()}
+              loading={postReflectionLoading}
+              disabled={postReflectionLoading}
+            >
+              Update Column Descriptions
+            </Button>
           </ul>
           <p>Reference Queries:</p>
           <ul>
@@ -275,6 +337,7 @@ const Feedback = ({
                     }}
                     style={{
                       marginBottom: "1em",
+                      whiteSpace: "pre-wrap",
                     }}
                   />
                 </li>
@@ -284,7 +347,7 @@ const Feedback = ({
 
           <Button
             onClick={() => {
-              updateNewInstructions();
+              updateGoldenQueries();
             }}
             loading={postReflectionLoading}
             disabled={postReflectionLoading}
