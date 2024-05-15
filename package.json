@@ -14,12 +14,13 @@
   "scripts": {
     "build": "microbundle --no-compress --format modern,cjs --jsx React.createElement",
     "start": "microbundle watch --no-compress --format modern,cjs --jsx React.createElement",
+    "serve": "serve -s example/dist -l 1234",
     "build-example": "cd example && npm run build"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.7",
     "@babel/eslint-plugin": "^7.22.5",
-    "@babel/preset-env": "^7.22.7",
+    "@babel/preset-env": "^7.24.5",
     "@babel/preset-react": "^7.22.5",
     "cross-env": "^7.0.3",
     "eslint-config-prettier": "^8.8.0",
@@ -35,7 +36,8 @@
     "microbundle": "^0.15.1",
     "node-sass": "^9.0.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "serve": "^14.2.3"
   },
   "files": [
     "dist"
@@ -58,6 +60,7 @@
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
     "react-simple-code-editor": "^0.13.1",
-    "styled-components": "^6.0.2"
+    "styled-components": "^6.0.2",
+    "vite": "^5.2.11"
   }
 }

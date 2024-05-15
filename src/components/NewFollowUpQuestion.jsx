@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { ThemeContext } from "../context/ThemeContext";
-import { Button } from "antd";
+import CustomButton from './CustomButton';
 import { BsPlusCircle } from "react-icons/bs";
 import Search from "antd/es/input/Search";
 import { AnswerWrap } from "./common/utils";
@@ -69,7 +69,7 @@ export default function NewFollowUpQuestion({
               )}
             </AnswerWrap>
           ) : (
-            <Button
+            <CustomButton
               className="follow-up-indicator"
               onClick={() => {
                 setShowNewFollowUp(true);
@@ -82,7 +82,7 @@ export default function NewFollowUpQuestion({
                   ? "Ask more related questions"
                   : "Ask related question"}
               </span>
-            </Button>
+            </CustomButton>
           ))}
       </div>
     </NewFollowUpQuestionWrap>
