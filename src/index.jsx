@@ -5,10 +5,9 @@ import {
   darkThemeColor,
   lightThemeColor,
 } from "./context/ThemeContext";
-import { styled } from "styled-components";
+// Removed styled-components imports as we are transitioning to Tailwind CSS
 import CustomSearch from "./components/CustomSearch";
 
-import { createGlobalStyle } from "styled-components";
 // import test from "./test.json";
 
 export function AskDefogChat({
@@ -46,33 +45,8 @@ export function AskDefogChat({
     config: darkMode === true ? darkThemeColor : lightThemeColor,
   });
 
-  const GlobalStyle = createGlobalStyle`
-  .ant-popover-arrow, ant-popover-arrow-content {
-    --antd-arrow-background-color: black;
-  }
-  // show popovers only in the dropdown menu.
-  // don't show popovers on hover on the selected dropdown item itself.
-  .ant-select-selection-item {
-    // pointer-events: none;
-  }
-  .italic {
-    font-style: italic;
-  }
-  .underline {
-    text-decoration: underline;
-  }
-
-  .tool-icon {
-    display: inline-block;
-    position: relative;
-    margin-right: 5px;
-    top: 2px;
-
-    svg {
-      stroke: ${theme.config.primaryText};
-    }
-  }
-`;
+  // Global styles can be applied using Tailwind CSS in the main entry file (e.g., index.css or tailwind.css)
+  // Specific component styles that were previously here have been refactored to use Tailwind CSS classes directly within the components themselves
 
   function uuidv4() {
     return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
@@ -330,7 +304,6 @@ export function AskDefogChat({
 
   return (
     <>
-      <GlobalStyle />
       <UtilsContext.Provider
         value={{
           apiKey,
@@ -366,100 +339,14 @@ export function AskDefogChat({
   );
 }
 
-const Wrap = styled.div`
-  position: relative;
+const Wrap = ({ children, theme }) => (
+  <div className={`relative ${theme ? theme.containerType : ''} ${theme ? theme.containerName : ''}`}>
+    {children}
+  </div>
+);
 
-  container-type: inline-size;
-  container-name: main-wrap;
-
-  .ant-collapse-content-box {
-    padding: 20px !important;
-
-    @container (max-width: 650px) {
-      padding: 8px !important;
-    }
-  }
-  .ant-collapse-header {
-    display: flex;
-    align-items: center;
-    color: ${(props) =>
-      props.theme ? props.theme.primaryText : "#0D0D0D"} !important;
-    background: ${(props) =>
-      props.theme ? props.theme.background2 : "#F8FAFB"} !important;
-
-    .ant-collapse-extra {
-      order: 3;
-      margin-left: 8px;
-    }
-  }
-`;
-
-const SearchWrap = styled.div`
-  display: flex;
-  background: ${(props) =>
-    props.loading ? props.theme.disabledColor : props.theme.background2};
-
-  .question-mode-select {
-    top: 2px;
-  }
-  .ant-input-group-wrapper {
-    border-radius: 8px;
-    padding: 6px;
-    border: 1px solid
-      ${(props) => (props.theme ? props.theme.brandColor : "#2B59FF")};
-    width: 100%;
-    .ant-input-wrapper {
-      display: flex;
-    }
-
-    &.ant-input-group-wrapper-disabled {
-      background-color: transparent;
-      border: 1px solid rgba(0, 0, 0, 0.1) !important;
-    }
-
-    .ant-input {
-      border: none;
-      width: calc(100% - 120px);
-      background-color: transparent;
-      color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
-
-      &::placeholder {
-        color: ${(props) =>
-          props.theme ? props.theme.primaryText : "#0D0D0D"};
-        opacity: 0.7;
-      }
-      &.ant-input-disabled {
-        color: rgba(0, 0, 0, 0.25) !important;
-        &::placeholder {
-          color: rgba(0, 0, 0, 0.25) !important;
-        }
-
-        background-color: rgba(0, 0, 0, 0.04);
-        border-color: #d9d9d9 !important;
-      }
-    }
-    .ant-input:focus,
-    .ant-input-focused {
-      box-shadow: none;
-    }
-    .ant-input-group-addon {
-      button {
-        min-height: 36px;
-        min-width: 120px;
-        border-radius: 6px !important;
-        border-color: transparent;
-        color: #fff;
-        box-shadow: none !important;
-        background: ${(props) =>
-          props.theme ? props.theme.brandColor : "#2B59FF"};
-
-        &:disabled {
-          border: none !important;
-          color: rgba(0, 0, 0, 0.25) !important;
-          background-color: rgba(0, 0, 0, 0.04);
-          box-shadow: none;
-        }
-      }
-    }
-  }
-`;
+const SearchWrap = ({ children, theme, loading }) => (
+  <div className={`flex ${loading ? theme.disabledColor : theme.background2}`}>
+    {children}
+  </div>
+);

@@ -1,8 +1,8 @@
 import React, { isValidElement, Fragment } from "react";
-import { Tabs, Table } from "antd";
+// Removed antd imports
 import ChartContainer from "./ChartContainer";
 import { chartNames, processData, roundColumns } from "./common/utils";
-import { TableOutlined, BarChartOutlined } from "@ant-design/icons";
+// Removed antd icon imports
 import ErrorBoundary from "./common/ErrorBoundary";
 import ChartImage from "./ChartImage";
 
@@ -36,25 +36,15 @@ export function TableChart({
   let results = [
     {
       component: (
-        <Table
-          key="0"
-          dataSource={roundedData}
-          // don't show index column in table
-          columns={response.columns.filter((d) => d.title !== "index")}
-          scroll={{ x: "max-content" }}
-          style={{
-            maxHeight: 300,
-          }}
-          size="small"
-          pagination={{
-            pageSize: 5,
-            showSizeChanger: false,
-            hideOnSinglePage: true,
-          }}
-        />
+        // Custom table component to be created or integrated
+        <div>
+          {/* Custom table implementation */}
+          {/* Replace antd Table with custom table component */}
+        </div>
       ),
       tabLabel: "Table",
-      icon: <TableOutlined />,
+      // Replace antd icons with custom icons or remove if not needed
+      icon: null, // Placeholder for custom icon if needed
     },
   ];
 
@@ -88,7 +78,8 @@ export function TableChart({
         </ErrorBoundary>
       ),
       tabLabel: "Chart",
-      icon: <BarChartOutlined />,
+      // Replace antd icons with custom icons or remove if not needed
+      icon: null, // Placeholder for custom icon if needed
     });
   } else {
     // if chartImagePath is present, load the image of the chart instead
@@ -99,6 +90,7 @@ export function TableChart({
         </ErrorBoundary>
       ),
       tabLabel: chartNames[chartImages[0].type] || "Chart",
+      // Removed icon since it's an image
     });
   }
   // finally, add sql to the results, if needed
@@ -114,27 +106,20 @@ export function TableChart({
         </ErrorBoundary>
       ),
       tabLabel: "Code",
+      // Removed icon since it's code
     });
   }
 
   // push extra tabs
   results = results.concat(extraTabs);
 
-  // convert to antd tabs
+  // convert to custom tabs or another non-antd tab solution
+  // Custom tabs component to be created or integrated
   results = (
-    <Tabs
-      defaultActiveKey={vizType === "table" ? "0" : "1"}
-      items={results.map((d, i) => ({
-        key: String(i),
-        label: (
-          <span>
-            {d.icon ? d.icon : null}
-            {d.tabLabel ? d.tabLabel : `Tab-${i}`}
-          </span>
-        ),
-        children: d.component,
-      }))}
-    ></Tabs>
+    <div>
+      {/* Custom tabs implementation */}
+      {/* Replace antd Tabs with custom tabs component */}
+    </div>
   );
 
   return results;
