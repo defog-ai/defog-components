@@ -377,7 +377,7 @@ const ChartContainerWrap = styled.div`
       .chart-container-select {
         margin: 10px 15px;
         width: 300px;
-        .ant-select {
+        .custom-select {
           width: 100%;
         }
         h4 {

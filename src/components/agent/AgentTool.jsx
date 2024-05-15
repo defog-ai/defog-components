@@ -1,53 +1,36 @@
-import { Popover, Select } from "antd";
 import React from "react";
-import { styled } from "styled-components";
 import { tools } from "../common/utils";
 import { FiTool } from "react-icons/fi";
 
 const toolOpts = tools.map((d) => ({
   label: (
-    <Popover
-      overlayClassName="agent-popover"
-      overlayInnerStyle={{
-        backgroundColor: "black",
-      }}
-      align={{ offset: [15, 0] }}
-      content={
-        <div style={{ width: "200px", color: "white" }}>{d.description}</div>
-      }
-      placement="right"
-    >
-      <div className="agent-tool-option">
-        <div className="tool-icon"><FiTool /></div>
-        {d.name}
-      </div>
-    </Popover>
+    <div className="agent-tool-option" title={d.description}>
+      <div className="tool-icon"><FiTool /></div>
+      {d.name}
+    </div>
   ),
   value: d.fn,
 }));
 
 export default function AgentTool({ tool, setTool }) {
   return (
-    <ToolWrap>
+    <div className="w-200 mt-5">
       <div className="agent-subqn-tool">
-        <Select
-          style={{ width: "80%" }}
-          options={toolOpts}
-          value={toolOpts.find((d) => d.value === tool)}
-          onChange={setTool}
-          placeholder="Select a tool"
-          status={tool ? "success" : "error"}
-        ></Select>
+        <div className="relative" style={{ width: "80%" }}>
+          <select
+            value={tool}
+            onChange={(e) => setTool(e.target.value)}
+            className={`block w-full py-1.5 pr-7 pl-3 mb-0 text-base font-normal leading-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none ${tool ? "border-green-500" : "border-red-500"}`}
+            placeholder="Select a tool"
+          >
+            {toolOpts.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
-    </ToolWrap>
+    </div>
   );
 }
-
-const ToolWrap = styled.div`
-  width: 200px;
-  margin-top: 5px;
-  .agent-tool-option {
-    display: flex;
-    flex-direction: row;
-  }
-`;

@@ -382,15 +382,12 @@ const ReportWrap = styled.div`
       props.theme ? props.theme.brandColor : "#2B59FF"};
   }
 
-  .ant-select:not(.ant-select-customize-input) .ant-select-selector {
-    background-color: ${(props) =>
-      props.theme ? props.theme.background1 : "#FFF"};
-    border: 1px solid
-      ${(props) => (props.theme ? props.theme.brandColor : "#FFF")};
+  .custom-select:not(.custom-select-customize-input) .custom-select-selector {
+    @apply bg-white border border-gray-300 rounded-md;
     color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
 
-    & + .ant-select-arrow {
-      color: ${(props) => (props.theme ? props.theme.primaryText : "#0D0D0D")};
+    & + .custom-select-arrow {
+      @apply text-gray-600;
     }
   }
 `;
