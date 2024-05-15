@@ -44,9 +44,12 @@
   ],
   "dependencies": {
     "chart.js": "^4.3.0",
+    "cors": "^2.8.5",
     "d3-array": "^3.2.4",
     "dayjs": "^1.11.9",
     "deps": "^1.0.0",
+    "express": "^4.19.2",
+    "http-proxy-middleware": "^3.0.0",
     "lottie-react": "^2.4.0",
     "marked": "^5.1.0",
     "marked-react": "^1.4.0",
