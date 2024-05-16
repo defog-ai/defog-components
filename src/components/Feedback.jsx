@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Input, message } from "antd";
 
 const Feedback = ({
@@ -17,7 +17,7 @@ const Feedback = ({
   const [reflectionRefQueries, setReflectionRefQueries] = useState([]);
   const [reflectionLoading, setReflectionLoading] = useState(false);
   const [glossary, setGlossary] = useState("");
-  const [newGlossary, setNewGlossary] = useState("");
+  const [glossaryToAppend, setGlossaryToAppend] = useState("");
   const [postReflectionLoading, setPostReflectionLoading] = useState(false);
   const { TextArea } = Input;
 
@@ -119,7 +119,7 @@ const Feedback = ({
       setHasReflected(true);
       setReflectionFeedback(feedback);
       // setGlossary(glossary + "\n\n(new instructions)\n\n" + instruction_set);
-      setNewGlossary(instruction_set);
+      setGlossaryToAppend(instruction_set);
       setReflectionColDescriptions(updatedDescriptions);
       setReflectionRefQueries(reference_queries);
       setReflectionLoading(false);
@@ -128,8 +128,21 @@ const Feedback = ({
     }
   };
 
-  const updateGlossary = async () => {
+  useEffect(() => {
+    // scroll the glossary to the bottom
+    const glossaryElement = document.querySelector(
+      "#current-glossary-" + questionId,
+    );
+
+    if (!glossaryElement) return;
+    glossaryElement.scrollTop = glossaryElement.scrollHeight;
+  }, [glossary]);
+
+  const updateGlossary = async (fullNewGlossary) => {
+    setGlossary(fullNewGlossary);
+    setGlossaryToAppend("");
     setPostReflectionLoading(true);
+
     // update glossary
     await fetch(`https://api.defog.ai/update_glossary`, {
       method: "POST",
@@ -196,7 +209,7 @@ const Feedback = ({
         id={"feedback-text-" + questionId}
       />
       {!hasReflected ? (
-        <>
+        <div>
           <Button
             loading={reflectionLoading}
             disabled={reflectionLoading}
@@ -225,9 +238,9 @@ const Feedback = ({
               Submit and get suggestions for improvement
             </Button>
           ) : null}
-        </>
+        </div>
       ) : (
-        <>
+        <div>
           <p>{reflectionFeedback}</p>
 
           <h2>Instruction Set (Existing and Updates):</h2>
@@ -250,12 +263,12 @@ const Feedback = ({
               <h3>Suggested updates</h3>
               <TextArea
                 rows={8}
-                value={newGlossary}
+                value={glossaryToAppend}
                 style={{
                   marginBottom: "1em",
                 }}
                 onChange={(e) => {
-                  setNewGlossary(e.target.value);
+                  setGlossaryToAppend(e.target.value);
                 }}
               />
             </div>
@@ -263,16 +276,7 @@ const Feedback = ({
           <div>
             <Button
               onClick={() => {
-                setGlossary(glossary + "\n" + newGlossary);
-                // scroll the glossary to the bottom
-                const glossaryElement = document.querySelector(
-                  "#current-glossary-" + questionId,
-                );
-                setTimeout(() => {
-                  glossaryElement.scrollTop = glossaryElement.scrollHeight;
-                  setNewGlossary("");
-                  updateGlossary();
-                }, 100);
+                updateGlossary(glossary + "\n" + glossaryToAppend);
               }}
               style={{ marginRight: "1em" }}
               loading={postReflectionLoading}
@@ -352,7 +356,7 @@ const Feedback = ({
             loading={postReflectionLoading}
             disabled={postReflectionLoading}
           >
-            Update Instructions
+            Update Golden Queries
           </Button>
 
           {/* close modal button */}
@@ -365,7 +369,7 @@ const Feedback = ({
           >
             Close Modal
           </Button>
-        </>
+        </div>
       )}
     </div>
   );
