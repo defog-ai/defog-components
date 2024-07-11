@@ -27,7 +27,6 @@ export function AskDefogChat({
   maxWidth = "100%",
   buttonText = "Ask Defog",
   debugMode = false,
-  apiKey = null,
   darkMode,
   demoMode = false,
   additionalParams = {},
@@ -154,7 +153,6 @@ export function AskDefogChat({
           question: query,
           previous_context: previousQuestions,
           ...additionalParams,
-          api_key: apiKey,
         }),
       }).then((d) => d.json());
 
@@ -337,7 +335,6 @@ export function AskDefogChat({
       <GlobalStyle />
       <UtilsContext.Provider
         value={{
-          apiKey,
           additionalHeaders,
           additionalParams,
           apiEndpoint,
@@ -402,7 +399,6 @@ export function AskDefogChat({
                       globalLoading={globalLoading}
                       forceReload={forceReload}
                       level0Loading={level0Loading}
-                      apiKey={apiKey}
                       guidedTeaching={guidedTeaching}
                       dev={dev}
                       additionalParams={additionalParams}

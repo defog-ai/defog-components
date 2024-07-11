@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Button, Input, message } from "antd";
 
 const Feedback = ({
-  apiKey,
   dev,
   guidedTeaching,
   questionId,
@@ -60,7 +59,6 @@ const Feedback = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            api_key: apiKey,
             dev: dev,
             ...additionalParams,
           }),
