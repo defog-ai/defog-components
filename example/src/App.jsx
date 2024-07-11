@@ -13,6 +13,7 @@ const App = () => {
         <AskDefogChat
           maxWidth={"100%"}
           maxHeight={"100%"}
+          baseDefogUrl={"https://api.defog.ai"}
           apiEndpoint="https://test-defog-ikcpfh5tva-uc.a.run.app"
           buttonText={"Ask Defog"}
           debugMode={true}
