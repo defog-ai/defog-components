@@ -52,7 +52,7 @@ const Feedback = ({
 
       // first, get the metadata so that we can easily compare it against the reflection
       const metadataResp = await fetch(
-        `${baseDefogUrl}/integration/get_metadata`,
+        `${baseDefogUrl}/integration/get_metadata_raw`,
         {
           method: "POST",
           headers: {
