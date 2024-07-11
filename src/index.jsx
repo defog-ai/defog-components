@@ -41,9 +41,10 @@ export function AskDefogChat({
   dev = false,
   baseDefogUrl = "https://api.defog.ai",
   chartTypeEndpoint = null,
+  defaultQuestion = "",
 }) {
   const { Panel } = Collapse;
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(defaultQuestion);
   const [isActive, setIsActive] = useState(false);
   const [globalLoading, setGlobalLoading] = useState(false);
   // const [questionsAsked, setQuestionsAsked] = useState(test);
