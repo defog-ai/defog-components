@@ -35,14 +35,13 @@ export function AskDefogChat({
   sqlOnly = false,
   // predefinedQuestions = [],
   narrativeMode = false,
-  mode = "http", // can be "websocket" or "http"
   agent = false,
   placeholderText = "",
   clearOnAnswer = false,
   guidedTeaching = false,
   dev = false,
+  baseDefogUrl = "https://api.defog.ai",
   chartTypeEndpoint = null,
-  feedbackEndpoint = null,
 }) {
   const { Panel } = Collapse;
   const [query, setQuery] = useState("");
@@ -143,60 +142,49 @@ export function AskDefogChat({
     }
 
     setGlobalLoading(true);
-
-    if (mode === "websocket") {
-      comms.current.send(
-        JSON.stringify({
+    let queryChatResponse;
+    try {
+      queryChatResponse = await fetch(makeURL(), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...additionalHeaders,
+        },
+        body: JSON.stringify({
           question: query,
           previous_context: previousQuestions,
+          ...additionalParams,
           api_key: apiKey,
         }),
-      );
-    } else if (mode === "http") {
-      let queryChatResponse;
-      try {
-        queryChatResponse = await fetch(makeURL(), {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...additionalHeaders,
-          },
-          body: JSON.stringify({
-            question: query,
-            previous_context: previousQuestions,
-            ...additionalParams,
-            api_key: apiKey,
-          }),
-        }).then((d) => d.json());
+      }).then((d) => d.json());
 
-        if (queryChatResponse.ran_successfully === false) {
-          throw Error(
-            `query didn't run successfully. Here's the response received: ${JSON.stringify(
-              queryChatResponse,
-            )}`,
-          );
-        }
-
-        handleChatResponse(
-          queryChatResponse,
-          query,
-          agent,
-          !agent,
-          parentQuestionId,
+      if (queryChatResponse.ran_successfully === false) {
+        throw Error(
+          `query didn't run successfully. Here's the response received: ${JSON.stringify(
+            queryChatResponse,
+          )}`,
         );
-      } catch (e) {
-        // from agents
-        if (queryChatResponse?.error_message) {
-          message.error(queryChatResponse.error_message);
-        } else {
-          console.log(e);
-          message.error(
-            "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
-          );
-        }
-        setGlobalLoading(false);
-        setLevel0Loading(false);
       }
+
+      handleChatResponse(
+        queryChatResponse,
+        query,
+        agent,
+        !agent,
+        parentQuestionId,
+      );
+    } catch (e) {
+      // from agents
+      if (queryChatResponse?.error_message) {
+        message.error(queryChatResponse.error_message);
+      } else {
+        console.log(e);
+        message.error(
+          "An error occurred on our server. Sorry about that! We have been notified and will fix it ASAP.",
+        );
+      }
+      setGlobalLoading(false);
+      setLevel0Loading(false);
     }
   };
 
@@ -417,6 +405,8 @@ export function AskDefogChat({
                       apiKey={apiKey}
                       guidedTeaching={guidedTeaching}
                       dev={dev}
+                      additionalParams={additionalParams}
+                      baseDefogUrl={baseDefogUrl}
                     />
                   </div>
                   <SearchWrap $loading={globalLoading} theme={theme.config}>
