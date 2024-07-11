@@ -8,7 +8,7 @@ const Feedback = ({
   response,
   setModalVisible,
   additionalParams,
-  defogBaseUrl,
+  baseDefogUrl,
 }) => {
   const [hasReflected, setHasReflected] = useState(false);
   const [reflectionFeedback, setReflectionFeedback] = useState("");
@@ -32,7 +32,7 @@ const Feedback = ({
       );
     }
     // send feedback over to the server
-    await fetch(`${defogBaseUrl}/feedback`, {
+    await fetch(`${baseDefogUrl}/feedback`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +52,7 @@ const Feedback = ({
 
       // first, get the metadata so that we can easily compare it against the reflection
       const metadataResp = await fetch(
-        `${defogBaseUrl}/integration/get_metadata`,
+        `${baseDefogUrl}/integration/get_metadata`,
         {
           method: "POST",
           headers: {
@@ -68,7 +68,7 @@ const Feedback = ({
       setGlossary(glossary);
 
       const reflectResp = await fetch(
-        `${defogBaseUrl}/integration/reflect_on_error`,
+        `${baseDefogUrl}/integration/reflect_on_error`,
         {
           method: "POST",
           headers: {
@@ -151,7 +151,7 @@ const Feedback = ({
     setPostReflectionLoading(true);
 
     // update glossary
-    await fetch(`${defogBaseUrl}/integration/update_glossary`, {
+    await fetch(`${baseDefogUrl}/integration/update_glossary`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -171,7 +171,7 @@ const Feedback = ({
   const updateGoldenQueries = async () => {
     // update golden queries
     setPostReflectionLoading(true);
-    await fetch(`${defogBaseUrl}/integration/update_golden_queries`, {
+    await fetch(`${baseDefogUrl}/integration/update_golden_queries`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -192,7 +192,7 @@ const Feedback = ({
   const updateColumnDescriptions = async () => {
     // update column descriptions
     setPostReflectionLoading(true);
-    await fetch(`${defogBaseUrl}/integration/update_column_descriptions`, {
+    await fetch(`${baseDefogUrl}/integration/update_column_descriptions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
