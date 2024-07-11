@@ -22,7 +22,6 @@ const Answers = ({
   sqlOnly,
   globalLoading,
   handleSubmit,
-  apiKey,
   // level0Loading is used when a question is asked using the main search bar and not a follow up question
   level0Loading,
   guidedTeaching,
@@ -199,7 +198,6 @@ const Answers = ({
               narrativeMode={narrativeMode}
               sqlOnly={sqlOnly}
               level={answer.level}
-              apiKey={apiKey}
               guidedTeaching={guidedTeaching}
               dev={dev}
               xAxisColumns={answer.xAxisColumns}

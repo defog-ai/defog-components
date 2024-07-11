@@ -19,7 +19,6 @@ const DefogDynamicViz = ({
   response,
   query,
   debugMode,
-  apiKey,
   sqlOnly,
   demoMode,
   narrativeMode,
@@ -258,7 +257,6 @@ const DefogDynamicViz = ({
         >
           <FeedbackModalWrap theme={theme.config}>
             <Feedback
-              apiKey={apiKey}
               dev={dev}
               guidedTeaching={guidedTeaching}
               questionId={questionId}

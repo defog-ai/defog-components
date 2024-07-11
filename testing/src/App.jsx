@@ -113,7 +113,6 @@ const App = () => {
           buttonText={"Ask Defog"}
           personality={"sarcastic and aloof"}
           debugMode={true}
-          apiKey={"test"}
           darkMode={false}
           // additionalParams={{ "test": "test" }}
           // additionalHeaders={{ "test": "test" }}
