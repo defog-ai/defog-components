@@ -27,6 +27,8 @@ const DefogDynamicViz = ({
   level,
   guidedTeaching,
   dev,
+  baseDefogUrl,
+  additionalParams,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [modalVisible, setModalVisible] = useState(false);
@@ -42,16 +44,16 @@ const DefogDynamicViz = ({
   );
 
   const uploadPositiveFeedback = async () => {
-    await fetch(`https://api.defog.ai/feedback`, {
+    await fetch(`${baseDefogUrl}/feedback`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        apiKey: apiKey,
         response: response,
         feedback: feedbackType,
         dev: dev,
+        ...additionalParams,
       }),
     });
 
@@ -262,6 +264,8 @@ const DefogDynamicViz = ({
               questionId={questionId}
               response={response}
               setModalVisible={setModalVisible}
+              additionalParams={additionalParams}
+              baseDefogUrl={baseDefogUrl}
             />
           </FeedbackModalWrap>
         </Modal>
