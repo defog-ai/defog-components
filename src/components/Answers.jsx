@@ -27,6 +27,8 @@ const Answers = ({
   level0Loading,
   guidedTeaching,
   dev,
+  baseDefogUrl,
+  additionalParams,
 }) => {
   const { theme } = useContext(ThemeContext);
   const [followUpLoadingId, setFollowUpLoadingId] = useState(null);
@@ -202,6 +204,8 @@ const Answers = ({
               dev={dev}
               xAxisColumns={answer.xAxisColumns}
               yAxisColumns={answer.yAxisColumns}
+              baseDefogUrl={baseDefogUrl}
+              additionalParams={additionalParams}
             />
           ) : (
             <></>

@@ -8,6 +8,8 @@ const Feedback = ({
   questionId,
   response,
   setModalVisible,
+  additionalParams,
+  defogBaseUrl,
 }) => {
   const [hasReflected, setHasReflected] = useState(false);
   const [reflectionFeedback, setReflectionFeedback] = useState("");
@@ -31,17 +33,17 @@ const Feedback = ({
       );
     }
     // send feedback over to the server
-    await fetch(`https://api.defog.ai/feedback`, {
+    await fetch(`${defogBaseUrl}/feedback`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        apiKey: apiKey,
         response: response,
         feedback: "Bad",
         text: feedbackText,
         dev: dev,
+        ...additionalParams,
       }),
     });
 
@@ -50,32 +52,39 @@ const Feedback = ({
       setReflectionLoading(true);
 
       // first, get the metadata so that we can easily compare it against the reflection
-      const metadataResp = await fetch(`https://api.defog.ai/get_metadata`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const metadataResp = await fetch(
+        `${defogBaseUrl}/integration/get_metadata`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            api_key: apiKey,
+            dev: dev,
+            ...additionalParams,
+          }),
         },
-        body: JSON.stringify({
-          api_key: apiKey,
-          dev: dev,
-        }),
-      });
+      );
       const { table_metadata, glossary } = await metadataResp.json();
       setGlossary(glossary);
 
-      const reflectResp = await fetch(`https://api.defog.ai/reflect_on_error`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const reflectResp = await fetch(
+        `${defogBaseUrl}/integration/reflect_on_error`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: response.question,
+            sql_generated: response.generatedSql,
+            error: feedbackText,
+            dev: dev,
+            ...additionalParams,
+          }),
         },
-        body: JSON.stringify({
-          api_key: apiKey,
-          question: response.question,
-          sql_generated: response.generatedSql,
-          error: feedbackText,
-          dev: dev,
-        }),
-      });
+      );
 
       const {
         feedback,
@@ -144,15 +153,15 @@ const Feedback = ({
     setPostReflectionLoading(true);
 
     // update glossary
-    await fetch(`https://api.defog.ai/update_glossary`, {
+    await fetch(`${defogBaseUrl}/integration/update_glossary`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        api_key: apiKey,
         glossary: glossary,
         dev: dev,
+        ...additionalParams,
       }),
     });
     setPostReflectionLoading(false);
@@ -164,16 +173,16 @@ const Feedback = ({
   const updateGoldenQueries = async () => {
     // update golden queries
     setPostReflectionLoading(true);
-    await fetch(`https://api.defog.ai/update_golden_queries`, {
+    await fetch(`${defogBaseUrl}/integration/update_golden_queries`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        api_key: apiKey,
         golden_queries: reflectionRefQueries,
         scrub: false,
         dev: dev,
+        ...additionalParams,
       }),
     });
     setPostReflectionLoading(false);
@@ -185,15 +194,15 @@ const Feedback = ({
   const updateColumnDescriptions = async () => {
     // update column descriptions
     setPostReflectionLoading(true);
-    await fetch(`https://api.defog.ai/update_column_descriptions`, {
+    await fetch(`${defogBaseUrl}/integration/update_column_descriptions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        api_key: apiKey,
         column_descriptions: reflectionColDescriptions,
         dev: dev,
+        ...additionalParams,
       }),
     });
     setPostReflectionLoading(false);
